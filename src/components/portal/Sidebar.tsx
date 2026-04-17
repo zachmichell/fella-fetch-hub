@@ -76,7 +76,7 @@ export default function Sidebar({ orgName }: { orgName?: string | null }) {
                 <li key={item.to}>
                   <NavLink
                     to={item.to}
-                    end
+                    end={item.to === "/dashboard"}
                     className={({ isActive }) =>
                       `flex items-center gap-3 rounded-md px-3 py-2 text-[13px] font-medium transition-colors ${
                         isActive
