@@ -1,14 +1,14 @@
+# Memory: index.md
+
 # Project Memory
 
 ## Core
-fella-fetch — multi-tenant B2B SaaS for pet-care businesses (daycare + boarding v1.0; grooming/training/retail gated). Pilot Saskatoon, SK.
-Visual: Direction B. Page bg #FDF8F4, text #2D1F14, terracotta accent #C4572A, dark sidebar #2D1F14.
-Fonts: Fraunces (headings, 600/700) + DM Sans (body, 400–700). Never use Playfair/Inter.
-Stack: React + Vite + Supabase (Auth, Postgres, Storage). Stripe Connect Standard + Billing planned.
-Money = integer cents. All timestamps UTC, display in `locations.timezone` (default America/Regina). Soft deletes via `deleted_at`.
-RLS uses `public.is_org_member(org_id)` SECURITY DEFINER helper — never query `memberships` directly inside policies.
-Auth: Always set up `onAuthStateChange` before `getSession()`. Defer Supabase calls inside the listener with `setTimeout(..., 0)`.
+Snout — multi-tenant pet-care SaaS (snout.app). Daycare + boarding now; grooming/training/retail gated for later.
+Palette: Boho Rainbow. Page bg #F0E6E0, surface #F8F2EE, border #E0D4CC, text #362C26.
+Accent: Soft Camel #CBA48F (CTAs, links, focus). Brand colors: Cotton, Vanilla, Frost, Mist, Blueberry, Camel.
+Fraunces (serif 600/700) headings, DM Sans (400-700) body. Sidebar dark warm #3C302A.
+Timezone: America/Regina (UTC-6, no DST). All money as integer cents. Soft deletes (deleted_at) only.
 
 ## Memories
-- [Design system](mem://design/tokens) — Direction B tokens: warm cream + terracotta, Fraunces/DM Sans, sidebar palette, status colors
-- [App structure](mem://features/structure) — Tenancy, auth, onboarding, portal layout, routing
+- [Design system](mem://design/tokens) — Boho Rainbow palette, Fraunces+DM Sans, sidebar/table/badge tokens
+- [App structure](mem://features/structure) — Public site, client portal, staff portal, booking wizard

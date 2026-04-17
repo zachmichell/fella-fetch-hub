@@ -3,10 +3,10 @@ import { useAuth } from "@/hooks/useAuth";
 import { greeting } from "@/lib/timezones";
 
 const kpis = [
-  { label: "Checked In", value: "0", tone: "default" },
-  { label: "Expected Today", value: "0", tone: "default" },
-  { label: "Boarding Guests", value: "0", tone: "default" },
-  { label: "Today's Revenue", value: "$0.00", tone: "default" },
+  { label: "Checked In", value: "0", bar: "bg-brand-cotton", bg: "bg-brand-cotton-bg" },
+  { label: "Expected Today", value: "0", bar: "bg-brand-vanilla", bg: "bg-brand-vanilla-bg" },
+  { label: "Boarding Guests", value: "0", bar: "bg-brand-frost", bg: "bg-brand-frost-bg" },
+  { label: "Today's Revenue", value: "$0.00", bar: "bg-brand-mist", bg: "bg-brand-mist-bg" },
 ];
 
 export default function Dashboard() {
@@ -31,7 +31,11 @@ export default function Dashboard() {
         {/* KPI Row */}
         <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {kpis.map((k) => (
-            <div key={k.label} className="rounded-lg border border-border bg-surface p-5 shadow-card">
+            <div
+              key={k.label}
+              className={`relative overflow-hidden rounded-lg border border-border ${k.bg} p-5 shadow-card`}
+            >
+              <span className={`absolute left-0 top-0 h-full w-1 ${k.bar}`} />
               <div className="label-eyebrow">{k.label}</div>
               <div className="mt-2 font-display text-3xl font-bold text-foreground">{k.value}</div>
             </div>
