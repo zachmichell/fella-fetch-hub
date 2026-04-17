@@ -14,16 +14,1681 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      activity_log: {
+        Row: {
+          action: string
+          actor_id: string | null
+          created_at: string
+          entity_id: string | null
+          entity_type: string
+          id: string
+          metadata: Json | null
+          organization_id: string
+        }
+        Insert: {
+          action: string
+          actor_id?: string | null
+          created_at?: string
+          entity_id?: string | null
+          entity_type: string
+          id?: string
+          metadata?: Json | null
+          organization_id: string
+        }
+        Update: {
+          action?: string
+          actor_id?: string | null
+          created_at?: string
+          entity_id?: string | null
+          entity_type?: string
+          id?: string
+          metadata?: Json | null
+          organization_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "activity_log_actor_id_fkey"
+            columns: ["actor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "activity_log_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      documents: {
+        Row: {
+          created_at: string
+          deleted_at: string | null
+          id: string
+          mime_type: string | null
+          name: string
+          organization_id: string
+          owner_id: string | null
+          pet_id: string | null
+          size_bytes: number | null
+          updated_at: string
+          uploaded_by: string | null
+          url: string
+        }
+        Insert: {
+          created_at?: string
+          deleted_at?: string | null
+          id?: string
+          mime_type?: string | null
+          name: string
+          organization_id: string
+          owner_id?: string | null
+          pet_id?: string | null
+          size_bytes?: number | null
+          updated_at?: string
+          uploaded_by?: string | null
+          url: string
+        }
+        Update: {
+          created_at?: string
+          deleted_at?: string | null
+          id?: string
+          mime_type?: string | null
+          name?: string
+          organization_id?: string
+          owner_id?: string | null
+          pet_id?: string | null
+          size_bytes?: number | null
+          updated_at?: string
+          uploaded_by?: string | null
+          url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "documents_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "documents_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "owners"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "documents_pet_id_fkey"
+            columns: ["pet_id"]
+            isOneToOne: false
+            referencedRelation: "pets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "documents_uploaded_by_fkey"
+            columns: ["uploaded_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      emergency_contacts: {
+        Row: {
+          created_at: string
+          deleted_at: string | null
+          id: string
+          name: string
+          organization_id: string
+          owner_id: string
+          phone: string
+          relationship: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          deleted_at?: string | null
+          id?: string
+          name: string
+          organization_id: string
+          owner_id: string
+          phone: string
+          relationship?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          deleted_at?: string | null
+          id?: string
+          name?: string
+          organization_id?: string
+          owner_id?: string
+          phone?: string
+          relationship?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "emergency_contacts_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "emergency_contacts_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "owners"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      invoice_lines: {
+        Row: {
+          created_at: string
+          description: string
+          id: string
+          invoice_id: string
+          line_total_cents: number
+          organization_id: string
+          quantity: number
+          service_id: string | null
+          unit_price_cents: number
+        }
+        Insert: {
+          created_at?: string
+          description: string
+          id?: string
+          invoice_id: string
+          line_total_cents: number
+          organization_id: string
+          quantity?: number
+          service_id?: string | null
+          unit_price_cents: number
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          id?: string
+          invoice_id?: string
+          line_total_cents?: number
+          organization_id?: string
+          quantity?: number
+          service_id?: string | null
+          unit_price_cents?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoice_lines_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoice_lines_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoice_lines_service_id_fkey"
+            columns: ["service_id"]
+            isOneToOne: false
+            referencedRelation: "services"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      invoice_taxes: {
+        Row: {
+          amount_cents: number
+          created_at: string
+          id: string
+          invoice_id: string
+          name: string
+          organization_id: string
+          rate_basis_points: number
+          tax_rule_id: string | null
+        }
+        Insert: {
+          amount_cents: number
+          created_at?: string
+          id?: string
+          invoice_id: string
+          name: string
+          organization_id: string
+          rate_basis_points: number
+          tax_rule_id?: string | null
+        }
+        Update: {
+          amount_cents?: number
+          created_at?: string
+          id?: string
+          invoice_id?: string
+          name?: string
+          organization_id?: string
+          rate_basis_points?: number
+          tax_rule_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoice_taxes_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoice_taxes_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoice_taxes_tax_rule_id_fkey"
+            columns: ["tax_rule_id"]
+            isOneToOne: false
+            referencedRelation: "tax_rules"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      invoices: {
+        Row: {
+          amount_paid_cents: number
+          created_at: string
+          currency: Database["public"]["Enums"]["currency_enum"]
+          deleted_at: string | null
+          due_at: string | null
+          id: string
+          invoice_number: string | null
+          issued_at: string | null
+          notes: string | null
+          organization_id: string
+          owner_id: string
+          paid_at: string | null
+          reservation_id: string | null
+          status: Database["public"]["Enums"]["invoice_status"]
+          subtotal_cents: number
+          tax_cents: number
+          total_cents: number
+          updated_at: string
+        }
+        Insert: {
+          amount_paid_cents?: number
+          created_at?: string
+          currency: Database["public"]["Enums"]["currency_enum"]
+          deleted_at?: string | null
+          due_at?: string | null
+          id?: string
+          invoice_number?: string | null
+          issued_at?: string | null
+          notes?: string | null
+          organization_id: string
+          owner_id: string
+          paid_at?: string | null
+          reservation_id?: string | null
+          status?: Database["public"]["Enums"]["invoice_status"]
+          subtotal_cents?: number
+          tax_cents?: number
+          total_cents?: number
+          updated_at?: string
+        }
+        Update: {
+          amount_paid_cents?: number
+          created_at?: string
+          currency?: Database["public"]["Enums"]["currency_enum"]
+          deleted_at?: string | null
+          due_at?: string | null
+          id?: string
+          invoice_number?: string | null
+          issued_at?: string | null
+          notes?: string | null
+          organization_id?: string
+          owner_id?: string
+          paid_at?: string | null
+          reservation_id?: string | null
+          status?: Database["public"]["Enums"]["invoice_status"]
+          subtotal_cents?: number
+          tax_cents?: number
+          total_cents?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoices_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoices_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "owners"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoices_reservation_id_fkey"
+            columns: ["reservation_id"]
+            isOneToOne: false
+            referencedRelation: "reservations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      kennel_run_assignments: {
+        Row: {
+          assigned_at: string
+          created_at: string
+          id: string
+          kennel_run_id: string
+          organization_id: string
+          pet_id: string
+          removed_at: string | null
+          reservation_id: string | null
+        }
+        Insert: {
+          assigned_at?: string
+          created_at?: string
+          id?: string
+          kennel_run_id: string
+          organization_id: string
+          pet_id: string
+          removed_at?: string | null
+          reservation_id?: string | null
+        }
+        Update: {
+          assigned_at?: string
+          created_at?: string
+          id?: string
+          kennel_run_id?: string
+          organization_id?: string
+          pet_id?: string
+          removed_at?: string | null
+          reservation_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "kennel_run_assignments_kennel_run_id_fkey"
+            columns: ["kennel_run_id"]
+            isOneToOne: false
+            referencedRelation: "kennel_runs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "kennel_run_assignments_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "kennel_run_assignments_pet_id_fkey"
+            columns: ["pet_id"]
+            isOneToOne: false
+            referencedRelation: "pets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "kennel_run_assignments_reservation_id_fkey"
+            columns: ["reservation_id"]
+            isOneToOne: false
+            referencedRelation: "reservations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      kennel_runs: {
+        Row: {
+          active: boolean
+          capacity: number
+          created_at: string
+          deleted_at: string | null
+          id: string
+          location_id: string | null
+          name: string
+          organization_id: string
+          run_type: Database["public"]["Enums"]["kennel_run_type"]
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          capacity?: number
+          created_at?: string
+          deleted_at?: string | null
+          id?: string
+          location_id?: string | null
+          name: string
+          organization_id: string
+          run_type?: Database["public"]["Enums"]["kennel_run_type"]
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          capacity?: number
+          created_at?: string
+          deleted_at?: string | null
+          id?: string
+          location_id?: string | null
+          name?: string
+          organization_id?: string
+          run_type?: Database["public"]["Enums"]["kennel_run_type"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "kennel_runs_location_id_fkey"
+            columns: ["location_id"]
+            isOneToOne: false
+            referencedRelation: "locations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "kennel_runs_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      locations: {
+        Row: {
+          active: boolean
+          city: string | null
+          country: string | null
+          created_at: string
+          deleted_at: string | null
+          email: string | null
+          id: string
+          name: string
+          organization_id: string
+          phone: string | null
+          postal_code: string | null
+          state_province: string | null
+          street_address: string | null
+          timezone: string | null
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          city?: string | null
+          country?: string | null
+          created_at?: string
+          deleted_at?: string | null
+          email?: string | null
+          id?: string
+          name: string
+          organization_id: string
+          phone?: string | null
+          postal_code?: string | null
+          state_province?: string | null
+          street_address?: string | null
+          timezone?: string | null
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          city?: string | null
+          country?: string | null
+          created_at?: string
+          deleted_at?: string | null
+          email?: string | null
+          id?: string
+          name?: string
+          organization_id?: string
+          phone?: string | null
+          postal_code?: string | null
+          state_province?: string | null
+          street_address?: string | null
+          timezone?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "locations_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      memberships: {
+        Row: {
+          active: boolean
+          created_at: string
+          id: string
+          location_ids: string[] | null
+          organization_id: string
+          profile_id: string
+          role: Database["public"]["Enums"]["membership_role"]
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          location_ids?: string[] | null
+          organization_id: string
+          profile_id: string
+          role: Database["public"]["Enums"]["membership_role"]
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          location_ids?: string[] | null
+          organization_id?: string
+          profile_id?: string
+          role?: Database["public"]["Enums"]["membership_role"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "memberships_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "memberships_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      organizations: {
+        Row: {
+          country: Database["public"]["Enums"]["country_enum"]
+          created_at: string
+          currency: Database["public"]["Enums"]["currency_enum"]
+          deleted_at: string | null
+          id: string
+          name: string
+          slug: string
+          timezone: string
+          updated_at: string
+        }
+        Insert: {
+          country: Database["public"]["Enums"]["country_enum"]
+          created_at?: string
+          currency: Database["public"]["Enums"]["currency_enum"]
+          deleted_at?: string | null
+          id?: string
+          name: string
+          slug: string
+          timezone?: string
+          updated_at?: string
+        }
+        Update: {
+          country?: Database["public"]["Enums"]["country_enum"]
+          created_at?: string
+          currency?: Database["public"]["Enums"]["currency_enum"]
+          deleted_at?: string | null
+          id?: string
+          name?: string
+          slug?: string
+          timezone?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      owners: {
+        Row: {
+          city: string | null
+          communication_preference: Database["public"]["Enums"]["communication_pref"]
+          created_at: string
+          deleted_at: string | null
+          email: string | null
+          first_name: string
+          id: string
+          last_name: string
+          notes: string | null
+          organization_id: string
+          phone: string | null
+          postal_code: string | null
+          profile_id: string | null
+          state_province: string | null
+          street_address: string | null
+          updated_at: string
+        }
+        Insert: {
+          city?: string | null
+          communication_preference?: Database["public"]["Enums"]["communication_pref"]
+          created_at?: string
+          deleted_at?: string | null
+          email?: string | null
+          first_name: string
+          id?: string
+          last_name: string
+          notes?: string | null
+          organization_id: string
+          phone?: string | null
+          postal_code?: string | null
+          profile_id?: string | null
+          state_province?: string | null
+          street_address?: string | null
+          updated_at?: string
+        }
+        Update: {
+          city?: string | null
+          communication_preference?: Database["public"]["Enums"]["communication_pref"]
+          created_at?: string
+          deleted_at?: string | null
+          email?: string | null
+          first_name?: string
+          id?: string
+          last_name?: string
+          notes?: string | null
+          organization_id?: string
+          phone?: string | null
+          postal_code?: string | null
+          profile_id?: string | null
+          state_province?: string | null
+          street_address?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "owners_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "owners_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      payments: {
+        Row: {
+          amount_cents: number
+          created_at: string
+          currency: Database["public"]["Enums"]["currency_enum"]
+          deleted_at: string | null
+          id: string
+          invoice_id: string
+          method: Database["public"]["Enums"]["payment_method_enum"]
+          organization_id: string
+          processed_at: string | null
+          status: Database["public"]["Enums"]["payment_status"]
+          stripe_payment_intent_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          amount_cents: number
+          created_at?: string
+          currency: Database["public"]["Enums"]["currency_enum"]
+          deleted_at?: string | null
+          id?: string
+          invoice_id: string
+          method: Database["public"]["Enums"]["payment_method_enum"]
+          organization_id: string
+          processed_at?: string | null
+          status?: Database["public"]["Enums"]["payment_status"]
+          stripe_payment_intent_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          amount_cents?: number
+          created_at?: string
+          currency?: Database["public"]["Enums"]["currency_enum"]
+          deleted_at?: string | null
+          id?: string
+          invoice_id?: string
+          method?: Database["public"]["Enums"]["payment_method_enum"]
+          organization_id?: string
+          processed_at?: string | null
+          status?: Database["public"]["Enums"]["payment_status"]
+          stripe_payment_intent_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payments_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payments_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pet_owners: {
+        Row: {
+          created_at: string
+          id: string
+          organization_id: string
+          owner_id: string
+          pet_id: string
+          relationship: Database["public"]["Enums"]["pet_owner_relationship"]
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          organization_id: string
+          owner_id: string
+          pet_id: string
+          relationship?: Database["public"]["Enums"]["pet_owner_relationship"]
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          organization_id?: string
+          owner_id?: string
+          pet_id?: string
+          relationship?: Database["public"]["Enums"]["pet_owner_relationship"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pet_owners_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pet_owners_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "owners"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pet_owners_pet_id_fkey"
+            columns: ["pet_id"]
+            isOneToOne: false
+            referencedRelation: "pets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pets: {
+        Row: {
+          allergies: string | null
+          behavioral_notes: string | null
+          breed: string | null
+          color: string | null
+          created_at: string
+          date_of_birth: string | null
+          deleted_at: string | null
+          feeding_notes: string | null
+          id: string
+          intake_status: Database["public"]["Enums"]["intake_status_enum"]
+          medication_notes: string | null
+          microchip_id: string | null
+          name: string
+          organization_id: string
+          photo_url: string | null
+          sex: Database["public"]["Enums"]["sex_enum"]
+          spayed_neutered: boolean | null
+          species: Database["public"]["Enums"]["species_enum"]
+          updated_at: string
+          weight_kg: number | null
+        }
+        Insert: {
+          allergies?: string | null
+          behavioral_notes?: string | null
+          breed?: string | null
+          color?: string | null
+          created_at?: string
+          date_of_birth?: string | null
+          deleted_at?: string | null
+          feeding_notes?: string | null
+          id?: string
+          intake_status?: Database["public"]["Enums"]["intake_status_enum"]
+          medication_notes?: string | null
+          microchip_id?: string | null
+          name: string
+          organization_id: string
+          photo_url?: string | null
+          sex?: Database["public"]["Enums"]["sex_enum"]
+          spayed_neutered?: boolean | null
+          species?: Database["public"]["Enums"]["species_enum"]
+          updated_at?: string
+          weight_kg?: number | null
+        }
+        Update: {
+          allergies?: string | null
+          behavioral_notes?: string | null
+          breed?: string | null
+          color?: string | null
+          created_at?: string
+          date_of_birth?: string | null
+          deleted_at?: string | null
+          feeding_notes?: string | null
+          id?: string
+          intake_status?: Database["public"]["Enums"]["intake_status_enum"]
+          medication_notes?: string | null
+          microchip_id?: string | null
+          name?: string
+          organization_id?: string
+          photo_url?: string | null
+          sex?: Database["public"]["Enums"]["sex_enum"]
+          spayed_neutered?: boolean | null
+          species?: Database["public"]["Enums"]["species_enum"]
+          updated_at?: string
+          weight_kg?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pets_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      playgroup_assignments: {
+        Row: {
+          assigned_at: string
+          created_at: string
+          id: string
+          organization_id: string
+          pet_id: string
+          playgroup_id: string
+          removed_at: string | null
+          reservation_id: string | null
+        }
+        Insert: {
+          assigned_at?: string
+          created_at?: string
+          id?: string
+          organization_id: string
+          pet_id: string
+          playgroup_id: string
+          removed_at?: string | null
+          reservation_id?: string | null
+        }
+        Update: {
+          assigned_at?: string
+          created_at?: string
+          id?: string
+          organization_id?: string
+          pet_id?: string
+          playgroup_id?: string
+          removed_at?: string | null
+          reservation_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "playgroup_assignments_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "playgroup_assignments_pet_id_fkey"
+            columns: ["pet_id"]
+            isOneToOne: false
+            referencedRelation: "pets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "playgroup_assignments_playgroup_id_fkey"
+            columns: ["playgroup_id"]
+            isOneToOne: false
+            referencedRelation: "playgroups"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "playgroup_assignments_reservation_id_fkey"
+            columns: ["reservation_id"]
+            isOneToOne: false
+            referencedRelation: "reservations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      playgroups: {
+        Row: {
+          active: boolean
+          capacity: number | null
+          created_at: string
+          deleted_at: string | null
+          description: string | null
+          id: string
+          location_id: string | null
+          name: string
+          organization_id: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          capacity?: number | null
+          created_at?: string
+          deleted_at?: string | null
+          description?: string | null
+          id?: string
+          location_id?: string | null
+          name: string
+          organization_id: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          capacity?: number | null
+          created_at?: string
+          deleted_at?: string | null
+          description?: string | null
+          id?: string
+          location_id?: string | null
+          name?: string
+          organization_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "playgroups_location_id_fkey"
+            columns: ["location_id"]
+            isOneToOne: false
+            referencedRelation: "locations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "playgroups_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          email: string | null
+          first_name: string | null
+          id: string
+          last_name: string | null
+          phone: string | null
+          updated_at: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          email?: string | null
+          first_name?: string | null
+          id: string
+          last_name?: string | null
+          phone?: string | null
+          updated_at?: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          email?: string | null
+          first_name?: string | null
+          id?: string
+          last_name?: string | null
+          phone?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      reservation_pets: {
+        Row: {
+          created_at: string
+          id: string
+          organization_id: string
+          pet_id: string
+          reservation_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          organization_id: string
+          pet_id: string
+          reservation_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          organization_id?: string
+          pet_id?: string
+          reservation_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reservation_pets_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reservation_pets_pet_id_fkey"
+            columns: ["pet_id"]
+            isOneToOne: false
+            referencedRelation: "pets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reservation_pets_reservation_id_fkey"
+            columns: ["reservation_id"]
+            isOneToOne: false
+            referencedRelation: "reservations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      reservations: {
+        Row: {
+          checked_in_at: string | null
+          checked_out_at: string | null
+          created_at: string
+          created_by: string | null
+          deleted_at: string | null
+          end_at: string
+          id: string
+          location_id: string | null
+          notes: string | null
+          organization_id: string
+          primary_owner_id: string | null
+          service_id: string | null
+          source: Database["public"]["Enums"]["reservation_source"]
+          start_at: string
+          status: Database["public"]["Enums"]["reservation_status"]
+          updated_at: string
+        }
+        Insert: {
+          checked_in_at?: string | null
+          checked_out_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          end_at: string
+          id?: string
+          location_id?: string | null
+          notes?: string | null
+          organization_id: string
+          primary_owner_id?: string | null
+          service_id?: string | null
+          source?: Database["public"]["Enums"]["reservation_source"]
+          start_at: string
+          status?: Database["public"]["Enums"]["reservation_status"]
+          updated_at?: string
+        }
+        Update: {
+          checked_in_at?: string | null
+          checked_out_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          end_at?: string
+          id?: string
+          location_id?: string | null
+          notes?: string | null
+          organization_id?: string
+          primary_owner_id?: string | null
+          service_id?: string | null
+          source?: Database["public"]["Enums"]["reservation_source"]
+          start_at?: string
+          status?: Database["public"]["Enums"]["reservation_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reservations_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reservations_location_id_fkey"
+            columns: ["location_id"]
+            isOneToOne: false
+            referencedRelation: "locations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reservations_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reservations_primary_owner_id_fkey"
+            columns: ["primary_owner_id"]
+            isOneToOne: false
+            referencedRelation: "owners"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reservations_service_id_fkey"
+            columns: ["service_id"]
+            isOneToOne: false
+            referencedRelation: "services"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      services: {
+        Row: {
+          active: boolean
+          base_price_cents: number
+          created_at: string
+          deleted_at: string | null
+          description: string | null
+          duration_type: Database["public"]["Enums"]["duration_type_enum"]
+          id: string
+          location_id: string | null
+          module: Database["public"]["Enums"]["module_enum"]
+          name: string
+          organization_id: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          base_price_cents?: number
+          created_at?: string
+          deleted_at?: string | null
+          description?: string | null
+          duration_type: Database["public"]["Enums"]["duration_type_enum"]
+          id?: string
+          location_id?: string | null
+          module: Database["public"]["Enums"]["module_enum"]
+          name: string
+          organization_id: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          base_price_cents?: number
+          created_at?: string
+          deleted_at?: string | null
+          description?: string | null
+          duration_type?: Database["public"]["Enums"]["duration_type_enum"]
+          id?: string
+          location_id?: string | null
+          module?: Database["public"]["Enums"]["module_enum"]
+          name?: string
+          organization_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "services_location_id_fkey"
+            columns: ["location_id"]
+            isOneToOne: false
+            referencedRelation: "locations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "services_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      stripe_connect_accounts: {
+        Row: {
+          account_type: Database["public"]["Enums"]["connect_account_type"]
+          charges_enabled: boolean
+          created_at: string
+          deleted_at: string | null
+          details_submitted: boolean
+          id: string
+          organization_id: string
+          payouts_enabled: boolean
+          stripe_account_id: string
+          updated_at: string
+        }
+        Insert: {
+          account_type?: Database["public"]["Enums"]["connect_account_type"]
+          charges_enabled?: boolean
+          created_at?: string
+          deleted_at?: string | null
+          details_submitted?: boolean
+          id?: string
+          organization_id: string
+          payouts_enabled?: boolean
+          stripe_account_id: string
+          updated_at?: string
+        }
+        Update: {
+          account_type?: Database["public"]["Enums"]["connect_account_type"]
+          charges_enabled?: boolean
+          created_at?: string
+          deleted_at?: string | null
+          details_submitted?: boolean
+          id?: string
+          organization_id?: string
+          payouts_enabled?: boolean
+          stripe_account_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stripe_connect_accounts_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      stripe_processed_events: {
+        Row: {
+          event_type: string
+          id: string
+          processed_at: string
+          stripe_event_id: string
+        }
+        Insert: {
+          event_type: string
+          id?: string
+          processed_at?: string
+          stripe_event_id: string
+        }
+        Update: {
+          event_type?: string
+          id?: string
+          processed_at?: string
+          stripe_event_id?: string
+        }
+        Relationships: []
+      }
+      subscription_modules: {
+        Row: {
+          created_at: string
+          deleted_at: string | null
+          enabled: boolean
+          id: string
+          location_id: string | null
+          module: Database["public"]["Enums"]["module_enum"]
+          organization_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          deleted_at?: string | null
+          enabled?: boolean
+          id?: string
+          location_id?: string | null
+          module: Database["public"]["Enums"]["module_enum"]
+          organization_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          deleted_at?: string | null
+          enabled?: boolean
+          id?: string
+          location_id?: string | null
+          module?: Database["public"]["Enums"]["module_enum"]
+          organization_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subscription_modules_location_id_fkey"
+            columns: ["location_id"]
+            isOneToOne: false
+            referencedRelation: "locations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "subscription_modules_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      subscriptions: {
+        Row: {
+          cancel_at_period_end: boolean
+          created_at: string
+          current_period_end: string | null
+          current_period_start: string | null
+          deleted_at: string | null
+          id: string
+          organization_id: string
+          status: Database["public"]["Enums"]["subscription_status"]
+          stripe_customer_id: string | null
+          stripe_subscription_id: string | null
+          trial_ends_at: string | null
+          updated_at: string
+        }
+        Insert: {
+          cancel_at_period_end?: boolean
+          created_at?: string
+          current_period_end?: string | null
+          current_period_start?: string | null
+          deleted_at?: string | null
+          id?: string
+          organization_id: string
+          status?: Database["public"]["Enums"]["subscription_status"]
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          trial_ends_at?: string | null
+          updated_at?: string
+        }
+        Update: {
+          cancel_at_period_end?: boolean
+          created_at?: string
+          current_period_end?: string | null
+          current_period_start?: string | null
+          deleted_at?: string | null
+          id?: string
+          organization_id?: string
+          status?: Database["public"]["Enums"]["subscription_status"]
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          trial_ends_at?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subscriptions_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tax_rules: {
+        Row: {
+          active: boolean
+          created_at: string
+          deleted_at: string | null
+          id: string
+          location_id: string | null
+          name: string
+          organization_id: string
+          rate_basis_points: number
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          deleted_at?: string | null
+          id?: string
+          location_id?: string | null
+          name: string
+          organization_id: string
+          rate_basis_points: number
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          deleted_at?: string | null
+          id?: string
+          location_id?: string | null
+          name?: string
+          organization_id?: string
+          rate_basis_points?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tax_rules_location_id_fkey"
+            columns: ["location_id"]
+            isOneToOne: false
+            referencedRelation: "locations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tax_rules_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      vaccinations: {
+        Row: {
+          administered_on: string | null
+          created_at: string
+          deleted_at: string | null
+          document_url: string | null
+          expires_on: string | null
+          id: string
+          notes: string | null
+          organization_id: string
+          pet_id: string
+          updated_at: string
+          vaccine_type: Database["public"]["Enums"]["vaccine_type_enum"]
+          verified: boolean
+        }
+        Insert: {
+          administered_on?: string | null
+          created_at?: string
+          deleted_at?: string | null
+          document_url?: string | null
+          expires_on?: string | null
+          id?: string
+          notes?: string | null
+          organization_id: string
+          pet_id: string
+          updated_at?: string
+          vaccine_type: Database["public"]["Enums"]["vaccine_type_enum"]
+          verified?: boolean
+        }
+        Update: {
+          administered_on?: string | null
+          created_at?: string
+          deleted_at?: string | null
+          document_url?: string | null
+          expires_on?: string | null
+          id?: string
+          notes?: string | null
+          organization_id?: string
+          pet_id?: string
+          updated_at?: string
+          vaccine_type?: Database["public"]["Enums"]["vaccine_type_enum"]
+          verified?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vaccinations_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vaccinations_pet_id_fkey"
+            columns: ["pet_id"]
+            isOneToOne: false
+            referencedRelation: "pets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      waiver_signatures: {
+        Row: {
+          created_at: string
+          id: string
+          ip_address: string | null
+          organization_id: string
+          owner_id: string
+          signature_data: string | null
+          signed_at: string
+          waiver_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          ip_address?: string | null
+          organization_id: string
+          owner_id: string
+          signature_data?: string | null
+          signed_at?: string
+          waiver_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          ip_address?: string | null
+          organization_id?: string
+          owner_id?: string
+          signature_data?: string | null
+          signed_at?: string
+          waiver_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "waiver_signatures_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "waiver_signatures_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "owners"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "waiver_signatures_waiver_id_fkey"
+            columns: ["waiver_id"]
+            isOneToOne: false
+            referencedRelation: "waivers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      waivers: {
+        Row: {
+          active: boolean
+          body: string
+          created_at: string
+          deleted_at: string | null
+          id: string
+          organization_id: string
+          title: string
+          updated_at: string
+          version: number
+        }
+        Insert: {
+          active?: boolean
+          body: string
+          created_at?: string
+          deleted_at?: string | null
+          id?: string
+          organization_id: string
+          title: string
+          updated_at?: string
+          version?: number
+        }
+        Update: {
+          active?: boolean
+          body?: string
+          created_at?: string
+          deleted_at?: string | null
+          id?: string
+          organization_id?: string
+          title?: string
+          updated_at?: string
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "waivers_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      current_org_id: { Args: never; Returns: string }
+      is_org_member: { Args: { _org_id: string }; Returns: boolean }
     }
     Enums: {
-      [_ in never]: never
+      communication_pref: "email" | "sms" | "both"
+      connect_account_type: "standard" | "express" | "custom"
+      country_enum: "CA" | "US"
+      currency_enum: "CAD" | "USD"
+      duration_type_enum:
+        | "hourly"
+        | "half_day"
+        | "full_day"
+        | "overnight"
+        | "multi_night"
+      intake_status_enum:
+        | "pending_review"
+        | "approved"
+        | "restricted"
+        | "banned"
+      invoice_status: "draft" | "sent" | "paid" | "partial" | "overdue" | "void"
+      kennel_run_type: "standard" | "large" | "suite" | "indoor" | "outdoor"
+      membership_role: "owner" | "admin" | "manager" | "staff" | "customer"
+      module_enum: "daycare" | "boarding" | "grooming" | "training" | "retail"
+      payment_method_enum: "card" | "ach" | "in_person"
+      payment_status: "pending" | "succeeded" | "failed" | "refunded"
+      pet_owner_relationship: "primary" | "secondary" | "emergency_only"
+      reservation_source: "staff_created" | "owner_self_serve"
+      reservation_status:
+        | "requested"
+        | "confirmed"
+        | "checked_in"
+        | "checked_out"
+        | "cancelled"
+        | "no_show"
+      sex_enum: "M" | "F" | "U"
+      species_enum: "dog" | "cat" | "other"
+      subscription_status:
+        | "trialing"
+        | "active"
+        | "past_due"
+        | "cancelled"
+        | "paused"
+      vaccine_type_enum:
+        | "rabies"
+        | "dapp"
+        | "dhpp"
+        | "bordetella"
+        | "lepto"
+        | "lyme"
+        | "influenza"
+        | "fvrcp"
+        | "other"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +1815,60 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      communication_pref: ["email", "sms", "both"],
+      connect_account_type: ["standard", "express", "custom"],
+      country_enum: ["CA", "US"],
+      currency_enum: ["CAD", "USD"],
+      duration_type_enum: [
+        "hourly",
+        "half_day",
+        "full_day",
+        "overnight",
+        "multi_night",
+      ],
+      intake_status_enum: [
+        "pending_review",
+        "approved",
+        "restricted",
+        "banned",
+      ],
+      invoice_status: ["draft", "sent", "paid", "partial", "overdue", "void"],
+      kennel_run_type: ["standard", "large", "suite", "indoor", "outdoor"],
+      membership_role: ["owner", "admin", "manager", "staff", "customer"],
+      module_enum: ["daycare", "boarding", "grooming", "training", "retail"],
+      payment_method_enum: ["card", "ach", "in_person"],
+      payment_status: ["pending", "succeeded", "failed", "refunded"],
+      pet_owner_relationship: ["primary", "secondary", "emergency_only"],
+      reservation_source: ["staff_created", "owner_self_serve"],
+      reservation_status: [
+        "requested",
+        "confirmed",
+        "checked_in",
+        "checked_out",
+        "cancelled",
+        "no_show",
+      ],
+      sex_enum: ["M", "F", "U"],
+      species_enum: ["dog", "cat", "other"],
+      subscription_status: [
+        "trialing",
+        "active",
+        "past_due",
+        "cancelled",
+        "paused",
+      ],
+      vaccine_type_enum: [
+        "rabies",
+        "dapp",
+        "dhpp",
+        "bordetella",
+        "lepto",
+        "lyme",
+        "influenza",
+        "fvrcp",
+        "other",
+      ],
+    },
   },
 } as const
