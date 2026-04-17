@@ -840,6 +840,7 @@ export type Database = {
           feeding_notes: string | null
           id: string
           intake_status: Database["public"]["Enums"]["intake_status_enum"]
+          markings: string | null
           medication_notes: string | null
           microchip_id: string | null
           name: string
@@ -848,6 +849,7 @@ export type Database = {
           sex: Database["public"]["Enums"]["sex_enum"]
           spayed_neutered: boolean | null
           species: Database["public"]["Enums"]["species_enum"]
+          temperament_tags: string[]
           updated_at: string
           weight_kg: number | null
         }
@@ -862,6 +864,7 @@ export type Database = {
           feeding_notes?: string | null
           id?: string
           intake_status?: Database["public"]["Enums"]["intake_status_enum"]
+          markings?: string | null
           medication_notes?: string | null
           microchip_id?: string | null
           name: string
@@ -870,6 +873,7 @@ export type Database = {
           sex?: Database["public"]["Enums"]["sex_enum"]
           spayed_neutered?: boolean | null
           species?: Database["public"]["Enums"]["species_enum"]
+          temperament_tags?: string[]
           updated_at?: string
           weight_kg?: number | null
         }
@@ -884,6 +888,7 @@ export type Database = {
           feeding_notes?: string | null
           id?: string
           intake_status?: Database["public"]["Enums"]["intake_status_enum"]
+          markings?: string | null
           medication_notes?: string | null
           microchip_id?: string | null
           name?: string
@@ -892,6 +897,7 @@ export type Database = {
           sex?: Database["public"]["Enums"]["sex_enum"]
           spayed_neutered?: boolean | null
           species?: Database["public"]["Enums"]["species_enum"]
+          temperament_tags?: string[]
           updated_at?: string
           weight_kg?: number | null
         }
@@ -1487,6 +1493,10 @@ export type Database = {
           updated_at: string
           vaccine_type: Database["public"]["Enums"]["vaccine_type_enum"]
           verified: boolean
+          verified_at: string | null
+          verified_by_user_id: string | null
+          vet_clinic: string | null
+          vet_name: string | null
         }
         Insert: {
           administered_on?: string | null
@@ -1501,6 +1511,10 @@ export type Database = {
           updated_at?: string
           vaccine_type: Database["public"]["Enums"]["vaccine_type_enum"]
           verified?: boolean
+          verified_at?: string | null
+          verified_by_user_id?: string | null
+          vet_clinic?: string | null
+          vet_name?: string | null
         }
         Update: {
           administered_on?: string | null
@@ -1515,6 +1529,10 @@ export type Database = {
           updated_at?: string
           vaccine_type?: Database["public"]["Enums"]["vaccine_type_enum"]
           verified?: boolean
+          verified_at?: string | null
+          verified_by_user_id?: string | null
+          vet_clinic?: string | null
+          vet_name?: string | null
         }
         Relationships: [
           {
