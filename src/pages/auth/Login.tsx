@@ -41,7 +41,7 @@ export default function Login() {
         <div className="mb-8 flex justify-center"><Logo /></div>
         <div className="rounded-lg border border-border bg-surface p-8 shadow-card">
           <h1 className="font-display text-2xl">Welcome back</h1>
-          <p className="mt-1 text-sm text-text-secondary">Sign in to your fella-fetch account.</p>
+          <p className="mt-1 text-sm text-text-secondary">Sign in to your Snout account.</p>
 
           <form onSubmit={handlePassword} className="mt-6 space-y-4">
             <div className="space-y-1.5">

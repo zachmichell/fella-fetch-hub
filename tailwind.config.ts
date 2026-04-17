@@ -80,6 +80,18 @@ export default {
         },
         "text-secondary": "hsl(var(--text-secondary))",
         "text-tertiary": "hsl(var(--text-tertiary))",
+        brand: {
+          cotton: "hsl(var(--brand-cotton))",
+          "cotton-bg": "hsl(var(--brand-cotton-bg))",
+          vanilla: "hsl(var(--brand-vanilla))",
+          "vanilla-bg": "hsl(var(--brand-vanilla-bg))",
+          frost: "hsl(var(--brand-frost))",
+          "frost-bg": "hsl(var(--brand-frost-bg))",
+          mist: "hsl(var(--brand-mist))",
+          "mist-bg": "hsl(var(--brand-mist-bg))",
+          blueberry: "hsl(var(--brand-blueberry))",
+          camel: "hsl(var(--brand-camel))",
+        },
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
           foreground: "hsl(var(--sidebar-foreground))",

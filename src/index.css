@@ -6,60 +6,60 @@
 
 @layer base {
   :root {
-    /* Surfaces — warm cream system */
-    --background: 28 50% 97%;          /* #FDF8F4 page */
-    --foreground: 24 36% 13%;          /* #2D1F14 primary text */
+    /* Surfaces — Boho Rainbow */
+    --background: 22 30% 91%;          /* #F0E6E0 page */
+    --foreground: 24 18% 18%;          /* #362C26 primary text */
 
-    --surface: 0 0% 100%;              /* #FFFFFF card */
-    --surface-foreground: 24 36% 13%;
+    --surface: 24 30% 95%;             /* #F8F2EE card */
+    --surface-foreground: 24 18% 18%;
 
-    --card: 0 0% 100%;
-    --card-foreground: 24 36% 13%;
+    --card: 24 30% 95%;                /* #F8F2EE */
+    --card-foreground: 24 18% 18%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 24 36% 13%;
+    --popover: 24 30% 95%;
+    --popover-foreground: 24 18% 18%;
 
     /* Text */
-    --text-primary: 24 36% 13%;        /* #2D1F14 */
-    --text-secondary: 24 17% 36%;      /* #6B5B4E */
-    --text-tertiary: 30 15% 60%;       /* #A99888 */
+    --text-primary: 24 18% 18%;        /* #362C26 */
+    --text-secondary: 22 13% 38%;      /* #6E5E54 */
+    --text-tertiary: 24 12% 56%;       /* #9E8E82 */
 
     /* Borders */
-    --border: 28 35% 87%;              /* #E8DDD4 */
-    --border-subtle: 30 38% 92%;       /* #F2EBE4 */
-    --input: 28 35% 87%;
-    --ring: 18 65% 47%;
+    --border: 24 24% 84%;              /* #E0D4CC */
+    --border-subtle: 22 27% 88%;       /* #E8DCD6 */
+    --input: 24 24% 84%;
+    --ring: 22 33% 67%;                /* Soft Camel */
 
-    /* Accent — terracotta */
-    --primary: 18 65% 47%;             /* #C4572A */
-    --primary-foreground: 0 0% 100%;
-    --primary-light: 18 87% 95%;       /* #FEF0EB */
-    --primary-hover: 18 71% 39%;       /* #A84821 */
+    /* Accent — Soft Camel */
+    --primary: 22 33% 67%;             /* #CBA48F */
+    --primary-foreground: 24 26% 13%;  /* #2A1E16 dark text on camel */
+    --primary-light: 24 41% 91%;       /* #F2E6DE */
+    --primary-hover: 22 28% 60%;       /* #B8927C */
 
-    --secondary: 30 38% 92%;
-    --secondary-foreground: 24 36% 13%;
+    --secondary: 22 27% 88%;
+    --secondary-foreground: 24 18% 18%;
 
-    --muted: 30 38% 94%;
-    --muted-foreground: 24 17% 36%;
+    --muted: 22 27% 88%;
+    --muted-foreground: 22 13% 38%;
 
-    --accent: 18 87% 95%;
-    --accent-foreground: 18 65% 47%;
+    --accent: 24 41% 91%;
+    --accent-foreground: 22 33% 50%;
 
     --destructive: 2 64% 47%;          /* #C4302B */
     --destructive-foreground: 0 0% 100%;
     --destructive-light: 4 80% 96%;    /* #FEF0EF */
 
-    --success: 145 47% 33%;            /* #2D7A4F */
+    --success: 109 17% 49%;            /* #6E9468 */
     --success-foreground: 0 0% 100%;
-    --success-light: 138 71% 96%;      /* #EEFBF3 */
+    --success-light: 109 18% 85%;      /* #D4E0D2 */
 
-    --warning: 43 88% 38%;             /* #B8860B */
+    --warning: 43 88% 38%;              /* #B8860B */
     --warning-foreground: 0 0% 100%;
-    --warning-light: 45 100% 95%;      /* #FFF8E7 */
+    --warning-light: 45 100% 95%;       /* #FFF8E7 */
 
-    --teal: 169 66% 30%;               /* #1A7F6D */
+    --teal: 188 14% 57%;               /* #7E9EA2 — Frosted Glass family */
     --teal-foreground: 0 0% 100%;
-    --teal-light: 159 51% 95%;         /* #EFFAF7 */
+    --teal-light: 195 13% 86%;         /* #D6DEE0 */
 
     --plum: 299 32% 37%;               /* #7B3F7D */
     --plum-foreground: 0 0% 100%;
@@ -68,39 +68,51 @@
     --radius: 0.625rem;                /* 10px */
 
     /* Sidebar — dark warm */
-    --sidebar-background: 24 36% 13%;          /* #2D1F14 */
-    --sidebar-foreground: 30 25% 77%;          /* #D4C4B6 */
-    --sidebar-primary: 18 65% 47%;             /* terracotta */
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 24 30% 18%;
-    --sidebar-accent-foreground: 0 0% 100%;
-    --sidebar-border: 24 25% 22%;
-    --sidebar-ring: 18 65% 47%;
+    --sidebar-background: 22 17% 20%;          /* #3C302A */
+    --sidebar-foreground: 26 22% 78%;          /* #D4C4B8 */
+    --sidebar-primary: 22 33% 67%;             /* Soft Camel */
+    --sidebar-primary-foreground: 24 26% 13%;  /* #2A1E16 */
+    --sidebar-accent: 22 17% 25%;
+    --sidebar-accent-foreground: 26 22% 90%;
+    --sidebar-border: 22 17% 28%;
+    --sidebar-ring: 22 33% 67%;
 
-    --shadow-card: 0 1px 3px hsl(24 36% 13% / 0.06);
-    --shadow-elevated: 0 4px 16px hsl(24 36% 13% / 0.08);
+    /* Brand palette — six Boho Rainbow colors for KPI cards & accents */
+    --brand-cotton: 14 53% 87%;        /* #F2D3C9 */
+    --brand-cotton-bg: 22 47% 92%;     /* #F4E6E0 */
+    --brand-vanilla: 30 60% 83%;       /* #EED4BB */
+    --brand-vanilla-bg: 30 47% 90%;    /* #F0E6DA */
+    --brand-frost: 187 13% 81%;        /* #CBD5D6 */
+    --brand-frost-bg: 180 14% 90%;     /* #E4EAEA */
+    --brand-mist: 102 11% 79%;         /* #C7D0C5 */
+    --brand-mist-bg: 96 14% 90%;       /* #E4EAE2 */
+    --brand-blueberry: 8 23% 75%;      /* #CDB5B1 */
+    --brand-camel: 22 33% 67%;         /* #CBA48F */
+
+    --shadow-card: 0 1px 3px hsl(24 18% 18% / 0.06);
+    --shadow-elevated: 0 4px 16px hsl(24 18% 18% / 0.08);
   }
 
   .dark {
-    --background: 24 36% 8%;
-    --foreground: 30 25% 90%;
-    --card: 24 36% 12%;
-    --card-foreground: 30 25% 90%;
-    --popover: 24 36% 12%;
-    --popover-foreground: 30 25% 90%;
-    --primary: 18 65% 55%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 24 20% 18%;
-    --secondary-foreground: 30 25% 90%;
-    --muted: 24 20% 18%;
-    --muted-foreground: 30 15% 65%;
-    --accent: 24 20% 18%;
-    --accent-foreground: 30 25% 90%;
+    --background: 24 18% 10%;
+    --foreground: 26 22% 88%;
+    --card: 24 18% 14%;
+    --card-foreground: 26 22% 88%;
+    --popover: 24 18% 14%;
+    --popover-foreground: 26 22% 88%;
+    --primary: 22 33% 67%;
+    --primary-foreground: 24 26% 13%;
+    --secondary: 24 14% 20%;
+    --secondary-foreground: 26 22% 88%;
+    --muted: 24 14% 20%;
+    --muted-foreground: 26 14% 65%;
+    --accent: 24 14% 20%;
+    --accent-foreground: 26 22% 88%;
     --destructive: 2 64% 50%;
     --destructive-foreground: 0 0% 100%;
-    --border: 24 20% 22%;
-    --input: 24 20% 22%;
-    --ring: 18 65% 55%;
+    --border: 24 14% 24%;
+    --input: 24 14% 24%;
+    --ring: 22 33% 67%;
   }
 }
 

@@ -188,7 +188,7 @@ export default function Onboarding() {
                     onChange={(e) => { setSlug(slugify(e.target.value)); setSlugTouched(true); }}
                     className="border-0 focus-visible:ring-0"
                   />
-                  <span className="px-3 text-sm text-text-tertiary border-l border-input">.fella-fetch.app</span>
+                  <span className="px-3 text-sm text-text-tertiary border-l border-input">.snout.app</span>
                 </div>
               </div>
 
@@ -275,7 +275,7 @@ export default function Onboarding() {
               <div>
                 <h1 className="font-display text-2xl">You're all set</h1>
                 <p className="mt-2 text-sm text-text-secondary">
-                  Your 30-day free trial of fella-fetch has started. No credit card required.
+                  Your 30-day free trial of Snout has started. No credit card required.
                 </p>
               </div>
               <Button className="w-full" onClick={() => navigate("/dashboard")}>Go to dashboard</Button>
