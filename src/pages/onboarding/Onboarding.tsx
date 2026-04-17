@@ -70,11 +70,9 @@ export default function Onboarding() {
       return toast.error(orgErr?.message ?? "Failed to create organization");
     }
 
-    const { error: memErr } = await supabase.from("memberships").insert({
-      profile_id: user.id,
-      organization_id: org.id,
-      role: "owner",
-      active: true,
+    const { error: memErr } = await supabase.rpc("create_membership", {
+      _org_id: org.id,
+      _role: "owner",
     });
     if (memErr) {
       setSubmitting(false);
