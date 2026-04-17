@@ -10,6 +10,7 @@ import {
   DoorClosed,
   Settings,
   LogOut,
+  Wrench,
 } from "lucide-react";
 import Logo from "./Logo";
 import { useAuth } from "@/hooks/useAuth";
@@ -27,6 +28,7 @@ const sections = [
     items: [
       { to: "/pets", icon: PawPrint, label: "Pets" },
       { to: "/owners", icon: Users, label: "Owners" },
+      { to: "/services", icon: Wrench, label: "Services" },
       { to: "/reservations", icon: ClipboardList, label: "Reservations" },
       { to: "/invoices", icon: Receipt, label: "Invoices" },
     ],
