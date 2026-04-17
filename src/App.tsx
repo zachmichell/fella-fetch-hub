@@ -18,6 +18,13 @@ import OwnerDetail from "./pages/portal/owners/OwnerDetail";
 import PetsList from "./pages/portal/pets/PetsList";
 import PetForm from "./pages/portal/pets/PetForm";
 import PetDetail from "./pages/portal/pets/PetDetail";
+import ServicesList from "./pages/portal/services/ServicesList";
+import ServiceForm from "./pages/portal/services/ServiceForm";
+import ServiceDetail from "./pages/portal/services/ServiceDetail";
+import ReservationsList from "./pages/portal/reservations/ReservationsList";
+import ReservationForm from "./pages/portal/reservations/ReservationForm";
+import ReservationDetail from "./pages/portal/reservations/ReservationDetail";
+import ReservationEdit from "./pages/portal/reservations/ReservationEdit";
 
 const queryClient = new QueryClient();
 
@@ -50,7 +57,14 @@ const App = () => (
             <Route path="/owners/new" element={<ProtectedRoute><OwnerForm /></ProtectedRoute>} />
             <Route path="/owners/:id" element={<ProtectedRoute><OwnerDetail /></ProtectedRoute>} />
             <Route path="/owners/:id/edit" element={<ProtectedRoute><OwnerForm /></ProtectedRoute>} />
-            <Route path="/reservations" element={<ProtectedRoute><ComingSoon title="Reservations" description="Bookings across daycare and boarding." /></ProtectedRoute>} />
+            <Route path="/services" element={<ProtectedRoute><ServicesList /></ProtectedRoute>} />
+            <Route path="/services/new" element={<ProtectedRoute><ServiceForm /></ProtectedRoute>} />
+            <Route path="/services/:id" element={<ProtectedRoute><ServiceDetail /></ProtectedRoute>} />
+            <Route path="/services/:id/edit" element={<ProtectedRoute><ServiceForm /></ProtectedRoute>} />
+            <Route path="/reservations" element={<ProtectedRoute><ReservationsList /></ProtectedRoute>} />
+            <Route path="/reservations/new" element={<ProtectedRoute><ReservationForm /></ProtectedRoute>} />
+            <Route path="/reservations/:id" element={<ProtectedRoute><ReservationDetail /></ProtectedRoute>} />
+            <Route path="/reservations/:id/edit" element={<ProtectedRoute><ReservationEdit /></ProtectedRoute>} />
             <Route path="/invoices" element={<ProtectedRoute><ComingSoon title="Invoices" description="Billing, payments, and payouts." /></ProtectedRoute>} />
             <Route path="/playgroups" element={<ProtectedRoute><ComingSoon title="Playgroups" description="Group assignments for daycare." /></ProtectedRoute>} />
             <Route path="/kennel-runs" element={<ProtectedRoute><ComingSoon title="Kennel Runs" description="Boarding suite assignments and capacity." /></ProtectedRoute>} />
