@@ -1108,8 +1108,14 @@ export type Database = {
       }
       reservations: {
         Row: {
+          cancelled_at: string | null
+          cancelled_reason: string | null
           checked_in_at: string | null
+          checked_in_by_user_id: string | null
           checked_out_at: string | null
+          checked_out_by_user_id: string | null
+          confirmed_at: string | null
+          confirmed_by_user_id: string | null
           created_at: string
           created_by: string | null
           deleted_at: string | null
@@ -1119,6 +1125,7 @@ export type Database = {
           notes: string | null
           organization_id: string
           primary_owner_id: string | null
+          requested_at: string | null
           service_id: string | null
           source: Database["public"]["Enums"]["reservation_source"]
           start_at: string
@@ -1126,8 +1133,14 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          cancelled_at?: string | null
+          cancelled_reason?: string | null
           checked_in_at?: string | null
+          checked_in_by_user_id?: string | null
           checked_out_at?: string | null
+          checked_out_by_user_id?: string | null
+          confirmed_at?: string | null
+          confirmed_by_user_id?: string | null
           created_at?: string
           created_by?: string | null
           deleted_at?: string | null
@@ -1137,6 +1150,7 @@ export type Database = {
           notes?: string | null
           organization_id: string
           primary_owner_id?: string | null
+          requested_at?: string | null
           service_id?: string | null
           source?: Database["public"]["Enums"]["reservation_source"]
           start_at: string
@@ -1144,8 +1158,14 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          cancelled_at?: string | null
+          cancelled_reason?: string | null
           checked_in_at?: string | null
+          checked_in_by_user_id?: string | null
           checked_out_at?: string | null
+          checked_out_by_user_id?: string | null
+          confirmed_at?: string | null
+          confirmed_by_user_id?: string | null
           created_at?: string
           created_by?: string | null
           deleted_at?: string | null
@@ -1155,6 +1175,7 @@ export type Database = {
           notes?: string | null
           organization_id?: string
           primary_owner_id?: string | null
+          requested_at?: string | null
           service_id?: string | null
           source?: Database["public"]["Enums"]["reservation_source"]
           start_at?: string
@@ -1209,6 +1230,7 @@ export type Database = {
           duration_type: Database["public"]["Enums"]["duration_type_enum"]
           id: string
           location_id: string | null
+          max_pets_per_booking: number | null
           module: Database["public"]["Enums"]["module_enum"]
           name: string
           organization_id: string
@@ -1223,6 +1245,7 @@ export type Database = {
           duration_type: Database["public"]["Enums"]["duration_type_enum"]
           id?: string
           location_id?: string | null
+          max_pets_per_booking?: number | null
           module: Database["public"]["Enums"]["module_enum"]
           name: string
           organization_id: string
@@ -1237,6 +1260,7 @@ export type Database = {
           duration_type?: Database["public"]["Enums"]["duration_type_enum"]
           id?: string
           location_id?: string | null
+          max_pets_per_booking?: number | null
           module?: Database["public"]["Enums"]["module_enum"]
           name?: string
           organization_id?: string
