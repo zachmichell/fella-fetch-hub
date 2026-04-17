@@ -82,7 +82,7 @@ export default function ReservationDetail() {
 
   const updateStatus = async (patch: Record<string, any>, label: string) => {
     if (!r) return;
-    const { error } = await supabase.from("reservations").update(patch).eq("id", r.id);
+    const { error } = await supabase.from("reservations").update(patch as any).eq("id", r.id);
     if (error) return toast.error(error.message);
     toast.success(label);
     refresh();
