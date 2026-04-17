@@ -1655,6 +1655,13 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      create_membership: {
+        Args: {
+          _org_id: string
+          _role: Database["public"]["Enums"]["membership_role"]
+        }
+        Returns: string
+      }
       current_org_id: { Args: never; Returns: string }
       is_org_member: { Args: { _org_id: string }; Returns: boolean }
     }
