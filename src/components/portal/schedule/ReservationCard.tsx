@@ -10,6 +10,8 @@ export type ScheduleReservation = {
   end_at: string;
   status: string;
   notes: string | null;
+  checked_in_at: string | null;
+  checked_out_at: string | null;
   services: { name: string; module: string } | null;
   owners: { last_name: string } | null;
   reservation_pets: { pets: { name: string; breed: string | null } | null }[];
