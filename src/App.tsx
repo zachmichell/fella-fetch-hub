@@ -25,6 +25,7 @@ import ReservationsList from "./pages/portal/reservations/ReservationsList";
 import ReservationForm from "./pages/portal/reservations/ReservationForm";
 import ReservationDetail from "./pages/portal/reservations/ReservationDetail";
 import ReservationEdit from "./pages/portal/reservations/ReservationEdit";
+import Schedule from "./pages/portal/schedule/Schedule";
 
 const queryClient = new QueryClient();
 
@@ -48,7 +49,7 @@ const App = () => (
               }
             />
             <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-            <Route path="/schedule" element={<ProtectedRoute><ComingSoon title="Schedule" description="Daily and weekly facility schedule." /></ProtectedRoute>} />
+            <Route path="/schedule" element={<ProtectedRoute><Schedule /></ProtectedRoute>} />
             <Route path="/pets" element={<ProtectedRoute><PetsList /></ProtectedRoute>} />
             <Route path="/pets/new" element={<ProtectedRoute><PetForm /></ProtectedRoute>} />
             <Route path="/pets/:id" element={<ProtectedRoute><PetDetail /></ProtectedRoute>} />
