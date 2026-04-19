@@ -1,6 +1,7 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { AlertTriangle, PawPrint, CalendarDays, Receipt, ChevronRight } from "lucide-react";
+import { AlertTriangle, PawPrint, CalendarDays, Receipt, ChevronRight, Plus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useOwnerRecord } from "@/hooks/useOwnerRecord";
@@ -10,9 +11,12 @@ import { getVaccinationStatus } from "@/lib/vaccines";
 import VaccinationStatusBadge from "@/components/portal-owner/VaccinationStatusBadge";
 import InvoiceStatusBadge from "@/components/portal/InvoiceStatusBadge";
 import ReservationStatusBadge from "@/components/portal/ReservationStatusBadge";
+import BookingWizard from "@/components/portal-owner/booking-wizard/BookingWizard";
+import { Button } from "@/components/ui/button";
 
 export default function OwnerDashboard() {
   const { profile, membership } = useAuth();
+  const [wizardOpen, setWizardOpen] = useState(false);
   const { data: owner, isLoading: ownerLoading } = useOwnerRecord();
 
   const { data: org } = useQuery({
@@ -161,7 +165,16 @@ export default function OwnerDashboard() {
       )}
 
       <div className="grid gap-6 lg:grid-cols-2">
-        <Card title="Upcoming bookings" icon={CalendarDays} viewAllTo="/portal/bookings">
+        <Card
+          title="Upcoming bookings"
+          icon={CalendarDays}
+          viewAllTo="/portal/bookings"
+          action={
+            <Button size="sm" onClick={() => setWizardOpen(true)}>
+              <Plus className="mr-1 h-4 w-4" /> Book Now
+            </Button>
+          }
+        >
           {upcoming && upcoming.length > 0 ? (
             <ul className="divide-y divide-border-subtle">
               {upcoming.map((r: any) => (
@@ -188,10 +201,12 @@ export default function OwnerDashboard() {
               ))}
             </ul>
           ) : (
-            <Empty
-              text="No upcoming bookings"
-              cta={{ label: "Book your next visit", to: "/portal/bookings" }}
-            />
+            <div className="py-6 text-center">
+              <p className="text-sm text-muted-foreground">No upcoming bookings</p>
+              <Button onClick={() => setWizardOpen(true)} variant="outline" size="sm" className="mt-3">
+                <Plus className="mr-1 h-4 w-4" /> Book your next visit
+              </Button>
+            </div>
           )}
         </Card>
 
@@ -258,6 +273,8 @@ export default function OwnerDashboard() {
           )}
         </Card>
       </div>
+
+      <BookingWizard open={wizardOpen} onOpenChange={setWizardOpen} />
     </div>
   );
 }
@@ -266,26 +283,31 @@ function Card({
   title,
   icon: Icon,
   viewAllTo,
+  action,
   children,
 }: {
   title: string;
   icon: any;
   viewAllTo: string;
+  action?: React.ReactNode;
   children: React.ReactNode;
 }) {
   return (
     <section className="rounded-2xl border border-border bg-card p-6 shadow-sm">
-      <div className="mb-4 flex items-center justify-between">
+      <div className="mb-4 flex items-center justify-between gap-2">
         <div className="flex items-center gap-2">
           <Icon className="h-5 w-5 text-primary" />
           <h2 className="font-display text-lg font-semibold text-foreground">{title}</h2>
         </div>
-        <Link
-          to={viewAllTo}
-          className="inline-flex items-center text-sm font-medium text-primary-hover hover:underline"
-        >
-          View all <ChevronRight className="ml-0.5 h-4 w-4" />
-        </Link>
+        <div className="flex items-center gap-2">
+          {action}
+          <Link
+            to={viewAllTo}
+            className="inline-flex items-center text-sm font-medium text-primary-hover hover:underline"
+          >
+            View all <ChevronRight className="ml-0.5 h-4 w-4" />
+          </Link>
+        </div>
       </div>
       {children}
     </section>
