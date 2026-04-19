@@ -16,7 +16,6 @@ import {
 } from "@/components/ui/alert-dialog";
 import BookingStatusBadge from "./BookingStatusBadge";
 import { formatDate } from "@/lib/format";
-import { formatTime } from "@/lib/format";
 import type { OwnerBooking } from "@/hooks/useOwnerBookings";
 import { diffNights } from "@/lib/booking";
 

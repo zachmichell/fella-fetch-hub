@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import { formatCentsShort } from "@/lib/money";
-import { formatDurationType } from "@/lib/format";
+import { formatDurationType } from "@/lib/money";
 import { priceUnitLabel } from "@/lib/booking";
 import type { WizardService, WizardState } from "./BookingWizard";
 
