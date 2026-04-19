@@ -5,13 +5,14 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/hooks/useAuth";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
+import RoleRoute from "@/components/auth/RoleRoute";
+import OwnerPortalLayout from "@/components/portal-owner/OwnerPortalLayout";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import Login from "./pages/auth/Login";
 import Signup from "./pages/auth/Signup";
 import Onboarding from "./pages/onboarding/Onboarding";
 import Dashboard from "./pages/portal/Dashboard";
-import ComingSoon from "./pages/portal/ComingSoon";
 import OwnersList from "./pages/portal/owners/OwnersList";
 import OwnerForm from "./pages/portal/owners/OwnerForm";
 import OwnerDetail from "./pages/portal/owners/OwnerDetail";
@@ -31,8 +32,25 @@ import InvoiceDetail from "./pages/portal/invoices/InvoiceDetail";
 import Settings from "./pages/portal/settings/Settings";
 import Playgroups from "./pages/portal/playgroups/Playgroups";
 import KennelRuns from "./pages/portal/kennel-runs/KennelRuns";
+import OwnerDashboard from "./pages/portal-owner/Dashboard";
+import OwnerAccount from "./pages/portal-owner/Account";
+import OwnerComingSoon from "./pages/portal-owner/ComingSoon";
 
 const queryClient = new QueryClient();
+
+const staff = (el: React.ReactNode) => (
+  <ProtectedRoute>
+    <RoleRoute allow="staff">{el}</RoleRoute>
+  </ProtectedRoute>
+);
+
+const customer = (el: React.ReactNode) => (
+  <ProtectedRoute>
+    <RoleRoute allow="customer">
+      <OwnerPortalLayout>{el}</OwnerPortalLayout>
+    </RoleRoute>
+  </ProtectedRoute>
+);
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -53,29 +71,40 @@ const App = () => (
                 </ProtectedRoute>
               }
             />
-            <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-            <Route path="/schedule" element={<ProtectedRoute><Schedule /></ProtectedRoute>} />
-            <Route path="/pets" element={<ProtectedRoute><PetsList /></ProtectedRoute>} />
-            <Route path="/pets/new" element={<ProtectedRoute><PetForm /></ProtectedRoute>} />
-            <Route path="/pets/:id" element={<ProtectedRoute><PetDetail /></ProtectedRoute>} />
-            <Route path="/pets/:id/edit" element={<ProtectedRoute><PetForm /></ProtectedRoute>} />
-            <Route path="/owners" element={<ProtectedRoute><OwnersList /></ProtectedRoute>} />
-            <Route path="/owners/new" element={<ProtectedRoute><OwnerForm /></ProtectedRoute>} />
-            <Route path="/owners/:id" element={<ProtectedRoute><OwnerDetail /></ProtectedRoute>} />
-            <Route path="/owners/:id/edit" element={<ProtectedRoute><OwnerForm /></ProtectedRoute>} />
-            <Route path="/services" element={<ProtectedRoute><ServicesList /></ProtectedRoute>} />
-            <Route path="/services/new" element={<ProtectedRoute><ServiceForm /></ProtectedRoute>} />
-            <Route path="/services/:id" element={<ProtectedRoute><ServiceDetail /></ProtectedRoute>} />
-            <Route path="/services/:id/edit" element={<ProtectedRoute><ServiceForm /></ProtectedRoute>} />
-            <Route path="/reservations" element={<ProtectedRoute><ReservationsList /></ProtectedRoute>} />
-            <Route path="/reservations/new" element={<ProtectedRoute><ReservationForm /></ProtectedRoute>} />
-            <Route path="/reservations/:id" element={<ProtectedRoute><ReservationDetail /></ProtectedRoute>} />
-            <Route path="/reservations/:id/edit" element={<ProtectedRoute><ReservationEdit /></ProtectedRoute>} />
-            <Route path="/invoices" element={<ProtectedRoute><InvoicesList /></ProtectedRoute>} />
-            <Route path="/invoices/:id" element={<ProtectedRoute><InvoiceDetail /></ProtectedRoute>} />
-            <Route path="/playgroups" element={<ProtectedRoute><Playgroups /></ProtectedRoute>} />
-            <Route path="/kennel-runs" element={<ProtectedRoute><KennelRuns /></ProtectedRoute>} />
-            <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+
+            {/* Staff portal */}
+            <Route path="/dashboard" element={staff(<Dashboard />)} />
+            <Route path="/schedule" element={staff(<Schedule />)} />
+            <Route path="/pets" element={staff(<PetsList />)} />
+            <Route path="/pets/new" element={staff(<PetForm />)} />
+            <Route path="/pets/:id" element={staff(<PetDetail />)} />
+            <Route path="/pets/:id/edit" element={staff(<PetForm />)} />
+            <Route path="/owners" element={staff(<OwnersList />)} />
+            <Route path="/owners/new" element={staff(<OwnerForm />)} />
+            <Route path="/owners/:id" element={staff(<OwnerDetail />)} />
+            <Route path="/owners/:id/edit" element={staff(<OwnerForm />)} />
+            <Route path="/services" element={staff(<ServicesList />)} />
+            <Route path="/services/new" element={staff(<ServiceForm />)} />
+            <Route path="/services/:id" element={staff(<ServiceDetail />)} />
+            <Route path="/services/:id/edit" element={staff(<ServiceForm />)} />
+            <Route path="/reservations" element={staff(<ReservationsList />)} />
+            <Route path="/reservations/new" element={staff(<ReservationForm />)} />
+            <Route path="/reservations/:id" element={staff(<ReservationDetail />)} />
+            <Route path="/reservations/:id/edit" element={staff(<ReservationEdit />)} />
+            <Route path="/invoices" element={staff(<InvoicesList />)} />
+            <Route path="/invoices/:id" element={staff(<InvoiceDetail />)} />
+            <Route path="/playgroups" element={staff(<Playgroups />)} />
+            <Route path="/kennel-runs" element={staff(<KennelRuns />)} />
+            <Route path="/settings" element={staff(<Settings />)} />
+
+            {/* Owner portal */}
+            <Route path="/portal/dashboard" element={customer(<OwnerDashboard />)} />
+            <Route path="/portal/account" element={customer(<OwnerAccount />)} />
+            <Route path="/portal/pets" element={customer(<OwnerComingSoon title="My Pets" />)} />
+            <Route path="/portal/bookings" element={customer(<OwnerComingSoon title="Bookings" />)} />
+            <Route path="/portal/invoices" element={customer(<OwnerComingSoon title="Invoices" />)} />
+            <Route path="/portal/waivers" element={customer(<OwnerComingSoon title="Waivers" />)} />
+
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>
