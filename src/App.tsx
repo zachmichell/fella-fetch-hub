@@ -37,6 +37,7 @@ import OwnerAccount from "./pages/portal-owner/Account";
 import OwnerComingSoon from "./pages/portal-owner/ComingSoon";
 import OwnerPets from "./pages/portal-owner/Pets";
 import OwnerPetDetail from "./pages/portal-owner/PetDetail";
+import OwnerBookings from "./pages/portal-owner/Bookings";
 
 const queryClient = new QueryClient();
 
@@ -104,7 +105,7 @@ const App = () => (
             <Route path="/portal/account" element={customer(<OwnerAccount />)} />
             <Route path="/portal/pets" element={customer(<OwnerPets />)} />
             <Route path="/portal/pets/:id" element={customer(<OwnerPetDetail />)} />
-            <Route path="/portal/bookings" element={customer(<OwnerComingSoon title="Bookings" />)} />
+            <Route path="/portal/bookings" element={customer(<OwnerBookings />)} />
             <Route path="/portal/invoices" element={customer(<OwnerComingSoon title="Invoices" />)} />
             <Route path="/portal/waivers" element={customer(<OwnerComingSoon title="Waivers" />)} />
 
