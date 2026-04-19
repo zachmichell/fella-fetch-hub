@@ -3,6 +3,7 @@ import { Link, Navigate, useNavigate, useParams } from "react-router-dom";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { ArrowLeft, CheckCircle2 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
+import DOMPurify from "dompurify";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
@@ -115,8 +116,11 @@ export default function OwnerWaiverDetail() {
           {isHtml ? (
             <div
               className="prose prose-sm max-w-none text-foreground"
+              // Sanitized with DOMPurify to prevent stored XSS from malicious waiver bodies.
               // eslint-disable-next-line react/no-danger
-              dangerouslySetInnerHTML={{ __html: body }}
+              dangerouslySetInnerHTML={{
+                __html: DOMPurify.sanitize(body, { USE_PROFILES: { html: true } }),
+              }}
             />
           ) : (
             <div className="prose prose-sm max-w-none text-foreground prose-headings:font-display prose-headings:text-foreground prose-strong:text-foreground prose-a:text-primary">
