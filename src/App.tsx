@@ -26,6 +26,8 @@ import ReservationForm from "./pages/portal/reservations/ReservationForm";
 import ReservationDetail from "./pages/portal/reservations/ReservationDetail";
 import ReservationEdit from "./pages/portal/reservations/ReservationEdit";
 import Schedule from "./pages/portal/schedule/Schedule";
+import InvoicesList from "./pages/portal/invoices/InvoicesList";
+import InvoiceDetail from "./pages/portal/invoices/InvoiceDetail";
 
 const queryClient = new QueryClient();
 
@@ -66,7 +68,8 @@ const App = () => (
             <Route path="/reservations/new" element={<ProtectedRoute><ReservationForm /></ProtectedRoute>} />
             <Route path="/reservations/:id" element={<ProtectedRoute><ReservationDetail /></ProtectedRoute>} />
             <Route path="/reservations/:id/edit" element={<ProtectedRoute><ReservationEdit /></ProtectedRoute>} />
-            <Route path="/invoices" element={<ProtectedRoute><ComingSoon title="Invoices" description="Billing, payments, and payouts." /></ProtectedRoute>} />
+            <Route path="/invoices" element={<ProtectedRoute><InvoicesList /></ProtectedRoute>} />
+            <Route path="/invoices/:id" element={<ProtectedRoute><InvoiceDetail /></ProtectedRoute>} />
             <Route path="/playgroups" element={<ProtectedRoute><ComingSoon title="Playgroups" description="Group assignments for daycare." /></ProtectedRoute>} />
             <Route path="/kennel-runs" element={<ProtectedRoute><ComingSoon title="Kennel Runs" description="Boarding suite assignments and capacity." /></ProtectedRoute>} />
             <Route path="/settings" element={<ProtectedRoute><ComingSoon title="Settings" description="Organization, locations, taxes, and team." /></ProtectedRoute>} />

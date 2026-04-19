@@ -63,7 +63,7 @@ export default function InvoiceDetail() {
 
   const statusMut = useMutation({
     mutationFn: async (patch: Record<string, any>) => {
-      const { error } = await supabase.from("invoices").update(patch).eq("id", id!);
+      const { error } = await supabase.from("invoices").update(patch as any).eq("id", id!);
       if (error) throw error;
       // Activity log
       if (inv) {

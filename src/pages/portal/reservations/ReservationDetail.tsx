@@ -32,6 +32,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { formatCentsShort, formatDateTime, formatDurationType } from "@/lib/money";
+import { createInvoiceForReservation } from "@/lib/invoice";
 
 export default function ReservationDetail() {
   const { id } = useParams();
@@ -102,8 +103,9 @@ export default function ReservationDetail() {
       },
       "Checked in",
     );
-  const handleCheckOut = () =>
-    updateStatus(
+  const handleCheckOut = async () => {
+    if (!r) return;
+    await updateStatus(
       {
         status: "checked_out",
         checked_out_at: new Date().toISOString(),
@@ -111,6 +113,21 @@ export default function ReservationDetail() {
       },
       "Checked out",
     );
+    try {
+      const inv = await createInvoiceForReservation(r.id);
+      if (!inv.alreadyExisted) {
+        toast.success(`Invoice ${inv.invoice_number ?? ""} created`, {
+          action: {
+            label: "View",
+            onClick: () => navigate(`/invoices/${inv.id}`),
+          },
+        });
+      }
+      qc.invalidateQueries({ queryKey: ["invoices-list"] });
+    } catch (e: any) {
+      toast.error(`Invoice creation failed: ${e.message ?? "unknown"}`);
+    }
+  };
 
   const handleCancelConfirm = async () => {
     if (!cancelReason.trim()) {

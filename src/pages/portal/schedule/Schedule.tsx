@@ -12,6 +12,8 @@ import StatCard from "@/components/portal/schedule/StatCard";
 import ReservationCard, { ScheduleReservation } from "@/components/portal/schedule/ReservationCard";
 import WeekView from "@/components/portal/schedule/WeekView";
 import { formatTime } from "@/lib/money";
+import { createInvoiceForReservation } from "@/lib/invoice";
+import { Link } from "react-router-dom";
 
 const TZ = "America/Edmonton";
 
@@ -146,11 +148,25 @@ export default function Schedule() {
         .eq("id", id);
       if (error) throw error;
     },
-    onSuccess: (_d, vars) => {
+    onSuccess: async (_d, vars) => {
       const r = rows.find((x) => x.id === vars.id);
       const petName = r?.reservation_pets?.[0]?.pets?.name ?? "Pet";
       toast.success(`${petName} checked out`);
       qc.invalidateQueries({ queryKey: ["schedule-day"] });
+      try {
+        const inv = await createInvoiceForReservation(vars.id);
+        if (!inv.alreadyExisted) {
+          toast.success(`Invoice ${inv.invoice_number ?? ""} created`, {
+            action: {
+              label: "View",
+              onClick: () => window.location.assign(`/invoices/${inv.id}`),
+            },
+          });
+        }
+        qc.invalidateQueries({ queryKey: ["invoices-list"] });
+      } catch (e: any) {
+        toast.error(`Invoice creation failed: ${e.message ?? "unknown"}`);
+      }
     },
     onError: (e: any) => toast.error(e.message ?? "Check-out failed"),
   });
