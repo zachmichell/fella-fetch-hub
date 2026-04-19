@@ -1,16 +1,47 @@
+import { useQuery } from "@tanstack/react-query";
 import PortalLayout from "@/components/portal/PortalLayout";
 import { useAuth } from "@/hooks/useAuth";
 import { greeting } from "@/lib/timezones";
+import { supabase } from "@/integrations/supabase/client";
+import { formatCentsShort } from "@/lib/money";
 
-const kpis = [
-  { label: "Checked In", value: "0", bar: "bg-brand-cotton", bg: "bg-brand-cotton-bg" },
-  { label: "Expected Today", value: "0", bar: "bg-brand-vanilla", bg: "bg-brand-vanilla-bg" },
-  { label: "Boarding Guests", value: "0", bar: "bg-brand-frost", bg: "bg-brand-frost-bg" },
-  { label: "Today's Revenue", value: "$0.00", bar: "bg-brand-mist", bg: "bg-brand-mist-bg" },
-];
+const TZ = "America/Edmonton";
+
+function todayBoundsEdmonton() {
+  // Compute today's start/end in Edmonton, returned as ISO UTC strings.
+  const now = new Date();
+  const ymd = now.toLocaleDateString("en-CA", { timeZone: TZ }); // YYYY-MM-DD
+  const start = new Date(`${ymd}T00:00:00-06:00`); // MDT/MST approx; use offset of Edmonton naively
+  // More robust: use the date string and rely on UTC offset of America/Edmonton via Date math
+  const end = new Date(start.getTime() + 86400000 - 1);
+  return { startISO: start.toISOString(), endISO: end.toISOString() };
+}
 
 export default function Dashboard() {
   const { profile } = useAuth();
+
+  const { data: revenueCents = 0 } = useQuery({
+    queryKey: ["dashboard-today-revenue"],
+    queryFn: async () => {
+      const { startISO, endISO } = todayBoundsEdmonton();
+      const { data, error } = await supabase
+        .from("invoices")
+        .select("total_cents")
+        .eq("status", "paid")
+        .gte("paid_at", startISO)
+        .lte("paid_at", endISO)
+        .is("deleted_at", null);
+      if (error) throw error;
+      return (data ?? []).reduce((sum: number, r: any) => sum + (r.total_cents ?? 0), 0);
+    },
+  });
+
+  const kpis = [
+    { label: "Checked In", value: "0", bar: "bg-brand-cotton", bg: "bg-brand-cotton-bg" },
+    { label: "Expected Today", value: "0", bar: "bg-brand-vanilla", bg: "bg-brand-vanilla-bg" },
+    { label: "Boarding Guests", value: "0", bar: "bg-brand-frost", bg: "bg-brand-frost-bg" },
+    { label: "Today's Revenue", value: formatCentsShort(revenueCents), bar: "bg-brand-mist", bg: "bg-brand-mist-bg" },
+  ];
   const firstName = profile?.first_name || "there";
   const today = new Date().toLocaleDateString("en-CA", {
     weekday: "long",
