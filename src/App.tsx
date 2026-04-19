@@ -29,6 +29,8 @@ import Schedule from "./pages/portal/schedule/Schedule";
 import InvoicesList from "./pages/portal/invoices/InvoicesList";
 import InvoiceDetail from "./pages/portal/invoices/InvoiceDetail";
 import Settings from "./pages/portal/settings/Settings";
+import Playgroups from "./pages/portal/playgroups/Playgroups";
+import KennelRuns from "./pages/portal/kennel-runs/KennelRuns";
 
 const queryClient = new QueryClient();
 
@@ -71,8 +73,8 @@ const App = () => (
             <Route path="/reservations/:id/edit" element={<ProtectedRoute><ReservationEdit /></ProtectedRoute>} />
             <Route path="/invoices" element={<ProtectedRoute><InvoicesList /></ProtectedRoute>} />
             <Route path="/invoices/:id" element={<ProtectedRoute><InvoiceDetail /></ProtectedRoute>} />
-            <Route path="/playgroups" element={<ProtectedRoute><ComingSoon title="Playgroups" description="Group assignments for daycare." /></ProtectedRoute>} />
-            <Route path="/kennel-runs" element={<ProtectedRoute><ComingSoon title="Kennel Runs" description="Boarding suite assignments and capacity." /></ProtectedRoute>} />
+            <Route path="/playgroups" element={<ProtectedRoute><Playgroups /></ProtectedRoute>} />
+            <Route path="/kennel-runs" element={<ProtectedRoute><KennelRuns /></ProtectedRoute>} />
             <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
             <Route path="*" element={<NotFound />} />
           </Routes>

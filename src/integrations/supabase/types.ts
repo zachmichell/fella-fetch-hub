@@ -388,6 +388,7 @@ export type Database = {
       kennel_run_assignments: {
         Row: {
           assigned_at: string
+          assigned_by_user_id: string | null
           created_at: string
           id: string
           kennel_run_id: string
@@ -398,6 +399,7 @@ export type Database = {
         }
         Insert: {
           assigned_at?: string
+          assigned_by_user_id?: string | null
           created_at?: string
           id?: string
           kennel_run_id: string
@@ -408,6 +410,7 @@ export type Database = {
         }
         Update: {
           assigned_at?: string
+          assigned_by_user_id?: string | null
           created_at?: string
           id?: string
           kennel_run_id?: string
@@ -452,6 +455,7 @@ export type Database = {
           active: boolean
           capacity: number
           created_at: string
+          daily_rate_modifier_cents: number
           deleted_at: string | null
           id: string
           location_id: string | null
@@ -464,6 +468,7 @@ export type Database = {
           active?: boolean
           capacity?: number
           created_at?: string
+          daily_rate_modifier_cents?: number
           deleted_at?: string | null
           id?: string
           location_id?: string | null
@@ -476,6 +481,7 @@ export type Database = {
           active?: boolean
           capacity?: number
           created_at?: string
+          daily_rate_modifier_cents?: number
           deleted_at?: string | null
           id?: string
           location_id?: string | null
@@ -914,6 +920,7 @@ export type Database = {
       playgroup_assignments: {
         Row: {
           assigned_at: string
+          assigned_by_user_id: string | null
           created_at: string
           id: string
           organization_id: string
@@ -924,6 +931,7 @@ export type Database = {
         }
         Insert: {
           assigned_at?: string
+          assigned_by_user_id?: string | null
           created_at?: string
           id?: string
           organization_id: string
@@ -934,6 +942,7 @@ export type Database = {
         }
         Update: {
           assigned_at?: string
+          assigned_by_user_id?: string | null
           created_at?: string
           id?: string
           organization_id?: string
@@ -977,6 +986,7 @@ export type Database = {
         Row: {
           active: boolean
           capacity: number | null
+          color: string
           created_at: string
           deleted_at: string | null
           description: string | null
@@ -989,6 +999,7 @@ export type Database = {
         Insert: {
           active?: boolean
           capacity?: number | null
+          color?: string
           created_at?: string
           deleted_at?: string | null
           description?: string | null
@@ -1001,6 +1012,7 @@ export type Database = {
         Update: {
           active?: boolean
           capacity?: number | null
+          color?: string
           created_at?: string
           deleted_at?: string | null
           description?: string | null
