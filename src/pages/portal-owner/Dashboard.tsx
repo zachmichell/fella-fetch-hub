@@ -202,25 +202,31 @@ export default function OwnerDashboard() {
                 {pets.length} pet{pets.length === 1 ? "" : "s"}
               </p>
               <ul className="space-y-3">
-                {pets.slice(0, 4).map((p: any) => (
-                  <li key={p.id} className="flex items-center gap-3">
-                    {p.photo_url ? (
-                      <img
-                        src={p.photo_url}
-                        alt={p.name}
-                        className="h-10 w-10 rounded-full object-cover"
-                      />
-                    ) : (
-                      <span className="flex h-10 w-10 items-center justify-center rounded-full bg-muted text-lg">
-                        {speciesIcon(p.species)}
-                      </span>
-                    )}
-                    <div className="min-w-0">
-                      <p className="font-medium text-foreground truncate">{p.name}</p>
-                      <p className="text-sm text-muted-foreground truncate">{p.breed ?? "—"}</p>
-                    </div>
-                  </li>
-                ))}
+                {pets.slice(0, 4).map((p: any) => {
+                  const status = getVaccinationStatus(p.vaccinations);
+                  return (
+                    <li key={p.id} className="flex items-center gap-3">
+                      {p.photo_url ? (
+                        <img
+                          src={p.photo_url}
+                          alt={p.name}
+                          className="h-10 w-10 rounded-full object-cover"
+                        />
+                      ) : (
+                        <span className="flex h-10 w-10 items-center justify-center rounded-full bg-muted text-lg">
+                          {speciesIcon(p.species)}
+                        </span>
+                      )}
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center justify-between gap-2">
+                          <p className="font-medium text-foreground truncate">{p.name}</p>
+                          <VaccinationStatusBadge status={status} />
+                        </div>
+                        <p className="text-sm text-muted-foreground truncate">{p.breed ?? "—"}</p>
+                      </div>
+                    </li>
+                  );
+                })}
               </ul>
             </>
           ) : (
