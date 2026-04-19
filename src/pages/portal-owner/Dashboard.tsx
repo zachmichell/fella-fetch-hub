@@ -6,6 +6,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { useOwnerRecord } from "@/hooks/useOwnerRecord";
 import { formatDate, speciesIcon } from "@/lib/format";
 import { formatCents } from "@/lib/money";
+import { getVaccinationStatus } from "@/lib/vaccines";
+import VaccinationStatusBadge from "@/components/portal-owner/VaccinationStatusBadge";
 import InvoiceStatusBadge from "@/components/portal/InvoiceStatusBadge";
 import ReservationStatusBadge from "@/components/portal/ReservationStatusBadge";
 
@@ -50,12 +52,18 @@ export default function OwnerDashboard() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("pet_owners")
-        .select("pets(id, name, breed, species, photo_url, deleted_at)")
+        .select(
+          "pets(id, name, breed, species, photo_url, deleted_at, vaccinations(id, expires_on, deleted_at))",
+        )
         .eq("owner_id", owner!.id);
       if (error) throw error;
       return (data ?? [])
         .map((row: any) => row.pets)
-        .filter((p: any) => p && !p.deleted_at);
+        .filter((p: any) => p && !p.deleted_at)
+        .map((p: any) => ({
+          ...p,
+          vaccinations: (p.vaccinations ?? []).filter((v: any) => !v.deleted_at),
+        }));
     },
   });
 
