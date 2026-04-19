@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useOwnerRecord } from "@/hooks/useOwnerRecord";
 import { formatDate, speciesIcon } from "@/lib/format";
-import { formatMoney } from "@/lib/money";
+import { formatCents } from "@/lib/money";
 import InvoiceStatusBadge from "@/components/portal/InvoiceStatusBadge";
 import ReservationStatusBadge from "@/components/portal/ReservationStatusBadge";
 
@@ -231,7 +231,7 @@ export default function OwnerDashboard() {
                         {inv.invoice_number ?? "Invoice"}
                       </p>
                       <p className="mt-0.5 text-sm text-muted-foreground">
-                        {formatMoney(inv.total_cents, inv.currency)} · Due {formatDate(inv.due_at)}
+                        {formatCents(inv.total_cents, inv.currency)} · Due {formatDate(inv.due_at)}
                       </p>
                     </div>
                     <InvoiceStatusBadge status={inv.status} />
