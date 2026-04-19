@@ -1596,7 +1596,9 @@ export type Database = {
           owner_id: string
           signature_data: string | null
           signed_at: string
+          user_agent: string | null
           waiver_id: string
+          waiver_version: number
         }
         Insert: {
           created_at?: string
@@ -1606,7 +1608,9 @@ export type Database = {
           owner_id: string
           signature_data?: string | null
           signed_at?: string
+          user_agent?: string | null
           waiver_id: string
+          waiver_version?: number
         }
         Update: {
           created_at?: string
@@ -1616,7 +1620,9 @@ export type Database = {
           owner_id?: string
           signature_data?: string | null
           signed_at?: string
+          user_agent?: string | null
           waiver_id?: string
+          waiver_version?: number
         }
         Relationships: [
           {

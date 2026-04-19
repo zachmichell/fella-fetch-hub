@@ -38,6 +38,10 @@ import OwnerComingSoon from "./pages/portal-owner/ComingSoon";
 import OwnerPets from "./pages/portal-owner/Pets";
 import OwnerPetDetail from "./pages/portal-owner/PetDetail";
 import OwnerBookings from "./pages/portal-owner/Bookings";
+import OwnerInvoices from "./pages/portal-owner/Invoices";
+import OwnerInvoiceDetail from "./pages/portal-owner/InvoiceDetail";
+import OwnerWaivers from "./pages/portal-owner/Waivers";
+import OwnerWaiverDetail from "./pages/portal-owner/WaiverDetail";
 
 const queryClient = new QueryClient();
 
@@ -106,8 +110,10 @@ const App = () => (
             <Route path="/portal/pets" element={customer(<OwnerPets />)} />
             <Route path="/portal/pets/:id" element={customer(<OwnerPetDetail />)} />
             <Route path="/portal/bookings" element={customer(<OwnerBookings />)} />
-            <Route path="/portal/invoices" element={customer(<OwnerComingSoon title="Invoices" />)} />
-            <Route path="/portal/waivers" element={customer(<OwnerComingSoon title="Waivers" />)} />
+            <Route path="/portal/invoices" element={customer(<OwnerInvoices />)} />
+            <Route path="/portal/invoices/:id" element={customer(<OwnerInvoiceDetail />)} />
+            <Route path="/portal/waivers" element={customer(<OwnerWaivers />)} />
+            <Route path="/portal/waivers/:id" element={customer(<OwnerWaiverDetail />)} />
 
             <Route path="*" element={<NotFound />} />
           </Routes>

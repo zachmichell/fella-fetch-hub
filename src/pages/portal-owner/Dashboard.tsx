@@ -101,12 +101,19 @@ export default function OwnerDashboard() {
           .is("deleted_at", null),
         supabase
           .from("waiver_signatures")
-          .select("waiver_id")
-          .eq("owner_id", owner!.id),
+          .select("waiver_id, waiver_version, signed_at")
+          .eq("owner_id", owner!.id)
+          .order("signed_at", { ascending: false }),
       ]);
-      const signedIds = new Set((signatures ?? []).map((s: any) => s.waiver_id));
-      const unsigned = (waivers ?? []).filter((w: any) => !signedIds.has(w.id));
-      return unsigned.length;
+      const latest = new Map<string, number>();
+      for (const s of signatures ?? []) {
+        if (!latest.has(s.waiver_id)) latest.set(s.waiver_id, s.waiver_version);
+      }
+      const needsAction = (waivers ?? []).filter((w: any) => {
+        const v = latest.get(w.id);
+        return v === undefined || v < w.version;
+      });
+      return needsAction.length;
     },
   });
 
@@ -253,8 +260,11 @@ export default function OwnerDashboard() {
           {invoices && invoices.length > 0 ? (
             <ul className="divide-y divide-border-subtle">
               {invoices.map((inv: any) => (
-                <li key={inv.id} className="py-3 first:pt-0 last:pb-0">
-                  <div className="flex items-center justify-between gap-3">
+                <li key={inv.id}>
+                  <Link
+                    to={`/portal/invoices/${inv.id}`}
+                    className="-mx-2 flex items-center justify-between gap-3 rounded-md px-2 py-3 transition hover:bg-card-alt"
+                  >
                     <div className="min-w-0">
                       <p className="font-medium text-foreground truncate">
                         {inv.invoice_number ?? "Invoice"}
@@ -264,7 +274,7 @@ export default function OwnerDashboard() {
                       </p>
                     </div>
                     <InvoiceStatusBadge status={inv.status} />
-                  </div>
+                  </Link>
                 </li>
               ))}
             </ul>
