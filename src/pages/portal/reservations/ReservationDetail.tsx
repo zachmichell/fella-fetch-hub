@@ -38,7 +38,6 @@ import { toast } from "sonner";
 import { formatCentsShort, formatDateTime, formatDurationType } from "@/lib/money";
 import { createInvoiceForReservation } from "@/lib/invoice";
 import { sendReservationConfirmation } from "@/lib/email";
-import { RATING_OPTIONS, MOOD_OPTIONS } from "@/lib/care";
 
 export default function ReservationDetail() {
   const { id } = useParams();
