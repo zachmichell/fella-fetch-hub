@@ -12,10 +12,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { useOrgModules } from "@/hooks/useOrgModules";
 import { formatCentsShort, formatDurationType } from "@/lib/money";
 import { formatDate } from "@/lib/format";
+import { usePermissions } from "@/hooks/usePermissions";
 
 const PAGE_SIZE = 10;
 
 export default function ServicesList() {
+  const { can } = usePermissions();
+  const canManage = can("services.manage");
   const navigate = useNavigate();
   const [moduleFilter, setModuleFilter] = useState<string>("all");
   const [page, setPage] = useState(0);
@@ -56,9 +59,11 @@ export default function ServicesList() {
         <PageHeader
           title="Services"
           actions={
-            <Button onClick={() => navigate("/services/new")}>
-              <Plus className="h-4 w-4" /> Add Service
-            </Button>
+            canManage ? (
+              <Button onClick={() => navigate("/services/new")}>
+                <Plus className="h-4 w-4" /> Add Service
+              </Button>
+            ) : null
           }
         />
 

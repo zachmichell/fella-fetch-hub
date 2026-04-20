@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { supabase } from "@/integrations/supabase/client";
 import { formatDateTime } from "@/lib/money";
 import { formatDate } from "@/lib/format";
+import { usePermissions } from "@/hooks/usePermissions";
 
 const PAGE_SIZE = 10;
 
@@ -34,6 +35,8 @@ function endOfWeekISO() {
 
 export default function ReservationsList() {
   const navigate = useNavigate();
+  const { can } = usePermissions();
+  const canCreate = can("reservations.create");
   const [startDate, setStartDate] = useState<string>(startOfWeekISO());
   const [endDate, setEndDate] = useState<string>(endOfWeekISO());
   const [status, setStatus] = useState<string>("all");
@@ -70,9 +73,11 @@ export default function ReservationsList() {
         <PageHeader
           title="Reservations"
           actions={
-            <Button onClick={() => navigate("/reservations/new")}>
-              <Plus className="h-4 w-4" /> New Reservation
-            </Button>
+            canCreate ? (
+              <Button onClick={() => navigate("/reservations/new")}>
+                <Plus className="h-4 w-4" /> New Reservation
+              </Button>
+            ) : null
           }
         />
 

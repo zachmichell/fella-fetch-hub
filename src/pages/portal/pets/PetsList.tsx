@@ -11,10 +11,13 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { formatDate, speciesIcon } from "@/lib/format";
+import { usePermissions } from "@/hooks/usePermissions";
 
 const PAGE_SIZE = 10;
 
 export default function PetsList() {
+  const { can } = usePermissions();
+  const canCreate = can("pets.create");
   const navigate = useNavigate();
   const [search, setSearch] = useState("");
   const [species, setSpecies] = useState<string>("all");
@@ -50,9 +53,11 @@ export default function PetsList() {
         <PageHeader
           title="Pets"
           actions={
-            <Button onClick={() => navigate("/pets/new")}>
-              <Plus className="h-4 w-4" /> Add Pet
-            </Button>
+            canCreate ? (
+              <Button onClick={() => navigate("/pets/new")}>
+                <Plus className="h-4 w-4" /> Add Pet
+              </Button>
+            ) : null
           }
         />
 
@@ -92,9 +97,11 @@ export default function PetsList() {
                 title="No pets yet"
                 description="Add your first pet to start building profiles."
                 action={
-                  <Button onClick={() => navigate("/pets/new")}>
-                    <Plus className="h-4 w-4" /> Add Pet
-                  </Button>
+                  canCreate ? (
+                    <Button onClick={() => navigate("/pets/new")}>
+                      <Plus className="h-4 w-4" /> Add Pet
+                    </Button>
+                  ) : undefined
                 }
               />
             </div>

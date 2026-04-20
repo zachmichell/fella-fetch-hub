@@ -10,10 +10,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import { formatDate } from "@/lib/format";
+import { usePermissions } from "@/hooks/usePermissions";
 
 const PAGE_SIZE = 10;
 
 export default function OwnersList() {
+  const { can } = usePermissions();
+  const canCreate = can("owners.create");
   const navigate = useNavigate();
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(0);
@@ -50,9 +53,11 @@ export default function OwnersList() {
         <PageHeader
           title="Owners"
           actions={
-            <Button onClick={() => navigate("/owners/new")}>
-              <Plus className="h-4 w-4" /> Add Owner
-            </Button>
+            canCreate ? (
+              <Button onClick={() => navigate("/owners/new")}>
+                <Plus className="h-4 w-4" /> Add Owner
+              </Button>
+            ) : null
           }
         />
 
