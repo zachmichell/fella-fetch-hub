@@ -91,6 +91,9 @@ export default {
           "mist-bg": "hsl(var(--brand-mist-bg))",
           blueberry: "hsl(var(--brand-blueberry))",
           camel: "hsl(var(--brand-camel))",
+          plum: "hsl(var(--brand-plum))",
+          gold: "hsl(var(--brand-gold))",
+          sage: "hsl(var(--brand-sage))",
         },
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
