@@ -6,7 +6,9 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/hooks/useAuth";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import RoleRoute from "@/components/auth/RoleRoute";
+import RequirePermission from "@/components/auth/RequirePermission";
 import OwnerPortalLayout from "@/components/portal-owner/OwnerPortalLayout";
+import type { Permission } from "@/lib/permissions";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import Login from "./pages/auth/Login";
@@ -55,9 +57,11 @@ import OwnerWaiverDetail from "./pages/portal-owner/WaiverDetail";
 
 const queryClient = new QueryClient();
 
-const staff = (el: React.ReactNode) => (
+const staff = (el: React.ReactNode, permission?: Permission) => (
   <ProtectedRoute>
-    <RoleRoute allow="staff">{el}</RoleRoute>
+    <RoleRoute allow="staff">
+      {permission ? <RequirePermission permission={permission}>{el}</RequirePermission> : el}
+    </RoleRoute>
   </ProtectedRoute>
 );
 
