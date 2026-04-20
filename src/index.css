@@ -89,6 +89,11 @@
     --brand-blueberry: 8 23% 75%;      /* #CDB5B1 */
     --brand-camel: 22 33% 67%;         /* #CBA48F */
 
+    /* Boho Rainbow chart accents */
+    --brand-plum: 282 13% 42%;         /* #6B5B7B Deep Plum */
+    --brand-gold: 28 87% 67%;          /* #F4A460 Sunrise Gold */
+    --brand-sage: 134 14% 49%;         /* #6B9080 Sage Green */
+
     --shadow-card: 0 1px 3px hsl(24 18% 18% / 0.06);
     --shadow-elevated: 0 4px 16px hsl(24 18% 18% / 0.08);
   }

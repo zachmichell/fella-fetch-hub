@@ -15,6 +15,7 @@ import {
   Wrench,
   AlertTriangle,
   MessageSquare,
+  BarChart3,
 } from "lucide-react";
 import Logo from "./Logo";
 import { useAuth } from "@/hooks/useAuth";
@@ -41,6 +42,10 @@ const sections = [
       { to: "/incidents", icon: AlertTriangle, label: "Incidents" },
       { to: "/invoices", icon: Receipt, label: "Invoices" },
     ],
+  },
+  {
+    label: "Insights",
+    items: [{ to: "/dashboard/analytics", icon: BarChart3, label: "Analytics" }],
   },
   {
     label: "Facility",
