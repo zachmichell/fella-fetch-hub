@@ -2,6 +2,8 @@ import { useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { Menu, LogOut, User as UserIcon, ChevronDown } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { useOwnerRecord } from "@/hooks/useOwnerRecord";
+import { useOwnerConversation } from "@/hooks/useConversations";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -17,6 +19,7 @@ const navItems = [
   { to: "/portal/pets", label: "My Pets" },
   { to: "/portal/bookings", label: "Bookings" },
   { to: "/portal/report-cards", label: "Report Cards" },
+  { to: "/portal/messages", label: "Messages", badge: "messages" as const },
   { to: "/portal/invoices", label: "Invoices" },
   { to: "/portal/waivers", label: "Waivers" },
 ];
@@ -32,6 +35,9 @@ export default function OwnerTopNav() {
   const { profile, signOut } = useAuth();
   const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const { data: owner } = useOwnerRecord();
+  const { data: conversation } = useOwnerConversation(owner?.id);
+  const unreadCount = conversation?.unread_owner ?? 0;
 
   const handleSignOut = async () => {
     await signOut();
