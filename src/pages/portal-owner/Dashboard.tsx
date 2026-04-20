@@ -20,6 +20,7 @@ export default function OwnerDashboard() {
   const { profile, membership } = useAuth();
   const [wizardOpen, setWizardOpen] = useState(false);
   const { data: owner, isLoading: ownerLoading } = useOwnerRecord();
+  const { data: reportCards } = useOwnerReportCards(owner?.id);
 
   const { data: org } = useQuery({
     queryKey: ["owner-org", membership?.organization_id],
