@@ -1,14 +1,40 @@
-import { Link, Navigate, useParams } from "react-router-dom";
-import { ArrowLeft, CheckCircle2, AlertTriangle, Clock } from "lucide-react";
+import { useEffect } from "react";
+import { Link, Navigate, useParams, useSearchParams } from "react-router-dom";
+import { useQueryClient } from "@tanstack/react-query";
+import { ArrowLeft, CheckCircle2, AlertTriangle, Clock, CreditCard } from "lucide-react";
+import { toast } from "sonner";
 import InvoiceStatusBadge from "@/components/portal/InvoiceStatusBadge";
+import { Button } from "@/components/ui/button";
 import { useOwnerInvoice } from "@/hooks/useOwnerInvoices";
+import { useCreateCheckoutSession } from "@/hooks/useStripeConnect";
 import { formatCents } from "@/lib/money";
 import { formatDate } from "@/lib/format";
 import { effectiveInvoiceStatus } from "@/lib/invoice";
 
 export default function OwnerInvoiceDetail() {
   const { id } = useParams<{ id: string }>();
+  const [params, setParams] = useSearchParams();
+  const qc = useQueryClient();
   const { data: invoice, isLoading, error } = useOwnerInvoice(id);
+  const checkout = useCreateCheckoutSession();
+
+  // Handle return from Stripe Checkout
+  useEffect(() => {
+    const payment = params.get("payment");
+    if (payment === "success") {
+      toast.success("Payment received. Thank you!");
+      qc.invalidateQueries({ queryKey: ["owner-invoice", id] });
+      qc.invalidateQueries({ queryKey: ["owner-invoices-list"] });
+    } else if (payment === "cancelled") {
+      toast.message("Payment cancelled. Your invoice is still pending.");
+    }
+    if (payment) {
+      const next = new URLSearchParams(params);
+      next.delete("payment");
+      setParams(next, { replace: true });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [params.get("payment")]);
 
   if (isLoading) {
     return <div className="text-center text-sm text-muted-foreground">Loading invoice…</div>;
