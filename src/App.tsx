@@ -27,6 +27,7 @@ import ReservationForm from "./pages/portal/reservations/ReservationForm";
 import ReservationDetail from "./pages/portal/reservations/ReservationDetail";
 import ReservationEdit from "./pages/portal/reservations/ReservationEdit";
 import Schedule from "./pages/portal/schedule/Schedule";
+import CheckInOut from "./pages/portal/check-in-out/CheckInOut";
 import InvoicesList from "./pages/portal/invoices/InvoicesList";
 import InvoiceDetail from "./pages/portal/invoices/InvoiceDetail";
 import Settings from "./pages/portal/settings/Settings";
@@ -108,6 +109,7 @@ const App = () => (
             <Route path="/reservations/:id/edit" element={staff(<ReservationEdit />)} />
             <Route path="/invoices" element={staff(<InvoicesList />)} />
             <Route path="/invoices/:id" element={staff(<InvoiceDetail />)} />
+            <Route path="/dashboard/check-in-out" element={staff(<CheckInOut />)} />
             <Route path="/care-logs" element={staff(<CareLogs />)} />
             <Route path="/messages" element={staff(<StaffMessages />)} />
             <Route path="/incidents" element={staff(<IncidentsList />)} />
