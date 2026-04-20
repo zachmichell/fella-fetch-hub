@@ -36,6 +36,8 @@ import CareLogs from "./pages/portal/care-logs/CareLogs";
 import IncidentsList from "./pages/portal/incidents/IncidentsList";
 import IncidentForm from "./pages/portal/incidents/IncidentForm";
 import IncidentDetail from "./pages/portal/incidents/IncidentDetail";
+import StaffMessages from "./pages/portal/messages/Messages";
+import OwnerMessages from "./pages/portal-owner/Messages";
 import OwnerReportCards from "./pages/portal-owner/ReportCards";
 import OwnerReportCardDetail from "./pages/portal-owner/ReportCardDetail";
 import OwnerDashboard from "./pages/portal-owner/Dashboard";
@@ -107,6 +109,7 @@ const App = () => (
             <Route path="/invoices" element={staff(<InvoicesList />)} />
             <Route path="/invoices/:id" element={staff(<InvoiceDetail />)} />
             <Route path="/care-logs" element={staff(<CareLogs />)} />
+            <Route path="/messages" element={staff(<StaffMessages />)} />
             <Route path="/incidents" element={staff(<IncidentsList />)} />
             <Route path="/incidents/new" element={staff(<IncidentForm />)} />
             <Route path="/incidents/:id" element={staff(<IncidentDetail />)} />
@@ -127,6 +130,7 @@ const App = () => (
             <Route path="/portal/waivers/:id" element={customer(<OwnerWaiverDetail />)} />
             <Route path="/portal/report-cards" element={customer(<OwnerReportCards />)} />
             <Route path="/portal/report-cards/:id" element={customer(<OwnerReportCardDetail />)} />
+            <Route path="/portal/messages" element={customer(<OwnerMessages />)} />
 
             <Route path="*" element={<NotFound />} />
           </Routes>
