@@ -17,11 +17,11 @@ const MODULE_LABEL: Record<ModuleKey, string> = {
 };
 
 const STATUS_STYLES: Record<string, string> = {
-  trialing: "bg-yellow-200 text-yellow-900",
-  active: "bg-green-200 text-green-900",
-  past_due: "bg-red-200 text-red-900",
+  trialing: "bg-warning-light text-warning",
+  active: "bg-success-light text-success",
+  past_due: "bg-destructive-light text-destructive",
   cancelled: "bg-muted text-muted-foreground",
-  paused: "bg-blue-200 text-blue-900",
+  paused: "bg-teal-light text-teal",
 };
 
 export default function SubscriptionTab() {

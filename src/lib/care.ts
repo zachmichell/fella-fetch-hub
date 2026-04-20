@@ -13,21 +13,21 @@ export const LOG_TYPE_LABELS: Record<LogType, string> = {
 
 // Tailwind classes for the brand-colored log type chips & timeline dots
 export const LOG_TYPE_CHIP: Record<LogType, string> = {
-  feeding: "bg-[#EED4BB] text-[#4a3520]",
-  medication: "bg-[#F2D3C9] text-[#5a2a22]",
-  potty: "bg-[#CBD5D6] text-[#2c4448]",
-  play: "bg-[#C7D0C5] text-[#2f4530]",
-  rest: "bg-[#CDB5B1] text-[#4a2a28]",
-  note: "bg-[#CBA48F] text-white",
+  feeding: "bg-brand-vanilla text-foreground",
+  medication: "bg-brand-cotton text-foreground",
+  potty: "bg-brand-frost text-foreground",
+  play: "bg-brand-mist text-foreground",
+  rest: "bg-brand-blueberry text-foreground",
+  note: "bg-primary text-primary-foreground",
 };
 
 export const LOG_TYPE_DOT: Record<LogType, string> = {
-  feeding: "bg-[#EED4BB]",
-  medication: "bg-[#F2D3C9]",
-  potty: "bg-[#CBD5D6]",
-  play: "bg-[#C7D0C5]",
-  rest: "bg-[#CDB5B1]",
-  note: "bg-[#CBA48F]",
+  feeding: "bg-brand-vanilla",
+  medication: "bg-brand-cotton",
+  potty: "bg-brand-frost",
+  play: "bg-brand-mist",
+  rest: "bg-brand-blueberry",
+  note: "bg-primary",
 };
 
 // Owner-friendly icons (emoji) for the care log timeline
