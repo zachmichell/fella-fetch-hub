@@ -392,6 +392,13 @@ export default function ReservationDetail() {
                 </div>
               </div>
             </div>
+
+            <div className="mt-6">
+              <ReservationIncidentsSection
+                reservationId={r.id}
+                petIds={((r as any).reservation_pets ?? []).map((rp: any) => rp.pet_id)}
+              />
+            </div>
           </TabsContent>
 
           <TabsContent value="pets" className="mt-4">
