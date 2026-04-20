@@ -187,6 +187,107 @@ export type Database = {
           },
         ]
       }
+      incident_pets: {
+        Row: {
+          created_at: string
+          id: string
+          incident_id: string
+          injury_description: string | null
+          organization_id: string
+          pet_id: string
+          role: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          incident_id: string
+          injury_description?: string | null
+          organization_id: string
+          pet_id: string
+          role?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          incident_id?: string
+          injury_description?: string | null
+          organization_id?: string
+          pet_id?: string
+          role?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "incident_pets_incident_id_fkey"
+            columns: ["incident_id"]
+            isOneToOne: false
+            referencedRelation: "incidents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      incidents: {
+        Row: {
+          action_taken: string | null
+          created_at: string
+          description: string
+          follow_up_completed_at: string | null
+          follow_up_notes: string | null
+          follow_up_required: boolean
+          id: string
+          incident_at: string
+          incident_type: string
+          location_id: string | null
+          organization_id: string
+          owner_notified: boolean
+          owner_notified_at: string | null
+          owner_visible: boolean
+          reported_by: string | null
+          reservation_id: string | null
+          severity: string
+          updated_at: string
+        }
+        Insert: {
+          action_taken?: string | null
+          created_at?: string
+          description: string
+          follow_up_completed_at?: string | null
+          follow_up_notes?: string | null
+          follow_up_required?: boolean
+          id?: string
+          incident_at: string
+          incident_type: string
+          location_id?: string | null
+          organization_id: string
+          owner_notified?: boolean
+          owner_notified_at?: string | null
+          owner_visible?: boolean
+          reported_by?: string | null
+          reservation_id?: string | null
+          severity: string
+          updated_at?: string
+        }
+        Update: {
+          action_taken?: string | null
+          created_at?: string
+          description?: string
+          follow_up_completed_at?: string | null
+          follow_up_notes?: string | null
+          follow_up_required?: boolean
+          id?: string
+          incident_at?: string
+          incident_type?: string
+          location_id?: string | null
+          organization_id?: string
+          owner_notified?: boolean
+          owner_notified_at?: string | null
+          owner_visible?: boolean
+          reported_by?: string | null
+          reservation_id?: string | null
+          severity?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       invoice_lines: {
         Row: {
           created_at: string
@@ -1015,6 +1116,45 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      pet_traits: {
+        Row: {
+          added_by: string | null
+          category: string
+          created_at: string
+          id: string
+          label: string
+          notes: string | null
+          organization_id: string
+          pet_id: string
+          severity: string
+          updated_at: string
+        }
+        Insert: {
+          added_by?: string | null
+          category: string
+          created_at?: string
+          id?: string
+          label: string
+          notes?: string | null
+          organization_id: string
+          pet_id: string
+          severity?: string
+          updated_at?: string
+        }
+        Update: {
+          added_by?: string | null
+          category?: string
+          created_at?: string
+          id?: string
+          label?: string
+          notes?: string | null
+          organization_id?: string
+          pet_id?: string
+          severity?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       pets: {
         Row: {
