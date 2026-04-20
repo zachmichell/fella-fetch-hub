@@ -100,6 +100,17 @@ export default function BookingCard({
         <BookingStatusBadge status={booking.status} />
       </div>
 
+      {(booking as any).checked_in_at && booking.status === "checked_in" && (
+        <p className="mt-3 rounded-lg bg-success-light p-3 text-sm text-success">
+          ✓ Checked in at {fmtTime((booking as any).checked_in_at)}
+        </p>
+      )}
+      {(booking as any).checked_out_at && booking.status === "checked_out" && (
+        <p className="mt-3 rounded-lg bg-muted p-3 text-sm text-muted-foreground">
+          ✓ Checked out at {fmtTime((booking as any).checked_out_at)}
+        </p>
+      )}
+
       {booking.notes && (
         <p className="mt-3 rounded-lg bg-muted/50 p-3 text-sm text-muted-foreground">
           <span className="font-medium text-foreground">Notes: </span>
