@@ -33,6 +33,9 @@ import Settings from "./pages/portal/settings/Settings";
 import Playgroups from "./pages/portal/playgroups/Playgroups";
 import KennelRuns from "./pages/portal/kennel-runs/KennelRuns";
 import CareLogs from "./pages/portal/care-logs/CareLogs";
+import IncidentsList from "./pages/portal/incidents/IncidentsList";
+import IncidentForm from "./pages/portal/incidents/IncidentForm";
+import IncidentDetail from "./pages/portal/incidents/IncidentDetail";
 import OwnerReportCards from "./pages/portal-owner/ReportCards";
 import OwnerReportCardDetail from "./pages/portal-owner/ReportCardDetail";
 import OwnerDashboard from "./pages/portal-owner/Dashboard";
@@ -104,6 +107,10 @@ const App = () => (
             <Route path="/invoices" element={staff(<InvoicesList />)} />
             <Route path="/invoices/:id" element={staff(<InvoiceDetail />)} />
             <Route path="/care-logs" element={staff(<CareLogs />)} />
+            <Route path="/incidents" element={staff(<IncidentsList />)} />
+            <Route path="/incidents/new" element={staff(<IncidentForm />)} />
+            <Route path="/incidents/:id" element={staff(<IncidentDetail />)} />
+            <Route path="/incidents/:id/edit" element={staff(<IncidentForm />)} />
             <Route path="/playgroups" element={staff(<Playgroups />)} />
             <Route path="/kennel-runs" element={staff(<KennelRuns />)} />
             <Route path="/settings" element={staff(<Settings />)} />
