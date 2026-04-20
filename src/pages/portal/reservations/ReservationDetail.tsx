@@ -37,6 +37,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { formatCentsShort, formatDateTime, formatDurationType } from "@/lib/money";
 import { createInvoiceForReservation } from "@/lib/invoice";
+import { sendReservationConfirmation } from "@/lib/email";
+import { RATING_OPTIONS, MOOD_OPTIONS } from "@/lib/care";
 
 export default function ReservationDetail() {
   const { id } = useParams();
@@ -109,11 +111,31 @@ export default function ReservationDetail() {
     refresh();
   };
 
-  const handleConfirm = () =>
-    updateStatus(
+  const handleConfirm = async () => {
+    await updateStatus(
       { status: "confirmed", confirmed_at: new Date().toISOString(), confirmed_by_user_id: user?.id ?? null },
       "Reservation confirmed",
     );
+    // Send confirmation email (fire-and-forget; respects email_settings)
+    if (r) {
+      const owner: any = (r as any).owners;
+      const service: any = (r as any).services;
+      const location: any = (r as any).locations;
+      const pets: any[] = ((r as any).reservation_pets ?? []).map((rp: any) => rp.pets).filter(Boolean);
+      if (owner?.email && r.organization_id) {
+        sendReservationConfirmation({
+          organization_id: r.organization_id,
+          to: owner.email,
+          pet_names: pets.map((p) => p.name),
+          service_name: service?.name ?? "Booking",
+          start_at: formatDateTime(r.start_at, location?.timezone),
+          location_name: location?.name ?? "",
+          reservation_id: r.id,
+          owner_first_name: owner.first_name,
+        }).catch((e) => console.warn("reservation email failed:", e));
+      }
+    }
+  };
   const handleCheckIn = () =>
     updateStatus(
       {
