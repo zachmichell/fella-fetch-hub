@@ -249,7 +249,7 @@ export default function CheckInOut() {
           </div>
         ) : (
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-            <Column title="Arrivals" tone="brand-cotton" count={arrivals.length}>
+            <Column title="Arrivals" tone="arrivals" count={arrivals.length}>
               {arrivals.length === 0 ? (
                 <Empty text="No arrivals scheduled" />
               ) : (
@@ -263,7 +263,7 @@ export default function CheckInOut() {
               )}
             </Column>
 
-            <Column title="Currently Here" tone="brand-mist" count={here.length}>
+            <Column title="Currently Here" tone="here" count={here.length}>
               {here.length === 0 ? (
                 <Empty text="No pets currently checked in" />
               ) : (
@@ -277,7 +277,7 @@ export default function CheckInOut() {
               )}
             </Column>
 
-            <Column title="Departures" tone="brand-frost" count={departed.length}>
+            <Column title="Departures" tone="departures" count={departed.length}>
               {departed.length === 0 ? (
                 <Empty text="No departures yet" />
               ) : (
@@ -343,6 +343,12 @@ export default function CheckInOut() {
   );
 }
 
+const COLUMN_TONES: Record<string, string> = {
+  arrivals: "bg-brand-cotton-bg",
+  here: "bg-brand-mist-bg",
+  departures: "bg-brand-frost-bg",
+};
+
 function Column({
   title,
   tone,
@@ -350,13 +356,15 @@ function Column({
   children,
 }: {
   title: string;
-  tone: string;
+  tone: keyof typeof COLUMN_TONES;
   count: number;
   children: React.ReactNode;
 }) {
   return (
     <section className="rounded-lg border border-border bg-card shadow-card">
-      <header className={`flex items-center justify-between rounded-t-lg border-b border-border-subtle bg-${tone}-bg px-5 py-3`}>
+      <header
+        className={`flex items-center justify-between rounded-t-lg border-b border-border-subtle px-5 py-3 ${COLUMN_TONES[tone]}`}
+      >
         <h2 className="font-display text-base font-semibold text-foreground">{title}</h2>
         <span className="rounded-pill bg-card px-2 py-0.5 text-xs font-semibold text-text-secondary">
           {count}
