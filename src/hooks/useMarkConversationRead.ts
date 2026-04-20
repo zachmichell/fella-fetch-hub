@@ -15,7 +15,6 @@ export function useMarkConversationRead(
 
     (async () => {
       const oppositeSender = side === "staff" ? "owner" : "staff";
-      const counterField = side === "staff" ? "unread_staff" : "unread_owner";
       const now = new Date().toISOString();
 
       // Mark opposite-side messages as read
@@ -27,10 +26,8 @@ export function useMarkConversationRead(
         .is("read_at", null);
 
       // Zero the unread counter
-      await supabase
-        .from("conversations")
-        .update({ [counterField]: 0 })
-        .eq("id", conversationId);
+      const update = side === "staff" ? { unread_staff: 0 } : { unread_owner: 0 };
+      await supabase.from("conversations").update(update).eq("id", conversationId);
 
       if (!cancelled) {
         qc.invalidateQueries({ queryKey: ["staff-conversations"] });
