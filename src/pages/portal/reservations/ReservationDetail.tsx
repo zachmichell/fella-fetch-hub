@@ -518,6 +518,16 @@ export default function ReservationDetail() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {reportPet && (
+        <ReportCardEditor
+          open={!!reportPet}
+          onOpenChange={(o) => !o && setReportPet(null)}
+          reservationId={r.id}
+          petId={reportPet.id}
+          petName={reportPet.name}
+        />
+      )}
     </PortalLayout>
   );
 }
