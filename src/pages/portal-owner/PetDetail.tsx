@@ -484,3 +484,74 @@ function NoteRow({ label, value }: { label: string; value: string | null }) {
     </div>
   );
 }
+
+function MedicationsSection({ petId, orgName }: { petId: string; orgName: string }) {
+  const { data: meds } = usePetMedications(petId);
+  return (
+    <section className="rounded-2xl border border-border bg-card p-6 shadow-sm sm:p-8">
+      <h2 className="font-display text-xl font-semibold text-foreground">Medications</h2>
+      <p className="mt-1 text-sm text-muted-foreground">
+        Managed by {orgName || "your provider"}. Contact them to request changes.
+      </p>
+      <div className="mt-5 space-y-3">
+        {(!meds || meds.length === 0) ? (
+          <p className="rounded-lg border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
+            No medications on file.
+          </p>
+        ) : (
+          meds.map((m: any) => (
+            <article key={m.id} className="rounded-xl border border-border-subtle bg-background p-4">
+              <h3 className="font-semibold text-foreground">{m.name}</h3>
+              <dl className="mt-2 grid gap-x-6 gap-y-1 text-sm sm:grid-cols-2">
+                {m.dosage && <Row label="Dosage" value={m.dosage} />}
+                {m.frequency && <Row label="Frequency" value={m.frequency} />}
+                {m.timing && <Row label="Timing" value={m.timing} />}
+              </dl>
+              {m.instructions && <p className="mt-2 text-sm text-muted-foreground">{m.instructions}</p>}
+            </article>
+          ))
+        )}
+      </div>
+    </section>
+  );
+}
+
+function FeedingSection({ petId, orgName }: { petId: string; orgName: string }) {
+  const { data: schedules } = usePetFeeding(petId);
+  return (
+    <section className="rounded-2xl border border-border bg-card p-6 shadow-sm sm:p-8">
+      <h2 className="font-display text-xl font-semibold text-foreground">Feeding schedule</h2>
+      <p className="mt-1 text-sm text-muted-foreground">
+        Managed by {orgName || "your provider"}. Contact them to request changes.
+      </p>
+      <div className="mt-5 space-y-3">
+        {(!schedules || schedules.length === 0) ? (
+          <p className="rounded-lg border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
+            No feeding schedule on file.
+          </p>
+        ) : (
+          schedules.map((s: any) => (
+            <article key={s.id} className="rounded-xl border border-border-subtle bg-background p-4">
+              <h3 className="font-semibold text-foreground">{s.food_type}</h3>
+              <dl className="mt-2 grid gap-x-6 gap-y-1 text-sm sm:grid-cols-2">
+                {s.amount && <Row label="Amount" value={s.amount} />}
+                {s.frequency && <Row label="Frequency" value={s.frequency} />}
+                {s.timing && <Row label="Timing" value={s.timing} />}
+              </dl>
+              {s.instructions && <p className="mt-2 text-sm text-muted-foreground">{s.instructions}</p>}
+            </article>
+          ))
+        )}
+      </div>
+    </section>
+  );
+}
+
+function Row({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex gap-2">
+      <dt className="text-muted-foreground">{label}:</dt>
+      <dd className="text-foreground">{value}</dd>
+    </div>
+  );
+}
