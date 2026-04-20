@@ -62,6 +62,42 @@ export type Database = {
           },
         ]
       }
+      conversations: {
+        Row: {
+          created_at: string
+          id: string
+          last_message_at: string | null
+          last_message_preview: string | null
+          organization_id: string
+          owner_id: string
+          unread_owner: number
+          unread_staff: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          last_message_at?: string | null
+          last_message_preview?: string | null
+          organization_id: string
+          owner_id: string
+          unread_owner?: number
+          unread_staff?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          last_message_at?: string | null
+          last_message_preview?: string | null
+          organization_id?: string
+          owner_id?: string
+          unread_owner?: number
+          unread_staff?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       documents: {
         Row: {
           created_at: string
@@ -714,6 +750,44 @@ export type Database = {
             columns: ["profile_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      messages: {
+        Row: {
+          body: string
+          conversation_id: string
+          created_at: string
+          id: string
+          read_at: string | null
+          sender_id: string
+          sender_type: Database["public"]["Enums"]["message_sender_type"]
+        }
+        Insert: {
+          body: string
+          conversation_id: string
+          created_at?: string
+          id?: string
+          read_at?: string | null
+          sender_id: string
+          sender_type: Database["public"]["Enums"]["message_sender_type"]
+        }
+        Update: {
+          body?: string
+          conversation_id?: string
+          created_at?: string
+          id?: string
+          read_at?: string | null
+          sender_id?: string
+          sender_type?: Database["public"]["Enums"]["message_sender_type"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "messages_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
             referencedColumns: ["id"]
           },
         ]
@@ -2134,6 +2208,7 @@ export type Database = {
       invoice_status: "draft" | "sent" | "paid" | "partial" | "overdue" | "void"
       kennel_run_type: "standard" | "large" | "suite" | "indoor" | "outdoor"
       membership_role: "owner" | "admin" | "manager" | "staff" | "customer"
+      message_sender_type: "staff" | "owner"
       module_enum: "daycare" | "boarding" | "grooming" | "training" | "retail"
       payment_method_enum: "card" | "ach" | "in_person"
       payment_status: "pending" | "succeeded" | "failed" | "refunded"
@@ -2311,6 +2386,7 @@ export const Constants = {
       invoice_status: ["draft", "sent", "paid", "partial", "overdue", "void"],
       kennel_run_type: ["standard", "large", "suite", "indoor", "outdoor"],
       membership_role: ["owner", "admin", "manager", "staff", "customer"],
+      message_sender_type: ["staff", "owner"],
       module_enum: ["daycare", "boarding", "grooming", "training", "retail"],
       payment_method_enum: ["card", "ach", "in_person"],
       payment_status: ["pending", "succeeded", "failed", "refunded"],
