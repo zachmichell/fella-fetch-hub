@@ -807,7 +807,9 @@ export type Database = {
           id: string
           name: string
           slug: string
+          status: Database["public"]["Enums"]["org_status_enum"]
           timezone: string
+          trial_ends_at: string | null
           updated_at: string
         }
         Insert: {
@@ -818,7 +820,9 @@ export type Database = {
           id?: string
           name: string
           slug: string
+          status?: Database["public"]["Enums"]["org_status_enum"]
           timezone?: string
+          trial_ends_at?: string | null
           updated_at?: string
         }
         Update: {
@@ -829,7 +833,9 @@ export type Database = {
           id?: string
           name?: string
           slug?: string
+          status?: Database["public"]["Enums"]["org_status_enum"]
           timezone?: string
+          trial_ends_at?: string | null
           updated_at?: string
         }
         Relationships: []
@@ -1863,6 +1869,7 @@ export type Database = {
           location_id: string | null
           module: Database["public"]["Enums"]["module_enum"]
           organization_id: string
+          price_cents: number
           updated_at: string
         }
         Insert: {
@@ -1873,6 +1880,7 @@ export type Database = {
           location_id?: string | null
           module: Database["public"]["Enums"]["module_enum"]
           organization_id: string
+          price_cents?: number
           updated_at?: string
         }
         Update: {
@@ -1883,6 +1891,7 @@ export type Database = {
           location_id?: string | null
           module?: Database["public"]["Enums"]["module_enum"]
           organization_id?: string
+          price_cents?: number
           updated_at?: string
         }
         Relationships: [
@@ -1910,8 +1919,10 @@ export type Database = {
           current_period_start: string | null
           deleted_at: string | null
           id: string
+          last_payment_date: string | null
           organization_id: string
           status: Database["public"]["Enums"]["subscription_status"]
+          stripe_checkout_session_id: string | null
           stripe_customer_id: string | null
           stripe_subscription_id: string | null
           trial_ends_at: string | null
@@ -1924,8 +1935,10 @@ export type Database = {
           current_period_start?: string | null
           deleted_at?: string | null
           id?: string
+          last_payment_date?: string | null
           organization_id: string
           status?: Database["public"]["Enums"]["subscription_status"]
+          stripe_checkout_session_id?: string | null
           stripe_customer_id?: string | null
           stripe_subscription_id?: string | null
           trial_ends_at?: string | null
@@ -1938,8 +1951,10 @@ export type Database = {
           current_period_start?: string | null
           deleted_at?: string | null
           id?: string
+          last_payment_date?: string | null
           organization_id?: string
           status?: Database["public"]["Enums"]["subscription_status"]
+          stripe_checkout_session_id?: string | null
           stripe_customer_id?: string | null
           stripe_subscription_id?: string | null
           trial_ends_at?: string | null
@@ -2219,6 +2234,7 @@ export type Database = {
       membership_role: "owner" | "admin" | "manager" | "staff" | "customer"
       message_sender_type: "staff" | "owner"
       module_enum: "daycare" | "boarding" | "grooming" | "training" | "retail"
+      org_status_enum: "trial" | "active" | "paused" | "past_due" | "cancelled"
       payment_method_enum: "card" | "ach" | "in_person"
       payment_status: "pending" | "succeeded" | "failed" | "refunded"
       pet_owner_relationship: "primary" | "secondary" | "emergency_only"
@@ -2397,6 +2413,7 @@ export const Constants = {
       membership_role: ["owner", "admin", "manager", "staff", "customer"],
       message_sender_type: ["staff", "owner"],
       module_enum: ["daycare", "boarding", "grooming", "training", "retail"],
+      org_status_enum: ["trial", "active", "paused", "past_due", "cancelled"],
       payment_method_enum: ["card", "ach", "in_person"],
       payment_status: ["pending", "succeeded", "failed", "refunded"],
       pet_owner_relationship: ["primary", "secondary", "emergency_only"],
