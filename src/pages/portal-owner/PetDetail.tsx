@@ -334,6 +334,12 @@ export default function OwnerPetDetail() {
         </dl>
       </section>
 
+      {/* Medications (read-only) */}
+      <MedicationsSection petId={pet.id} orgName={orgName} />
+
+      {/* Feeding (read-only) */}
+      <FeedingSection petId={pet.id} orgName={orgName} />
+
       {/* Vaccinations */}
       <section className="rounded-2xl border border-border bg-card p-6 shadow-sm sm:p-8">
         <div className="flex items-center justify-between gap-3">
