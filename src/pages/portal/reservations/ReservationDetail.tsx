@@ -463,11 +463,12 @@ export default function ReservationDetail() {
                           <button
                             type="button"
                             onClick={() => removePet(rp.id)}
-                          className="text-text-tertiary hover:text-destructive"
-                          aria-label="Remove pet"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </button>
+                            className="text-text-tertiary hover:text-destructive"
+                            aria-label="Remove pet"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}
