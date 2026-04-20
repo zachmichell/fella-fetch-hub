@@ -363,6 +363,32 @@ export default function ReservationDetail() {
                     {(r as any).cancelled_at && <Timeline label="Cancelled" at={(r as any).cancelled_at} />}
                   </ol>
                 </div>
+
+                <div className="rounded-lg border border-border bg-surface p-6 shadow-card">
+                  <div className="label-eyebrow mb-3">Care log</div>
+                  {!careLogs || careLogs.length === 0 ? (
+                    <p className="text-sm text-text-secondary">No care logs yet.</p>
+                  ) : (
+                    <>
+                      <p className="text-sm text-text-secondary">
+                        {careLogs.length} entr{careLogs.length === 1 ? "y" : "ies"} —{" "}
+                        {(["feeding", "play", "potty", "medication", "rest", "note"] as LogType[])
+                          .map((t) => {
+                            const n = careLogs.filter((l: any) => l.log_type === t).length;
+                            return n > 0 ? `${n} ${LOG_TYPE_LABELS[t].toLowerCase()}` : null;
+                          })
+                          .filter(Boolean)
+                          .join(", ")}
+                      </p>
+                      <Link
+                        to={`/care-logs?reservation=${r.id}`}
+                        className="mt-2 inline-block text-xs font-semibold text-primary hover:underline"
+                      >
+                        View timeline →
+                      </Link>
+                    </>
+                  )}
+                </div>
               </div>
             </div>
           </TabsContent>
