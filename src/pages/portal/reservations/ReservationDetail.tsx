@@ -1,11 +1,14 @@
 import { useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Pencil, CheckCircle2, LogIn, LogOut, XCircle, AlertTriangle, Plus, Trash2 } from "lucide-react";
+import { Pencil, CheckCircle2, LogIn, LogOut, XCircle, AlertTriangle, Plus, Trash2, FileHeart } from "lucide-react";
 import PortalLayout from "@/components/portal/PortalLayout";
 import PageHeader from "@/components/portal/PageHeader";
 import ReservationStatusBadge from "@/components/portal/ReservationStatusBadge";
 import StatusBadge, { intakeTone } from "@/components/portal/StatusBadge";
+import ReportCardEditor from "@/components/portal/pet-care/ReportCardEditor";
+import { useReservationCareLogs } from "@/hooks/useCareLogs";
+import { LOG_TYPE_LABELS, LogType } from "@/lib/care";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
