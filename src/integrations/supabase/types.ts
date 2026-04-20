@@ -785,6 +785,188 @@ export type Database = {
           },
         ]
       }
+      pet_care_logs: {
+        Row: {
+          created_at: string
+          id: string
+          log_type: string
+          logged_at: string
+          logged_by: string | null
+          notes: string | null
+          organization_id: string
+          pet_id: string
+          reference_id: string | null
+          reservation_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          log_type: string
+          logged_at?: string
+          logged_by?: string | null
+          notes?: string | null
+          organization_id: string
+          pet_id: string
+          reference_id?: string | null
+          reservation_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          log_type?: string
+          logged_at?: string
+          logged_by?: string | null
+          notes?: string | null
+          organization_id?: string
+          pet_id?: string
+          reference_id?: string | null
+          reservation_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pet_care_logs_logged_by_fkey"
+            columns: ["logged_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pet_care_logs_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pet_care_logs_pet_id_fkey"
+            columns: ["pet_id"]
+            isOneToOne: false
+            referencedRelation: "pets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pet_care_logs_reservation_id_fkey"
+            columns: ["reservation_id"]
+            isOneToOne: false
+            referencedRelation: "reservations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pet_feeding_schedules: {
+        Row: {
+          amount: string | null
+          created_at: string
+          food_type: string
+          frequency: string | null
+          id: string
+          instructions: string | null
+          is_active: boolean
+          organization_id: string
+          pet_id: string
+          timing: string | null
+          updated_at: string
+        }
+        Insert: {
+          amount?: string | null
+          created_at?: string
+          food_type: string
+          frequency?: string | null
+          id?: string
+          instructions?: string | null
+          is_active?: boolean
+          organization_id: string
+          pet_id: string
+          timing?: string | null
+          updated_at?: string
+        }
+        Update: {
+          amount?: string | null
+          created_at?: string
+          food_type?: string
+          frequency?: string | null
+          id?: string
+          instructions?: string | null
+          is_active?: boolean
+          organization_id?: string
+          pet_id?: string
+          timing?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pet_feeding_schedules_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pet_feeding_schedules_pet_id_fkey"
+            columns: ["pet_id"]
+            isOneToOne: false
+            referencedRelation: "pets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pet_medications: {
+        Row: {
+          created_at: string
+          dosage: string | null
+          frequency: string | null
+          id: string
+          instructions: string | null
+          is_active: boolean
+          name: string
+          organization_id: string
+          pet_id: string
+          timing: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          dosage?: string | null
+          frequency?: string | null
+          id?: string
+          instructions?: string | null
+          is_active?: boolean
+          name: string
+          organization_id: string
+          pet_id: string
+          timing?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          dosage?: string | null
+          frequency?: string | null
+          id?: string
+          instructions?: string | null
+          is_active?: boolean
+          name?: string
+          organization_id?: string
+          pet_id?: string
+          timing?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pet_medications_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pet_medications_pet_id_fkey"
+            columns: ["pet_id"]
+            isOneToOne: false
+            referencedRelation: "pets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       pet_owners: {
         Row: {
           created_at: string
@@ -1071,6 +1253,92 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      report_cards: {
+        Row: {
+          appetite: string | null
+          created_at: string
+          created_by: string | null
+          energy_level: string | null
+          id: string
+          mood: string | null
+          organization_id: string
+          overall_rating: string | null
+          pet_id: string
+          photo_urls: string[]
+          published: boolean
+          published_at: string | null
+          reservation_id: string
+          sociability: string | null
+          summary: string | null
+          updated_at: string
+        }
+        Insert: {
+          appetite?: string | null
+          created_at?: string
+          created_by?: string | null
+          energy_level?: string | null
+          id?: string
+          mood?: string | null
+          organization_id: string
+          overall_rating?: string | null
+          pet_id: string
+          photo_urls?: string[]
+          published?: boolean
+          published_at?: string | null
+          reservation_id: string
+          sociability?: string | null
+          summary?: string | null
+          updated_at?: string
+        }
+        Update: {
+          appetite?: string | null
+          created_at?: string
+          created_by?: string | null
+          energy_level?: string | null
+          id?: string
+          mood?: string | null
+          organization_id?: string
+          overall_rating?: string | null
+          pet_id?: string
+          photo_urls?: string[]
+          published?: boolean
+          published_at?: string | null
+          reservation_id?: string
+          sociability?: string | null
+          summary?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "report_cards_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "report_cards_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "report_cards_pet_id_fkey"
+            columns: ["pet_id"]
+            isOneToOne: false
+            referencedRelation: "pets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "report_cards_reservation_id_fkey"
+            columns: ["reservation_id"]
+            isOneToOne: false
+            referencedRelation: "reservations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       reservation_pets: {
         Row: {
