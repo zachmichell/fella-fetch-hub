@@ -2,3 +2,6 @@ project_id = "empdnuzfjgfnphwauhah"
 
 [functions.stripe-connect-webhook]
 verify_jwt = false
+
+[functions.stripe-billing-webhook]
+verify_jwt = false
