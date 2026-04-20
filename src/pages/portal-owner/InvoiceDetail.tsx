@@ -53,6 +53,26 @@ export default function OwnerInvoiceDetail() {
   const taxes: any[] = (invoice as any).invoice_taxes ?? [];
   const orgName = org?.name ?? "the business";
   const currency = invoice.currency;
+  const canPay =
+    balance > 0 && (invoice.status === "sent" || invoice.status === "partial");
+
+  const handlePay = async () => {
+    if (!id) return;
+    try {
+      const res = await checkout.mutateAsync(id);
+      window.location.href = res.checkout_url;
+    } catch (e: any) {
+      const msg = e?.message ?? "Could not start payment";
+      if (msg.toLowerCase().includes("already paid")) {
+        toast.message("This invoice has already been paid.");
+        qc.invalidateQueries({ queryKey: ["owner-invoice", id] });
+      } else if (msg.toLowerCase().includes("not set up")) {
+        toast.error(`${orgName} hasn't enabled online payments yet.`);
+      } else {
+        toast.error(msg);
+      }
+    }
+  };
 
   return (
     <div>
