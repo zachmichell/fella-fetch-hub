@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Send, CheckCircle2, Ban } from "lucide-react";
+import { Send, CheckCircle2, Ban, Link2 } from "lucide-react";
 import { toast } from "sonner";
 import PortalLayout from "@/components/portal/PortalLayout";
 import PageHeader from "@/components/portal/PageHeader";
@@ -11,6 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { formatCentsShort, formatDateTime } from "@/lib/money";
 import { effectiveInvoiceStatus } from "@/lib/invoice";
+import { useCreateCheckoutSession, useOrgConnectFlag } from "@/hooks/useStripeConnect";
 
 export default function InvoiceDetail() {
   const { id } = useParams();
@@ -115,15 +116,46 @@ export default function InvoiceDetail() {
   const location: any = reservation?.locations;
   const pets: any[] = (reservation?.reservation_pets ?? []).map((rp: any) => rp.pets).filter(Boolean);
 
+  const connect = useOrgConnectFlag();
+  const checkout = useCreateCheckoutSession();
+  const canSendPaymentLink =
+    (inv.status === "sent" || eff === "overdue" || inv.status === "partial") &&
+    !!connect.data?.charges_enabled;
+
+  const sendPaymentLink = async () => {
+    try {
+      const res = await checkout.mutateAsync(inv.id);
+      try {
+        await navigator.clipboard.writeText(res.checkout_url);
+        toast.success("Payment link copied to clipboard");
+      } catch {
+        toast.success("Payment link created", { description: res.checkout_url });
+      }
+      qc.invalidateQueries({ queryKey: ["invoice", id] });
+    } catch (e: any) {
+      toast.error(e.message ?? "Could not create payment link");
+    }
+  };
+
   const renderActions = () => {
     const canSend = inv.status === "draft";
-    const canMarkPaid = inv.status === "sent" || eff === "overdue";
+    const canMarkPaid = inv.status === "sent" || eff === "overdue" || inv.status === "partial";
     const canVoid = inv.status === "draft" || inv.status === "sent" || eff === "overdue";
     return (
       <>
         {canSend && (
           <Button onClick={() => statusMut.mutate({ status: "sent" })}>
             <Send className="h-4 w-4" /> Send
+          </Button>
+        )}
+        {canSendPaymentLink && (
+          <Button
+            variant="outline"
+            onClick={sendPaymentLink}
+            disabled={checkout.isPending}
+          >
+            <Link2 className="h-4 w-4" />
+            {checkout.isPending ? "Generating…" : "Send payment link"}
           </Button>
         )}
         {canMarkPaid && (
