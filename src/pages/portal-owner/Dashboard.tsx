@@ -287,45 +287,44 @@ export default function OwnerDashboard() {
         </Card>
       </div>
 
-        <Card title="Recent report cards" icon={FileHeart} viewAllTo="/portal/report-cards">
-          {reportCards && reportCards.length > 0 ? (
-            <ul className="space-y-3">
-              {reportCards.slice(0, 3).map((c: any) => {
-                const r = ratingMeta(c.overall_rating);
-                return (
-                  <li key={c.id}>
-                    <Link
-                      to={`/portal/report-cards/${c.id}`}
-                      className="-mx-2 flex items-center gap-3 rounded-md px-2 py-2 transition hover:bg-card-alt"
-                    >
-                      {c.pets?.photo_url ? (
-                        <img src={c.pets.photo_url} alt={c.pets.name} className="h-10 w-10 rounded-full object-cover" />
-                      ) : (
-                        <span className="flex h-10 w-10 items-center justify-center rounded-full bg-muted text-lg">
-                          {speciesIcon(c.pets?.species)}
-                        </span>
-                      )}
-                      <div className="min-w-0 flex-1">
-                        <p className="font-medium text-foreground truncate">{c.pets?.name}</p>
-                        <p className="text-sm text-muted-foreground truncate">
-                          {formatDate(c.reservations?.start_at, { month: "short", day: "numeric" })}
-                        </p>
-                      </div>
-                      {r && (
-                        <span className={`inline-flex items-center gap-1 rounded-pill px-2 py-0.5 text-xs font-semibold ${r.tone}`}>
-                          {r.emoji} {r.label}
-                        </span>
-                      )}
-                    </Link>
-                  </li>
-                );
-              })}
-            </ul>
-          ) : (
-            <Empty text="No report cards yet" />
-          )}
-        </Card>
-      </div>
+      <Card title="Recent report cards" icon={FileHeart} viewAllTo="/portal/report-cards">
+        {reportCards && reportCards.length > 0 ? (
+          <ul className="space-y-3">
+            {reportCards.slice(0, 3).map((c: any) => {
+              const r = ratingMeta(c.overall_rating);
+              return (
+                <li key={c.id}>
+                  <Link
+                    to={`/portal/report-cards/${c.id}`}
+                    className="-mx-2 flex items-center gap-3 rounded-md px-2 py-2 transition hover:bg-card-alt"
+                  >
+                    {c.pets?.photo_url ? (
+                      <img src={c.pets.photo_url} alt={c.pets.name} className="h-10 w-10 rounded-full object-cover" />
+                    ) : (
+                      <span className="flex h-10 w-10 items-center justify-center rounded-full bg-muted text-lg">
+                        {speciesIcon(c.pets?.species)}
+                      </span>
+                    )}
+                    <div className="min-w-0 flex-1">
+                      <p className="font-medium text-foreground truncate">{c.pets?.name}</p>
+                      <p className="text-sm text-muted-foreground truncate">
+                        {formatDate(c.reservations?.start_at, { month: "short", day: "numeric" })}
+                      </p>
+                    </div>
+                    {r && (
+                      <span className={`inline-flex items-center gap-1 rounded-pill px-2 py-0.5 text-xs font-semibold ${r.tone}`}>
+                        {r.emoji} {r.label}
+                      </span>
+                    )}
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+        ) : (
+          <Empty text="No report cards yet" />
+        )}
+      </Card>
 
       <BookingWizard open={wizardOpen} onOpenChange={setWizardOpen} />
     </div>
