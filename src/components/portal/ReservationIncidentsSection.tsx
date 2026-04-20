@@ -23,7 +23,7 @@ export default function ReservationIncidentsSection({
 
   const onReport = () => {
     const params = new URLSearchParams({ reservation: reservationId });
-    petIds.forEach((p) => params.append("pet", p));
+    if (petIds.length) params.set("pets", petIds.join(","));
     navigate(`/incidents/new?${params.toString()}`);
   };
 

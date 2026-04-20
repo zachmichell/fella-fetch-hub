@@ -7,6 +7,7 @@ import PageHeader from "@/components/portal/PageHeader";
 import ReservationStatusBadge from "@/components/portal/ReservationStatusBadge";
 import StatusBadge, { intakeTone } from "@/components/portal/StatusBadge";
 import ReportCardEditor from "@/components/portal/pet-care/ReportCardEditor";
+import ReservationIncidentsSection from "@/components/portal/ReservationIncidentsSection";
 import { useReservationCareLogs } from "@/hooks/useCareLogs";
 import { LOG_TYPE_LABELS, LogType } from "@/lib/care";
 import { Button } from "@/components/ui/button";
