@@ -15,6 +15,7 @@ import {
   APPETITE_OPTIONS, ENERGY_OPTIONS, MOOD_OPTIONS, RATING_OPTIONS,
   SOCIABILITY_OPTIONS, buildSummary, inferAppetite,
 } from "@/lib/care";
+import { sendReportCardPublished } from "@/lib/email";
 
 type Props = {
   open: boolean;
@@ -135,6 +136,41 @@ export default function ReportCardEditor({ open, onOpenChange, reservationId, pe
     toast.success(publish ? "Report card published" : "Report card saved");
     qc.invalidateQueries({ queryKey: ["report-card", reservationId, petId] });
     qc.invalidateQueries({ queryKey: ["reservation-report-cards", reservationId] });
+
+    // Send report card email on publish (respects email_settings)
+    if (publish && membership?.organization_id) {
+      try {
+        // Find primary owner email via reservation → primary_owner → owners
+        const { data: resv } = await supabase
+          .from("reservations")
+          .select("primary_owner_id")
+          .eq("id", reservationId)
+          .maybeSingle();
+        if (resv?.primary_owner_id) {
+          const { data: owner } = await supabase
+            .from("owners")
+            .select("email")
+            .eq("id", resv.primary_owner_id)
+            .maybeSingle();
+          if (owner?.email) {
+            const ratingOpt = RATING_OPTIONS.find((o) => o.value === rating);
+            sendReportCardPublished({
+              organization_id: membership.organization_id,
+              to: owner.email,
+              pet_name: petName,
+              rating: ratingOpt?.label ?? rating ?? null,
+              rating_emoji: ratingOpt?.emoji ?? null,
+              mood_summary: summary || null,
+              photo_url: photos[0] ?? null,
+              reservation_id: reservationId,
+            }).catch((e) => console.warn("report card email failed:", e));
+          }
+        }
+      } catch (e) {
+        console.warn("report card email lookup failed:", e);
+      }
+    }
+
     onOpenChange(false);
   };
 
