@@ -1,10 +1,12 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { AlertTriangle, PawPrint, CalendarDays, Receipt, ChevronRight, Plus } from "lucide-react";
+import { AlertTriangle, PawPrint, CalendarDays, Receipt, ChevronRight, Plus, FileHeart } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useOwnerRecord } from "@/hooks/useOwnerRecord";
+import { useOwnerReportCards } from "@/hooks/useReportCards";
+import { ratingMeta } from "@/lib/care";
 import { formatDate, speciesIcon } from "@/lib/format";
 import { formatCents } from "@/lib/money";
 import { getVaccinationStatus } from "@/lib/vaccines";
