@@ -284,6 +284,19 @@ export default function OwnerInvoiceDetail() {
               </span>
             </div>
           )}
+          {canPay && (
+            <Button
+              onClick={handlePay}
+              disabled={checkout.isPending}
+              className="mt-4 w-full bg-accent text-white hover:bg-accent-hover"
+              size="lg"
+            >
+              <CreditCard className="h-4 w-4" />
+              {checkout.isPending
+                ? "Redirecting to Stripe…"
+                : `Pay ${formatCents(balance, currency)} now`}
+            </Button>
+          )}
         </section>
 
         {invoice.notes && (
