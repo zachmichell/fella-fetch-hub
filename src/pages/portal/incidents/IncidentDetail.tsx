@@ -22,7 +22,8 @@ export default function IncidentDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
   const qc = useQueryClient();
-  const { data: i, isLoading } = useIncident(id);
+  const { data, isLoading } = useIncident(id);
+  const i = data as any;
 
   if (isLoading) {
     return (
