@@ -29,39 +29,41 @@ const sections: Array<{
 }> = [
   {
     label: "Overview",
-    items: [
-      { to: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
-      { to: "/schedule", icon: CalendarDays, label: "Schedule" },
-    ],
+    items: [{ to: "/dashboard", icon: LayoutDashboard, label: "Dashboard" }],
   },
   {
     label: "Operations",
     items: [
-      { to: "/pets", icon: PawPrint, label: "Pets" },
-      { to: "/owners", icon: Users, label: "Owners" },
-      { to: "/services", icon: Wrench, label: "Services", permission: "services.manage" },
+      { to: "/schedule", icon: CalendarDays, label: "Schedule" },
       { to: "/reservations", icon: ClipboardList, label: "Reservations" },
       { to: "/dashboard/check-in-out", icon: ClipboardCheck, label: "Check-in/out" },
-      { to: "/care-logs", icon: NotebookPen, label: "Care Logs" },
-      { to: "/messages", icon: MessageSquare, label: "Messages", badgeKey: "messages" },
-      { to: "/incidents", icon: AlertTriangle, label: "Incidents" },
-      { to: "/invoices", icon: Receipt, label: "Invoices", permission: "invoices.create" },
     ],
-  },
-  {
-    label: "Insights",
-    items: [{ to: "/dashboard/analytics", icon: BarChart3, label: "Analytics", permission: "analytics.view" }],
   },
   {
     label: "Facility",
     items: [
+      { to: "/pets", icon: PawPrint, label: "Pets" },
+      { to: "/owners", icon: Users, label: "Owners" },
       { to: "/playgroups", icon: Users2, label: "Playgroups", permission: "playgroups.manage" },
       { to: "/kennel-runs", icon: DoorClosed, label: "Kennel Runs", permission: "kennels.manage" },
     ],
   },
   {
+    label: "Insights",
+    items: [
+      { to: "/care-logs", icon: NotebookPen, label: "Care Logs" },
+      { to: "/incidents", icon: AlertTriangle, label: "Incidents" },
+      { to: "/dashboard/analytics", icon: BarChart3, label: "Analytics", permission: "analytics.view" },
+    ],
+  },
+  {
     label: "Settings",
-    items: [{ to: "/settings", icon: Settings, label: "Settings", permission: "settings.view" }],
+    items: [
+      { to: "/services", icon: Wrench, label: "Services", permission: "services.manage" },
+      { to: "/invoices", icon: Receipt, label: "Invoices", permission: "invoices.create" },
+      { to: "/messages", icon: MessageSquare, label: "Messages", badgeKey: "messages" },
+      { to: "/settings", icon: Settings, label: "Settings", permission: "settings.view" },
+    ],
   },
 ];
 

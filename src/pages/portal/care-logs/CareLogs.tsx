@@ -208,7 +208,10 @@ export default function CareLogs() {
             </div>
           </div>
           {groupedByPet.length === 0 ? (
-            <div className="px-5 py-10 text-center text-sm text-text-secondary">No logs for this filter.</div>
+            <div className="px-5 py-12 text-center">
+              <p className="text-sm text-text-secondary">No care logs match this filter.</p>
+              <p className="mt-1 text-xs text-text-tertiary">Try changing the date or pet filter, or log activity from a checked-in pet above.</p>
+            </div>
           ) : (
             <div className="divide-y divide-border-subtle">
               {groupedByPet.map(({ pet, logs }) => (

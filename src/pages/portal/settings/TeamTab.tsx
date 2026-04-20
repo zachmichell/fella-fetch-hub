@@ -49,8 +49,8 @@ type MemberRow = {
 
 const ROLE_VARIANT: Record<Role, string> = {
   owner: "bg-foreground text-background",
-  admin: "bg-purple-200 text-purple-900",
-  manager: "bg-blue-200 text-blue-900",
+  admin: "bg-plum-light text-plum",
+  manager: "bg-teal-light text-teal",
   staff: "bg-muted text-foreground",
   customer: "bg-muted text-muted-foreground",
 };

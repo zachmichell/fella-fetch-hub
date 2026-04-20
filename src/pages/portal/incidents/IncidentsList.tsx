@@ -148,8 +148,9 @@ export default function IncidentsList() {
                 </tr>
               ) : !incidents || incidents.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="px-6 py-10 text-center text-sm text-text-secondary">
-                    No incidents in this range. Keep up the good work.
+                  <td colSpan={7} className="px-6 py-16 text-center">
+                    <p className="font-display text-base text-foreground">No incidents reported</p>
+                    <p className="mt-1 text-sm text-text-secondary">Nothing to follow up on in this date range. Keep up the good work.</p>
                   </td>
                 </tr>
               ) : (
