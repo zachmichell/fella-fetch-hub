@@ -16,6 +16,7 @@ const navItems = [
   { to: "/portal/dashboard", label: "Dashboard" },
   { to: "/portal/pets", label: "My Pets" },
   { to: "/portal/bookings", label: "Bookings" },
+  { to: "/portal/report-cards", label: "Report Cards" },
   { to: "/portal/invoices", label: "Invoices" },
   { to: "/portal/waivers", label: "Waivers" },
 ];
