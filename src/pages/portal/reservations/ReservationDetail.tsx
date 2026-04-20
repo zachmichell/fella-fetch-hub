@@ -445,9 +445,24 @@ export default function ReservationDetail() {
                         )}
                       </td>
                       <td className="px-[18px] py-[12px] text-right">
-                        <button
-                          type="button"
-                          onClick={() => removePet(rp.id)}
+                        <div className="flex items-center justify-end gap-1">
+                          {(r.status === "checked_in" || r.status === "checked_out") && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => setReportPet({ id: rp.pet_id, name: rp.pets?.name ?? "Pet" })}
+                            >
+                              <FileHeart className="h-4 w-4" />
+                              {(reportCards ?? []).find((c: any) => c.pet_id === rp.pet_id)?.published
+                                ? "Published"
+                                : (reportCards ?? []).find((c: any) => c.pet_id === rp.pet_id)
+                                ? "Draft"
+                                : "Report"}
+                            </Button>
+                          )}
+                          <button
+                            type="button"
+                            onClick={() => removePet(rp.id)}
                           className="text-text-tertiary hover:text-destructive"
                           aria-label="Remove pet"
                         >
