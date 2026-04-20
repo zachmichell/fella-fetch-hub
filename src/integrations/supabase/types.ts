@@ -172,6 +172,94 @@ export type Database = {
           },
         ]
       }
+      email_log: {
+        Row: {
+          email_type: string
+          error_message: string | null
+          id: string
+          message_id: string | null
+          organization_id: string | null
+          recipient_email: string
+          sent_at: string
+          status: string
+          subject: string
+        }
+        Insert: {
+          email_type: string
+          error_message?: string | null
+          id?: string
+          message_id?: string | null
+          organization_id?: string | null
+          recipient_email: string
+          sent_at?: string
+          status: string
+          subject: string
+        }
+        Update: {
+          email_type?: string
+          error_message?: string | null
+          id?: string
+          message_id?: string | null
+          organization_id?: string | null
+          recipient_email?: string
+          sent_at?: string
+          status?: string
+          subject?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_log_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      email_settings: {
+        Row: {
+          created_at: string
+          id: string
+          invoice_created_enabled: boolean
+          organization_id: string
+          report_card_published_enabled: boolean
+          reservation_confirmation_enabled: boolean
+          sender_name: string | null
+          updated_at: string
+          waiver_reminder_enabled: boolean
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          invoice_created_enabled?: boolean
+          organization_id: string
+          report_card_published_enabled?: boolean
+          reservation_confirmation_enabled?: boolean
+          sender_name?: string | null
+          updated_at?: string
+          waiver_reminder_enabled?: boolean
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          invoice_created_enabled?: boolean
+          organization_id?: string
+          report_card_published_enabled?: boolean
+          reservation_confirmation_enabled?: boolean
+          sender_name?: string | null
+          updated_at?: string
+          waiver_reminder_enabled?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_settings_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: true
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       emergency_contacts: {
         Row: {
           created_at: string
