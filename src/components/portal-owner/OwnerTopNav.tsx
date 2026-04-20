@@ -2,6 +2,8 @@ import { useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { Menu, LogOut, User as UserIcon, ChevronDown } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { useOwnerRecord } from "@/hooks/useOwnerRecord";
+import { useOwnerConversation } from "@/hooks/useConversations";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -17,6 +19,7 @@ const navItems = [
   { to: "/portal/pets", label: "My Pets" },
   { to: "/portal/bookings", label: "Bookings" },
   { to: "/portal/report-cards", label: "Report Cards" },
+  { to: "/portal/messages", label: "Messages", badge: "messages" as const },
   { to: "/portal/invoices", label: "Invoices" },
   { to: "/portal/waivers", label: "Waivers" },
 ];
@@ -32,6 +35,9 @@ export default function OwnerTopNav() {
   const { profile, signOut } = useAuth();
   const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const { data: owner } = useOwnerRecord();
+  const { data: conversation } = useOwnerConversation(owner?.id);
+  const unreadCount = conversation?.unread_owner ?? 0;
 
   const handleSignOut = async () => {
     await signOut();
@@ -54,11 +60,21 @@ export default function OwnerTopNav() {
             <span className="font-display text-lg font-bold tracking-tight">Snout</span>
           </NavLink>
           <nav className="hidden md:flex items-center gap-1">
-            {navItems.map((item) => (
-              <NavLink key={item.to} to={item.to} className={linkClass}>
-                {item.label}
-              </NavLink>
-            ))}
+            {navItems.map((item) => {
+              const showBadge = item.badge === "messages" && unreadCount > 0;
+              return (
+                <NavLink key={item.to} to={item.to} className={linkClass}>
+                  <span className="inline-flex items-center gap-1.5">
+                    {item.label}
+                    {showBadge && (
+                      <span className="inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-danger px-1.5 text-[10px] font-bold text-white">
+                        {unreadCount > 99 ? "99+" : unreadCount}
+                      </span>
+                    )}
+                  </span>
+                </NavLink>
+              );
+            })}
           </nav>
         </div>
 
@@ -96,22 +112,30 @@ export default function OwnerTopNav() {
             </SheetTrigger>
             <SheetContent side="right" className="w-72">
               <nav className="mt-8 flex flex-col gap-1">
-                {navItems.map((item) => (
-                  <NavLink
-                    key={item.to}
-                    to={item.to}
-                    onClick={() => setMobileOpen(false)}
-                    className={({ isActive }) =>
-                      `px-3 py-3 rounded-md text-sm font-medium ${
-                        isActive
-                          ? "bg-primary-light text-primary-hover"
-                          : "text-foreground/80 hover:bg-muted"
-                      }`
-                    }
-                  >
-                    {item.label}
-                  </NavLink>
-                ))}
+                {navItems.map((item) => {
+                  const showBadge = item.badge === "messages" && unreadCount > 0;
+                  return (
+                    <NavLink
+                      key={item.to}
+                      to={item.to}
+                      onClick={() => setMobileOpen(false)}
+                      className={({ isActive }) =>
+                        `flex items-center justify-between px-3 py-3 rounded-md text-sm font-medium ${
+                          isActive
+                            ? "bg-primary-light text-primary-hover"
+                            : "text-foreground/80 hover:bg-muted"
+                        }`
+                      }
+                    >
+                      <span>{item.label}</span>
+                      {showBadge && (
+                        <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-danger px-1.5 text-[10px] font-bold text-white">
+                          {unreadCount > 99 ? "99+" : unreadCount}
+                        </span>
+                      )}
+                    </NavLink>
+                  );
+                })}
               </nav>
             </SheetContent>
           </Sheet>

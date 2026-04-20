@@ -13,9 +13,11 @@ import {
   LogOut,
   Wrench,
   AlertTriangle,
+  MessageSquare,
 } from "lucide-react";
 import Logo from "./Logo";
 import { useAuth } from "@/hooks/useAuth";
+import { useStaffUnreadCount } from "@/hooks/useConversations";
 
 const sections = [
   {
@@ -33,6 +35,7 @@ const sections = [
       { to: "/services", icon: Wrench, label: "Services" },
       { to: "/reservations", icon: ClipboardList, label: "Reservations" },
       { to: "/care-logs", icon: NotebookPen, label: "Care Logs" },
+      { to: "/messages", icon: MessageSquare, label: "Messages", badgeKey: "messages" as const },
       { to: "/incidents", icon: AlertTriangle, label: "Incidents" },
       { to: "/invoices", icon: Receipt, label: "Invoices" },
     ],
@@ -53,6 +56,7 @@ const sections = [
 export default function Sidebar({ orgName }: { orgName?: string | null }) {
   const { profile, signOut } = useAuth();
   const navigate = useNavigate();
+  const unreadMessages = useStaffUnreadCount();
 
   const handleSignOut = async () => {
     await signOut();
@@ -78,24 +82,33 @@ export default function Sidebar({ orgName }: { orgName?: string | null }) {
               {section.label}
             </div>
             <ul className="space-y-0.5">
-              {section.items.map((item) => (
-                <li key={item.to}>
-                  <NavLink
-                    to={item.to}
-                    end={item.to === "/dashboard"}
-                    className={({ isActive }) =>
-                      `flex items-center gap-3 rounded-md px-3 py-2 text-[13px] font-medium transition-colors ${
-                        isActive
-                          ? "bg-sidebar-primary text-sidebar-primary-foreground"
-                          : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
-                      }`
-                    }
-                  >
-                    <item.icon className="h-4 w-4 shrink-0" />
-                    <span>{item.label}</span>
-                  </NavLink>
-                </li>
-              ))}
+              {section.items.map((item) => {
+                const badgeCount =
+                  (item as { badgeKey?: string }).badgeKey === "messages" ? unreadMessages : 0;
+                return (
+                  <li key={item.to}>
+                    <NavLink
+                      to={item.to}
+                      end={item.to === "/dashboard"}
+                      className={({ isActive }) =>
+                        `flex items-center gap-3 rounded-md px-3 py-2 text-[13px] font-medium transition-colors ${
+                          isActive
+                            ? "bg-sidebar-primary text-sidebar-primary-foreground"
+                            : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                        }`
+                      }
+                    >
+                      <item.icon className="h-4 w-4 shrink-0" />
+                      <span className="flex-1">{item.label}</span>
+                      {badgeCount > 0 && (
+                        <span className="inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-danger px-1.5 text-[10px] font-bold text-white">
+                          {badgeCount > 99 ? "99+" : badgeCount}
+                        </span>
+                      )}
+                    </NavLink>
+                  </li>
+                );
+              })}
             </ul>
           </div>
         ))}

@@ -1,14 +1,16 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { AlertTriangle, PawPrint, CalendarDays, Receipt, ChevronRight, Plus, FileHeart } from "lucide-react";
+import { AlertTriangle, PawPrint, CalendarDays, Receipt, ChevronRight, Plus, FileHeart, MessageSquare } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useOwnerRecord } from "@/hooks/useOwnerRecord";
 import { useOwnerReportCards } from "@/hooks/useReportCards";
+import { useOwnerConversation } from "@/hooks/useConversations";
 import { ratingMeta } from "@/lib/care";
 import { formatDate, speciesIcon } from "@/lib/format";
 import { formatCents } from "@/lib/money";
+import { formatRelativeTime, truncatePreview } from "@/lib/messaging";
 import { getVaccinationStatus } from "@/lib/vaccines";
 import VaccinationStatusBadge from "@/components/portal-owner/VaccinationStatusBadge";
 import InvoiceStatusBadge from "@/components/portal/InvoiceStatusBadge";
@@ -21,6 +23,7 @@ export default function OwnerDashboard() {
   const [wizardOpen, setWizardOpen] = useState(false);
   const { data: owner, isLoading: ownerLoading } = useOwnerRecord();
   const { data: reportCards } = useOwnerReportCards(owner?.id);
+  const { data: conversation } = useOwnerConversation(owner?.id);
 
   const { data: org } = useQuery({
     queryKey: ["owner-org", membership?.organization_id],
@@ -323,6 +326,31 @@ export default function OwnerDashboard() {
           </ul>
         ) : (
           <Empty text="No report cards yet" />
+        )}
+      </Card>
+
+      <Card title="Messages" icon={MessageSquare} viewAllTo="/portal/messages">
+        {conversation && conversation.last_message_at ? (
+          <Link
+            to="/portal/messages"
+            className="-mx-2 flex items-center justify-between gap-3 rounded-md px-2 py-3 transition hover:bg-card-alt"
+          >
+            <div className="min-w-0 flex-1">
+              <p className="font-medium text-foreground truncate">
+                {truncatePreview(conversation.last_message_preview ?? "", 60)}
+              </p>
+              <p className="mt-0.5 text-xs text-muted-foreground">
+                {formatRelativeTime(conversation.last_message_at)}
+              </p>
+            </div>
+            {conversation.unread_owner > 0 && (
+              <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-danger px-1.5 text-[10px] font-bold text-white">
+                {conversation.unread_owner}
+              </span>
+            )}
+          </Link>
+        ) : (
+          <Empty text="No messages yet" />
         )}
       </Card>
 
