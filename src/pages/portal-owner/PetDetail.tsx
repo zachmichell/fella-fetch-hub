@@ -23,6 +23,8 @@ import {
 } from "@/components/ui/alert-dialog";
 import PetPhotoUpload from "@/components/portal-owner/PetPhotoUpload";
 import VaccinationFormDialog from "@/components/portal-owner/VaccinationFormDialog";
+import { usePetMedications } from "@/hooks/usePetMedications";
+import { usePetFeeding } from "@/hooks/usePetFeeding";
 import VaccinationStatusBadge, {
   vaccinationRecordStatus,
 } from "@/components/portal-owner/VaccinationStatusBadge";
