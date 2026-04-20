@@ -83,6 +83,21 @@ export default function ReservationDetail() {
     },
   });
 
+  const { data: careLogs } = useReservationCareLogs(id);
+
+  const { data: reportCards } = useQuery({
+    queryKey: ["reservation-report-cards", id],
+    enabled: !!id,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("report_cards")
+        .select("id, pet_id, published")
+        .eq("reservation_id", id!);
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
   const refresh = () => qc.invalidateQueries({ queryKey: ["reservation", id] });
 
   const updateStatus = async (patch: Record<string, any>, label: string) => {
