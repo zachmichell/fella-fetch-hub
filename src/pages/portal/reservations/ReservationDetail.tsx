@@ -38,12 +38,15 @@ import { toast } from "sonner";
 import { formatCentsShort, formatDateTime, formatDurationType } from "@/lib/money";
 import { createInvoiceForReservation } from "@/lib/invoice";
 import { sendReservationConfirmation } from "@/lib/email";
+import { usePermissions } from "@/hooks/usePermissions";
 
 export default function ReservationDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
   const qc = useQueryClient();
   const { user, membership } = useAuth();
+  const { can } = usePermissions();
+  const canEdit = can("reservations.edit");
   const [cancelOpen, setCancelOpen] = useState(false);
   const [cancelReason, setCancelReason] = useState("");
   const [noShowOpen, setNoShowOpen] = useState(false);
@@ -301,7 +304,7 @@ export default function ReservationDetail() {
           actions={
             <>
               {renderActions()}
-              {r.status !== "checked_out" && r.status !== "cancelled" && r.status !== "no_show" && (
+              {canEdit && r.status !== "checked_out" && r.status !== "cancelled" && r.status !== "no_show" && (
                 <Button variant="outline" onClick={() => navigate(`/reservations/${r.id}/edit`)}>
                   <Pencil className="h-4 w-4" /> Edit
                 </Button>

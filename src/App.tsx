@@ -6,7 +6,9 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/hooks/useAuth";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import RoleRoute from "@/components/auth/RoleRoute";
+import RequirePermission from "@/components/auth/RequirePermission";
 import OwnerPortalLayout from "@/components/portal-owner/OwnerPortalLayout";
+import type { Permission } from "@/lib/permissions";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import Login from "./pages/auth/Login";
@@ -55,9 +57,11 @@ import OwnerWaiverDetail from "./pages/portal-owner/WaiverDetail";
 
 const queryClient = new QueryClient();
 
-const staff = (el: React.ReactNode) => (
+const staff = (el: React.ReactNode, permission?: Permission) => (
   <ProtectedRoute>
-    <RoleRoute allow="staff">{el}</RoleRoute>
+    <RoleRoute allow="staff">
+      {permission ? <RequirePermission permission={permission}>{el}</RequirePermission> : el}
+    </RoleRoute>
   </ProtectedRoute>
 );
 
@@ -100,27 +104,27 @@ const App = () => (
             <Route path="/owners/new" element={staff(<OwnerForm />)} />
             <Route path="/owners/:id" element={staff(<OwnerDetail />)} />
             <Route path="/owners/:id/edit" element={staff(<OwnerForm />)} />
-            <Route path="/services" element={staff(<ServicesList />)} />
-            <Route path="/services/new" element={staff(<ServiceForm />)} />
-            <Route path="/services/:id" element={staff(<ServiceDetail />)} />
-            <Route path="/services/:id/edit" element={staff(<ServiceForm />)} />
+            <Route path="/services" element={staff(<ServicesList />, "services.manage")} />
+            <Route path="/services/new" element={staff(<ServiceForm />, "services.manage")} />
+            <Route path="/services/:id" element={staff(<ServiceDetail />, "services.manage")} />
+            <Route path="/services/:id/edit" element={staff(<ServiceForm />, "services.manage")} />
             <Route path="/reservations" element={staff(<ReservationsList />)} />
-            <Route path="/reservations/new" element={staff(<ReservationForm />)} />
+            <Route path="/reservations/new" element={staff(<ReservationForm />, "reservations.create")} />
             <Route path="/reservations/:id" element={staff(<ReservationDetail />)} />
-            <Route path="/reservations/:id/edit" element={staff(<ReservationEdit />)} />
-            <Route path="/invoices" element={staff(<InvoicesList />)} />
-            <Route path="/invoices/:id" element={staff(<InvoiceDetail />)} />
-            <Route path="/dashboard/check-in-out" element={staff(<CheckInOut />)} />
-            <Route path="/dashboard/analytics" element={staff(<Analytics />)} />
-            <Route path="/care-logs" element={staff(<CareLogs />)} />
-            <Route path="/messages" element={staff(<StaffMessages />)} />
+            <Route path="/reservations/:id/edit" element={staff(<ReservationEdit />, "reservations.edit")} />
+            <Route path="/invoices" element={staff(<InvoicesList />, "invoices.view")} />
+            <Route path="/invoices/:id" element={staff(<InvoiceDetail />, "invoices.view")} />
+            <Route path="/dashboard/check-in-out" element={staff(<CheckInOut />, "checkinout.perform")} />
+            <Route path="/dashboard/analytics" element={staff(<Analytics />, "analytics.view")} />
+            <Route path="/care-logs" element={staff(<CareLogs />, "carelogs.create")} />
+            <Route path="/messages" element={staff(<StaffMessages />, "messaging.send")} />
             <Route path="/incidents" element={staff(<IncidentsList />)} />
-            <Route path="/incidents/new" element={staff(<IncidentForm />)} />
+            <Route path="/incidents/new" element={staff(<IncidentForm />, "incidents.create")} />
             <Route path="/incidents/:id" element={staff(<IncidentDetail />)} />
-            <Route path="/incidents/:id/edit" element={staff(<IncidentForm />)} />
-            <Route path="/playgroups" element={staff(<Playgroups />)} />
-            <Route path="/kennel-runs" element={staff(<KennelRuns />)} />
-            <Route path="/settings" element={staff(<Settings />)} />
+            <Route path="/incidents/:id/edit" element={staff(<IncidentForm />, "incidents.edit")} />
+            <Route path="/playgroups" element={staff(<Playgroups />, "playgroups.manage")} />
+            <Route path="/kennel-runs" element={staff(<KennelRuns />, "kennels.manage")} />
+            <Route path="/settings" element={staff(<Settings />, "settings.view")} />
 
             {/* Owner portal */}
             <Route path="/portal/dashboard" element={customer(<OwnerDashboard />)} />

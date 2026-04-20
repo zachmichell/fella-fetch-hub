@@ -20,8 +20,13 @@ import {
 import Logo from "./Logo";
 import { useAuth } from "@/hooks/useAuth";
 import { useStaffUnreadCount } from "@/hooks/useConversations";
+import { usePermissions } from "@/hooks/usePermissions";
+import type { Permission } from "@/lib/permissions";
 
-const sections = [
+const sections: Array<{
+  label: string;
+  items: Array<{ to: string; icon: any; label: string; badgeKey?: "messages"; permission?: Permission }>;
+}> = [
   {
     label: "Overview",
     items: [
@@ -34,29 +39,29 @@ const sections = [
     items: [
       { to: "/pets", icon: PawPrint, label: "Pets" },
       { to: "/owners", icon: Users, label: "Owners" },
-      { to: "/services", icon: Wrench, label: "Services" },
+      { to: "/services", icon: Wrench, label: "Services", permission: "services.manage" },
       { to: "/reservations", icon: ClipboardList, label: "Reservations" },
       { to: "/dashboard/check-in-out", icon: ClipboardCheck, label: "Check-in/out" },
       { to: "/care-logs", icon: NotebookPen, label: "Care Logs" },
-      { to: "/messages", icon: MessageSquare, label: "Messages", badgeKey: "messages" as const },
+      { to: "/messages", icon: MessageSquare, label: "Messages", badgeKey: "messages" },
       { to: "/incidents", icon: AlertTriangle, label: "Incidents" },
-      { to: "/invoices", icon: Receipt, label: "Invoices" },
+      { to: "/invoices", icon: Receipt, label: "Invoices", permission: "invoices.create" },
     ],
   },
   {
     label: "Insights",
-    items: [{ to: "/dashboard/analytics", icon: BarChart3, label: "Analytics" }],
+    items: [{ to: "/dashboard/analytics", icon: BarChart3, label: "Analytics", permission: "analytics.view" }],
   },
   {
     label: "Facility",
     items: [
-      { to: "/playgroups", icon: Users2, label: "Playgroups" },
-      { to: "/kennel-runs", icon: DoorClosed, label: "Kennel Runs" },
+      { to: "/playgroups", icon: Users2, label: "Playgroups", permission: "playgroups.manage" },
+      { to: "/kennel-runs", icon: DoorClosed, label: "Kennel Runs", permission: "kennels.manage" },
     ],
   },
   {
     label: "Settings",
-    items: [{ to: "/settings", icon: Settings, label: "Settings" }],
+    items: [{ to: "/settings", icon: Settings, label: "Settings", permission: "settings.view" }],
   },
 ];
 
@@ -64,6 +69,10 @@ export default function Sidebar({ orgName }: { orgName?: string | null }) {
   const { profile, signOut } = useAuth();
   const navigate = useNavigate();
   const unreadMessages = useStaffUnreadCount();
+  const { can } = usePermissions();
+  const visibleSections = sections
+    .map((s) => ({ ...s, items: s.items.filter((i) => !i.permission || can(i.permission)) }))
+    .filter((s) => s.items.length > 0);
 
   const handleSignOut = async () => {
     await signOut();
@@ -83,7 +92,7 @@ export default function Sidebar({ orgName }: { orgName?: string | null }) {
       </div>
 
       <nav className="flex-1 overflow-y-auto px-3 py-2">
-        {sections.map((section) => (
+        {visibleSections.map((section) => (
           <div key={section.label} className="mb-5">
             <div className="px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.1em] text-sidebar-foreground/50">
               {section.label}

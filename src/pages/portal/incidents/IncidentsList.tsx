@@ -28,10 +28,13 @@ import {
 } from "@/lib/incidents";
 import { cn } from "@/lib/utils";
 import { formatDateTime } from "@/lib/money";
+import { usePermissions } from "@/hooks/usePermissions";
 
 export default function IncidentsList() {
   const { membership } = useAuth();
   const navigate = useNavigate();
+  const { can } = usePermissions();
+  const canCreate = can("incidents.create");
 
   const [from, setFrom] = useState<Date>(subDays(new Date(), 30));
   const [to, setTo] = useState<Date>(new Date());
@@ -68,9 +71,11 @@ export default function IncidentsList() {
               : "All incidents resolved or no follow-ups required"
           }
           actions={
-            <Button onClick={() => navigate("/incidents/new")}>
-              <Plus className="h-4 w-4" /> New Incident
-            </Button>
+            canCreate ? (
+              <Button onClick={() => navigate("/incidents/new")}>
+                <Plus className="h-4 w-4" /> New Incident
+              </Button>
+            ) : null
           }
         />
 

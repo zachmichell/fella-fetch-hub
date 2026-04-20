@@ -26,8 +26,11 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { calcAge, formatDate, formatVaccineType, isExpired, isExpiringSoon, kgToLbs, speciesIcon } from "@/lib/format";
 import { toast } from "sonner";
+import { usePermissions } from "@/hooks/usePermissions";
 
 export default function PetDetail() {
+  const { can } = usePermissions();
+  const canEdit = can("pets.edit");
   const { id } = useParams();
   const navigate = useNavigate();
   const qc = useQueryClient();
@@ -134,14 +137,16 @@ export default function PetDetail() {
               </div>
             </div>
           </div>
-          <div className="flex gap-2">
-            <Button variant="outline" onClick={() => navigate(`/pets/${id}/edit`)}>
-              <Pencil className="h-4 w-4" /> Edit
-            </Button>
-            <Button variant="ghost" className="text-destructive hover:text-destructive" onClick={() => setArchiveOpen(true)}>
-              <Archive className="h-4 w-4" /> Archive
-            </Button>
-          </div>
+          {canEdit && (
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={() => navigate(`/pets/${id}/edit`)}>
+                <Pencil className="h-4 w-4" /> Edit
+              </Button>
+              <Button variant="ghost" className="text-destructive hover:text-destructive" onClick={() => setArchiveOpen(true)}>
+                <Archive className="h-4 w-4" /> Archive
+              </Button>
+            </div>
+          )}
         </div>
 
         <Tabs defaultValue="profile">
