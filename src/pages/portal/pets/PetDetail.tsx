@@ -26,8 +26,11 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { calcAge, formatDate, formatVaccineType, isExpired, isExpiringSoon, kgToLbs, speciesIcon } from "@/lib/format";
 import { toast } from "sonner";
+import { usePermissions } from "@/hooks/usePermissions";
 
 export default function PetDetail() {
+  const { can } = usePermissions();
+  const canEdit = can("pets.edit");
   const { id } = useParams();
   const navigate = useNavigate();
   const qc = useQueryClient();
