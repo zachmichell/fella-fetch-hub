@@ -77,7 +77,7 @@ export default function ReportCardEditor({ open, onOpenChange, reservationId, pe
       setSociability("");
       const feedingLogs = petLogs.filter((l: any) => l.log_type === "feeding");
       setAppetite(inferAppetite(feedingLogs) ?? "");
-      setSummary(buildSummary(petName, petLogs));
+      setSummary(buildSummary(petName, petLogs as any));
       setPhotos([]);
     }
   }, [open, card, logs, petId, petName]);

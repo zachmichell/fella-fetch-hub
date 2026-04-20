@@ -32,6 +32,9 @@ import InvoiceDetail from "./pages/portal/invoices/InvoiceDetail";
 import Settings from "./pages/portal/settings/Settings";
 import Playgroups from "./pages/portal/playgroups/Playgroups";
 import KennelRuns from "./pages/portal/kennel-runs/KennelRuns";
+import CareLogs from "./pages/portal/care-logs/CareLogs";
+import OwnerReportCards from "./pages/portal-owner/ReportCards";
+import OwnerReportCardDetail from "./pages/portal-owner/ReportCardDetail";
 import OwnerDashboard from "./pages/portal-owner/Dashboard";
 import OwnerAccount from "./pages/portal-owner/Account";
 import OwnerComingSoon from "./pages/portal-owner/ComingSoon";
@@ -100,6 +103,7 @@ const App = () => (
             <Route path="/reservations/:id/edit" element={staff(<ReservationEdit />)} />
             <Route path="/invoices" element={staff(<InvoicesList />)} />
             <Route path="/invoices/:id" element={staff(<InvoiceDetail />)} />
+            <Route path="/care-logs" element={staff(<CareLogs />)} />
             <Route path="/playgroups" element={staff(<Playgroups />)} />
             <Route path="/kennel-runs" element={staff(<KennelRuns />)} />
             <Route path="/settings" element={staff(<Settings />)} />
@@ -114,6 +118,8 @@ const App = () => (
             <Route path="/portal/invoices/:id" element={customer(<OwnerInvoiceDetail />)} />
             <Route path="/portal/waivers" element={customer(<OwnerWaivers />)} />
             <Route path="/portal/waivers/:id" element={customer(<OwnerWaiverDetail />)} />
+            <Route path="/portal/report-cards" element={customer(<OwnerReportCards />)} />
+            <Route path="/portal/report-cards/:id" element={customer(<OwnerReportCardDetail />)} />
 
             <Route path="*" element={<NotFound />} />
           </Routes>
