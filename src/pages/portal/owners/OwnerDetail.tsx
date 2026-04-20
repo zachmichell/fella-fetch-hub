@@ -24,8 +24,11 @@ import { useAuth } from "@/hooks/useAuth";
 import { formatDate, speciesIcon } from "@/lib/format";
 import { toast } from "sonner";
 import { sendWaiverReminder } from "@/lib/email";
+import { usePermissions } from "@/hooks/usePermissions";
 
 export default function OwnerDetail() {
+  const { can } = usePermissions();
+  const canEdit = can("owners.edit");
   const { id } = useParams();
   const navigate = useNavigate();
   const qc = useQueryClient();
@@ -143,12 +146,16 @@ export default function OwnerDetail() {
               <Button variant="outline" onClick={sendWaiverReminderEmail}>
                 <Mail className="h-4 w-4" /> Send Waiver Reminder
               </Button>
-              <Button variant="outline" onClick={() => navigate(`/owners/${id}/edit`)}>
-                <Pencil className="h-4 w-4" /> Edit
-              </Button>
-              <Button variant="ghost" className="text-destructive hover:text-destructive" onClick={() => setArchiveOpen(true)}>
-                <Archive className="h-4 w-4" /> Archive
-              </Button>
+              {canEdit && (
+                <>
+                  <Button variant="outline" onClick={() => navigate(`/owners/${id}/edit`)}>
+                    <Pencil className="h-4 w-4" /> Edit
+                  </Button>
+                  <Button variant="ghost" className="text-destructive hover:text-destructive" onClick={() => setArchiveOpen(true)}>
+                    <Archive className="h-4 w-4" /> Archive
+                  </Button>
+                </>
+              )}
             </>
           }
         />

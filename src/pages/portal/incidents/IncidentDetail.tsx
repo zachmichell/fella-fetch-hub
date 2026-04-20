@@ -17,8 +17,11 @@ import {
   type IncidentSeverity,
 } from "@/lib/incidents";
 import { cn } from "@/lib/utils";
+import { usePermissions } from "@/hooks/usePermissions";
 
 export default function IncidentDetail() {
+  const { can } = usePermissions();
+  const canEdit = can("incidents.edit");
   const { id } = useParams();
   const navigate = useNavigate();
   const qc = useQueryClient();
@@ -85,9 +88,11 @@ export default function IncidentDetail() {
                   <Check className="h-4 w-4" /> Mark follow-up complete
                 </Button>
               )}
-              <Button variant="outline" onClick={() => navigate(`/incidents/${i.id}/edit`)}>
-                <Pencil className="h-4 w-4" /> Edit
-              </Button>
+              {canEdit && (
+                <Button variant="outline" onClick={() => navigate(`/incidents/${i.id}/edit`)}>
+                  <Pencil className="h-4 w-4" /> Edit
+                </Button>
+              )}
             </>
           }
         />

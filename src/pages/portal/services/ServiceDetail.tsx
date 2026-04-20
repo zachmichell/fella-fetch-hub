@@ -11,8 +11,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { formatCentsShort, formatDurationType, formatDateTime } from "@/lib/money";
 import { formatDate } from "@/lib/format";
 import { toast } from "sonner";
+import { usePermissions } from "@/hooks/usePermissions";
 
 export default function ServiceDetail() {
+  const { can } = usePermissions();
+  const canManage = can("services.manage");
   const { id } = useParams();
   const navigate = useNavigate();
   const qc = useQueryClient();
@@ -98,14 +101,16 @@ export default function ServiceDetail() {
             </div>
           }
           actions={
-            <>
-              <Button variant="outline" onClick={() => navigate(`/services/${service.id}/edit`)}>
-                <Pencil className="h-4 w-4" /> Edit
-              </Button>
-              <Button variant="outline" onClick={handleArchive}>
-                <Archive className="h-4 w-4" /> Archive
-              </Button>
-            </>
+            canManage ? (
+              <>
+                <Button variant="outline" onClick={() => navigate(`/services/${service.id}/edit`)}>
+                  <Pencil className="h-4 w-4" /> Edit
+                </Button>
+                <Button variant="outline" onClick={handleArchive}>
+                  <Archive className="h-4 w-4" /> Archive
+                </Button>
+              </>
+            ) : null
           }
         />
 
