@@ -440,6 +440,7 @@ export type Database = {
       invoices: {
         Row: {
           amount_paid_cents: number
+          balance_due_cents: number | null
           created_at: string
           currency: Database["public"]["Enums"]["currency_enum"]
           deleted_at: string | null
@@ -453,6 +454,7 @@ export type Database = {
           paid_at: string | null
           reservation_id: string | null
           status: Database["public"]["Enums"]["invoice_status"]
+          stripe_checkout_session_id: string | null
           subtotal_cents: number
           tax_cents: number
           total_cents: number
@@ -460,6 +462,7 @@ export type Database = {
         }
         Insert: {
           amount_paid_cents?: number
+          balance_due_cents?: number | null
           created_at?: string
           currency: Database["public"]["Enums"]["currency_enum"]
           deleted_at?: string | null
@@ -473,6 +476,7 @@ export type Database = {
           paid_at?: string | null
           reservation_id?: string | null
           status?: Database["public"]["Enums"]["invoice_status"]
+          stripe_checkout_session_id?: string | null
           subtotal_cents?: number
           tax_cents?: number
           total_cents?: number
@@ -480,6 +484,7 @@ export type Database = {
         }
         Update: {
           amount_paid_cents?: number
+          balance_due_cents?: number | null
           created_at?: string
           currency?: Database["public"]["Enums"]["currency_enum"]
           deleted_at?: string | null
@@ -493,6 +498,7 @@ export type Database = {
           paid_at?: string | null
           reservation_id?: string | null
           status?: Database["public"]["Enums"]["invoice_status"]
+          stripe_checkout_session_id?: string | null
           subtotal_cents?: number
           tax_cents?: number
           total_cents?: number
@@ -1787,6 +1793,7 @@ export type Database = {
           id: string
           organization_id: string
           payouts_enabled: boolean
+          status: string
           stripe_account_id: string
           updated_at: string
         }
@@ -1799,6 +1806,7 @@ export type Database = {
           id?: string
           organization_id: string
           payouts_enabled?: boolean
+          status?: string
           stripe_account_id: string
           updated_at?: string
         }
@@ -1811,6 +1819,7 @@ export type Database = {
           id?: string
           organization_id?: string
           payouts_enabled?: boolean
+          status?: string
           stripe_account_id?: string
           updated_at?: string
         }
