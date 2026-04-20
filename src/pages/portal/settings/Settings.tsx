@@ -8,8 +8,9 @@ import TeamTab from "./TeamTab";
 import SubscriptionTab from "./SubscriptionTab";
 import PaymentsTab from "./PaymentsTab";
 import BillingTab from "./BillingTab";
+import EmailTab from "./EmailTab";
 
-const TABS = ["organization", "locations", "team", "payments", "billing", "subscription"] as const;
+const TABS = ["organization", "locations", "team", "payments", "billing", "email", "subscription"] as const;
 type TabKey = (typeof TABS)[number];
 
 export default function Settings() {
@@ -33,6 +34,7 @@ export default function Settings() {
           <TabsTrigger value="team">Team</TabsTrigger>
           <TabsTrigger value="payments">Payments</TabsTrigger>
           <TabsTrigger value="billing">Billing</TabsTrigger>
+          <TabsTrigger value="email">Email</TabsTrigger>
           <TabsTrigger value="subscription">Subscription</TabsTrigger>
         </TabsList>
         <TabsContent value="organization" className="mt-6">
@@ -49,6 +51,9 @@ export default function Settings() {
         </TabsContent>
         <TabsContent value="billing" className="mt-6">
           <BillingTab />
+        </TabsContent>
+        <TabsContent value="email" className="mt-6">
+          <EmailTab />
         </TabsContent>
         <TabsContent value="subscription" className="mt-6">
           <SubscriptionTab />

@@ -12,6 +12,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { formatCentsShort, formatDateTime } from "@/lib/money";
 import { effectiveInvoiceStatus } from "@/lib/invoice";
 import { useCreateCheckoutSession, useOrgConnectFlag } from "@/hooks/useStripeConnect";
+import { sendInvoiceCreated } from "@/lib/email";
 
 export default function InvoiceDetail() {
   const { id } = useParams();
@@ -81,6 +82,20 @@ export default function InvoiceDetail() {
       toast.success(`Invoice ${vars.status}`);
       qc.invalidateQueries({ queryKey: ["invoice", id] });
       qc.invalidateQueries({ queryKey: ["invoices-list"] });
+      // Send invoice email when status transitions to "sent"
+      if (vars.status === "sent" && inv) {
+        const owner: any = (inv as any).owners;
+        if (owner?.email && inv.organization_id) {
+          sendInvoiceCreated({
+            organization_id: inv.organization_id,
+            to: owner.email,
+            invoice_number: inv.invoice_number ?? inv.id.slice(0, 8),
+            amount_display: `${formatCentsShort(inv.total_cents)} ${inv.currency}`,
+            due_date: formatDateTime(inv.due_at, org?.timezone),
+            invoice_id: inv.id,
+          }).catch((e) => console.warn("invoice email failed:", e));
+        }
+      }
     },
     onError: (e: any) => toast.error(e.message ?? "Update failed"),
   });
