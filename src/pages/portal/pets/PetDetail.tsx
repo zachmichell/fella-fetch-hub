@@ -9,6 +9,8 @@ import PetOwnerLinkDialog from "@/components/portal/PetOwnerLinkDialog";
 import VaccinationFormDialog from "./VaccinationFormDialog";
 import MedicationsTab from "@/components/portal/pet-care/MedicationsTab";
 import FeedingTab from "@/components/portal/pet-care/FeedingTab";
+import TraitsTab from "@/components/portal/pet-care/TraitsTab";
+import PetIncidentsSection from "@/components/portal/pet-care/PetIncidentsSection";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import {
@@ -144,13 +146,13 @@ export default function PetDetail() {
 
         <Tabs defaultValue="profile">
           <TabsList className="bg-transparent border-b border-border-subtle rounded-none h-auto p-0 w-full justify-start gap-6">
-            {["profile", "owners", "vax", "meds", "feeding"].map((v, i) => (
+            {["profile", "owners", "vax", "meds", "feeding", "traits", "incidents"].map((v, i) => (
               <TabsTrigger
                 key={v}
                 value={v}
                 className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none px-1 pb-3"
               >
-                {["Profile", "Owners", "Vaccinations", "Medications", "Feeding"][i]}
+                {["Profile", "Owners", "Vaccinations", "Medications", "Feeding", "Traits", "Incidents"][i]}
               </TabsTrigger>
             ))}
           </TabsList>
@@ -310,6 +312,14 @@ export default function PetDetail() {
 
           <TabsContent value="feeding" className="mt-6">
             <FeedingTab petId={id!} />
+          </TabsContent>
+
+          <TabsContent value="traits" className="mt-6">
+            <TraitsTab petId={id!} />
+          </TabsContent>
+
+          <TabsContent value="incidents" className="mt-6">
+            <PetIncidentsSection petId={id!} />
           </TabsContent>
         </Tabs>
       </div>

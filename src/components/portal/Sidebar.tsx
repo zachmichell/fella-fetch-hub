@@ -12,6 +12,7 @@ import {
   Settings,
   LogOut,
   Wrench,
+  AlertTriangle,
 } from "lucide-react";
 import Logo from "./Logo";
 import { useAuth } from "@/hooks/useAuth";
@@ -32,6 +33,7 @@ const sections = [
       { to: "/services", icon: Wrench, label: "Services" },
       { to: "/reservations", icon: ClipboardList, label: "Reservations" },
       { to: "/care-logs", icon: NotebookPen, label: "Care Logs" },
+      { to: "/incidents", icon: AlertTriangle, label: "Incidents" },
       { to: "/invoices", icon: Receipt, label: "Invoices" },
     ],
   },
