@@ -13,8 +13,12 @@ import { formatCentsShort, formatDateTime } from "@/lib/money";
 import { effectiveInvoiceStatus } from "@/lib/invoice";
 import { useCreateCheckoutSession, useOrgConnectFlag } from "@/hooks/useStripeConnect";
 import { sendInvoiceCreated } from "@/lib/email";
+import { usePermissions } from "@/hooks/usePermissions";
 
 export default function InvoiceDetail() {
+  const { can } = usePermissions();
+  const canSendPerm = can("invoices.send");
+  const canEditPerm = can("invoices.edit");
   const { id } = useParams();
   const qc = useQueryClient();
   const [notes, setNotes] = useState("");
@@ -153,9 +157,10 @@ export default function InvoiceDetail() {
   };
 
   const renderActions = () => {
-    const canSend = inv.status === "draft";
-    const canMarkPaid = inv.status === "sent" || eff === "overdue" || inv.status === "partial";
-    const canVoid = inv.status === "draft" || inv.status === "sent" || eff === "overdue";
+    const canSend = inv.status === "draft" && canSendPerm;
+    const canMarkPaid = (inv.status === "sent" || eff === "overdue" || inv.status === "partial") && canEditPerm;
+    const canVoid = (inv.status === "draft" || inv.status === "sent" || eff === "overdue") && canEditPerm;
+    const showPayLink = canSendPaymentLink && canSendPerm;
     return (
       <>
         {canSend && (
@@ -163,7 +168,7 @@ export default function InvoiceDetail() {
             <Send className="h-4 w-4" /> Send
           </Button>
         )}
-        {canSendPaymentLink && (
+        {showPayLink && (
           <Button
             variant="outline"
             onClick={sendPaymentLink}
@@ -308,8 +313,9 @@ export default function InvoiceDetail() {
                   setNotesDirty(true);
                 }}
                 placeholder="Add a note for this invoice…"
+                disabled={!canEditPerm}
               />
-              {notesDirty && (
+              {notesDirty && canEditPerm && (
                 <div className="mt-2 flex justify-end gap-2">
                   <Button
                     variant="ghost"

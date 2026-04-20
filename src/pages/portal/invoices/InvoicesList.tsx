@@ -12,6 +12,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { supabase } from "@/integrations/supabase/client";
 import { formatCentsShort, formatDateTime } from "@/lib/money";
 import { effectiveInvoiceStatus } from "@/lib/invoice";
+import { usePermissions } from "@/hooks/usePermissions";
 
 const PAGE_SIZE = 10;
 
@@ -33,6 +34,8 @@ function ymd(d: Date) {
 }
 
 export default function InvoicesList() {
+  const { can } = usePermissions();
+  const canCreate = can("invoices.create");
   const [status, setStatus] = useState<string>("all");
   const [from, setFrom] = useState<string>(ymd(firstOfMonth()));
   const [to, setTo] = useState<string>(ymd(lastOfMonth()));
@@ -79,16 +82,18 @@ export default function InvoicesList() {
           title="Invoices"
           description="Billing records — auto-generated when reservations check out."
           actions={
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <span>
-                  <Button disabled className="opacity-60">
-                    <Plus className="h-4 w-4" /> New Invoice
-                  </Button>
-                </span>
-              </TooltipTrigger>
-              <TooltipContent>Coming soon</TooltipContent>
-            </Tooltip>
+            canCreate ? (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span>
+                    <Button disabled className="opacity-60">
+                      <Plus className="h-4 w-4" /> New Invoice
+                    </Button>
+                  </span>
+                </TooltipTrigger>
+                <TooltipContent>Coming soon</TooltipContent>
+              </Tooltip>
+            ) : null
           }
         />
 

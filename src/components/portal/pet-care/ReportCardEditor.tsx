@@ -16,6 +16,7 @@ import {
   SOCIABILITY_OPTIONS, buildSummary, inferAppetite,
 } from "@/lib/care";
 import { sendReportCardPublished } from "@/lib/email";
+import { usePermissions } from "@/hooks/usePermissions";
 
 type Props = {
   open: boolean;
@@ -29,6 +30,8 @@ const MAX_PHOTOS = 5;
 
 export default function ReportCardEditor({ open, onOpenChange, reservationId, petId, petName }: Props) {
   const { user, membership } = useAuth();
+  const { can } = usePermissions();
+  const canPublish = can("reportcards.publish");
   const qc = useQueryClient();
 
   const { data: card } = useQuery({
@@ -265,7 +268,7 @@ export default function ReportCardEditor({ open, onOpenChange, reservationId, pe
         </div>
 
         <DialogFooter className="flex-wrap gap-2 sm:gap-2">
-          {isPublished && (
+          {isPublished && canPublish && (
             <Button variant="outline" onClick={unpublish} disabled={busy}>
               <EyeOff className="h-4 w-4" /> Unpublish
             </Button>
@@ -273,9 +276,11 @@ export default function ReportCardEditor({ open, onOpenChange, reservationId, pe
           <Button variant="outline" onClick={() => save(false)} disabled={busy}>
             <Save className="h-4 w-4" /> Save draft
           </Button>
-          <Button onClick={() => save(true)} disabled={busy}>
-            <Send className="h-4 w-4" /> {isPublished ? "Re-publish" : "Publish & send"}
-          </Button>
+          {canPublish && (
+            <Button onClick={() => save(true)} disabled={busy}>
+              <Send className="h-4 w-4" /> {isPublished ? "Re-publish" : "Publish & send"}
+            </Button>
+          )}
         </DialogFooter>
       </DialogContent>
     </Dialog>
