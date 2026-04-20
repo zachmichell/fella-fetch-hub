@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Plus, Pencil, Archive } from "lucide-react";
+import { Plus, Pencil, Archive, Mail } from "lucide-react";
 import PortalLayout from "@/components/portal/PortalLayout";
 import PageHeader from "@/components/portal/PageHeader";
 import StatusBadge, { commPrefTone, relationshipTone } from "@/components/portal/StatusBadge";
@@ -23,6 +23,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { formatDate, speciesIcon } from "@/lib/format";
 import { toast } from "sonner";
+import { sendWaiverReminder } from "@/lib/email";
 
 export default function OwnerDetail() {
   const { id } = useParams();
@@ -78,6 +79,35 @@ export default function OwnerDetail() {
     navigate("/owners");
   };
 
+  const sendWaiverReminderEmail = async () => {
+    if (!owner?.email) return toast.error("Owner has no email on file");
+    if (!membership?.organization_id) return toast.error("Missing organization");
+    // Find active waivers for this org and check which ones this owner has NOT signed
+    const { data: waivers, error: wErr } = await supabase
+      .from("waivers")
+      .select("id, title")
+      .eq("organization_id", membership.organization_id)
+      .eq("active", true)
+      .is("deleted_at", null);
+    if (wErr) return toast.error(wErr.message);
+    const { data: signed } = await supabase
+      .from("waiver_signatures")
+      .select("waiver_id")
+      .eq("owner_id", id!);
+    const signedIds = new Set((signed ?? []).map((s) => s.waiver_id));
+    const unsigned = (waivers ?? []).filter((w) => !signedIds.has(w.id));
+    if (unsigned.length === 0) return toast.info("All waivers are already signed");
+    const res = await sendWaiverReminder({
+      organization_id: membership.organization_id,
+      to: owner.email,
+      waiver_titles: unsigned.map((w) => w.title),
+      owner_first_name: owner.first_name,
+    });
+    if ((res as any)?.skipped) return toast.info("Waiver reminders are disabled in Email settings");
+    if (!res?.success) return toast.error(res?.error ?? "Could not send reminder");
+    toast.success(`Reminder sent for ${unsigned.length} waiver(s)`);
+  };
+
   const unlinkPet = async (linkId: string) => {
     const { error } = await supabase.from("pet_owners").delete().eq("id", linkId);
     if (error) return toast.error(error.message);
@@ -110,6 +140,9 @@ export default function OwnerDetail() {
           }
           actions={
             <>
+              <Button variant="outline" onClick={sendWaiverReminderEmail}>
+                <Mail className="h-4 w-4" /> Send Waiver Reminder
+              </Button>
               <Button variant="outline" onClick={() => navigate(`/owners/${id}/edit`)}>
                 <Pencil className="h-4 w-4" /> Edit
               </Button>
