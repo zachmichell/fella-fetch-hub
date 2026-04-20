@@ -1,11 +1,14 @@
 import { useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Pencil, CheckCircle2, LogIn, LogOut, XCircle, AlertTriangle, Plus, Trash2 } from "lucide-react";
+import { Pencil, CheckCircle2, LogIn, LogOut, XCircle, AlertTriangle, Plus, Trash2, FileHeart } from "lucide-react";
 import PortalLayout from "@/components/portal/PortalLayout";
 import PageHeader from "@/components/portal/PageHeader";
 import ReservationStatusBadge from "@/components/portal/ReservationStatusBadge";
 import StatusBadge, { intakeTone } from "@/components/portal/StatusBadge";
+import ReportCardEditor from "@/components/portal/pet-care/ReportCardEditor";
+import { useReservationCareLogs } from "@/hooks/useCareLogs";
+import { LOG_TYPE_LABELS, LogType } from "@/lib/care";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
@@ -43,6 +46,7 @@ export default function ReservationDetail() {
   const [cancelReason, setCancelReason] = useState("");
   const [noShowOpen, setNoShowOpen] = useState(false);
   const [addPetId, setAddPetId] = useState<string>("");
+  const [reportPet, setReportPet] = useState<{ id: string; name: string } | null>(null);
 
   const { data: r, isLoading } = useQuery({
     queryKey: ["reservation", id],
@@ -76,6 +80,21 @@ export default function ReservationDetail() {
       return (data ?? [])
         .map((row: any) => row.pets)
         .filter((p: any) => p) as { id: string; name: string }[];
+    },
+  });
+
+  const { data: careLogs } = useReservationCareLogs(id);
+
+  const { data: reportCards } = useQuery({
+    queryKey: ["reservation-report-cards", id],
+    enabled: !!id,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("report_cards")
+        .select("id, pet_id, published")
+        .eq("reservation_id", id!);
+      if (error) throw error;
+      return data ?? [];
     },
   });
 
@@ -344,6 +363,32 @@ export default function ReservationDetail() {
                     {(r as any).cancelled_at && <Timeline label="Cancelled" at={(r as any).cancelled_at} />}
                   </ol>
                 </div>
+
+                <div className="rounded-lg border border-border bg-surface p-6 shadow-card">
+                  <div className="label-eyebrow mb-3">Care log</div>
+                  {!careLogs || careLogs.length === 0 ? (
+                    <p className="text-sm text-text-secondary">No care logs yet.</p>
+                  ) : (
+                    <>
+                      <p className="text-sm text-text-secondary">
+                        {careLogs.length} entr{careLogs.length === 1 ? "y" : "ies"} —{" "}
+                        {(["feeding", "play", "potty", "medication", "rest", "note"] as LogType[])
+                          .map((t) => {
+                            const n = careLogs.filter((l: any) => l.log_type === t).length;
+                            return n > 0 ? `${n} ${LOG_TYPE_LABELS[t].toLowerCase()}` : null;
+                          })
+                          .filter(Boolean)
+                          .join(", ")}
+                      </p>
+                      <Link
+                        to={`/care-logs?reservation=${r.id}`}
+                        className="mt-2 inline-block text-xs font-semibold text-primary hover:underline"
+                      >
+                        View timeline →
+                      </Link>
+                    </>
+                  )}
+                </div>
               </div>
             </div>
           </TabsContent>
@@ -400,14 +445,30 @@ export default function ReservationDetail() {
                         )}
                       </td>
                       <td className="px-[18px] py-[12px] text-right">
-                        <button
-                          type="button"
-                          onClick={() => removePet(rp.id)}
-                          className="text-text-tertiary hover:text-destructive"
-                          aria-label="Remove pet"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </button>
+                        <div className="flex items-center justify-end gap-1">
+                          {(r.status === "checked_in" || r.status === "checked_out") && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => setReportPet({ id: rp.pet_id, name: rp.pets?.name ?? "Pet" })}
+                            >
+                              <FileHeart className="h-4 w-4" />
+                              {(reportCards ?? []).find((c: any) => c.pet_id === rp.pet_id)?.published
+                                ? "Published"
+                                : (reportCards ?? []).find((c: any) => c.pet_id === rp.pet_id)
+                                ? "Draft"
+                                : "Report"}
+                            </Button>
+                          )}
+                          <button
+                            type="button"
+                            onClick={() => removePet(rp.id)}
+                            className="text-text-tertiary hover:text-destructive"
+                            aria-label="Remove pet"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -457,6 +518,16 @@ export default function ReservationDetail() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {reportPet && (
+        <ReportCardEditor
+          open={!!reportPet}
+          onOpenChange={(o) => !o && setReportPet(null)}
+          reservationId={r.id}
+          petId={reportPet.id}
+          petName={reportPet.name}
+        />
+      )}
     </PortalLayout>
   );
 }

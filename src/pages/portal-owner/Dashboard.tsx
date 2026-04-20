@@ -1,10 +1,12 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { AlertTriangle, PawPrint, CalendarDays, Receipt, ChevronRight, Plus } from "lucide-react";
+import { AlertTriangle, PawPrint, CalendarDays, Receipt, ChevronRight, Plus, FileHeart } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useOwnerRecord } from "@/hooks/useOwnerRecord";
+import { useOwnerReportCards } from "@/hooks/useReportCards";
+import { ratingMeta } from "@/lib/care";
 import { formatDate, speciesIcon } from "@/lib/format";
 import { formatCents } from "@/lib/money";
 import { getVaccinationStatus } from "@/lib/vaccines";
@@ -18,6 +20,7 @@ export default function OwnerDashboard() {
   const { profile, membership } = useAuth();
   const [wizardOpen, setWizardOpen] = useState(false);
   const { data: owner, isLoading: ownerLoading } = useOwnerRecord();
+  const { data: reportCards } = useOwnerReportCards(owner?.id);
 
   const { data: org } = useQuery({
     queryKey: ["owner-org", membership?.organization_id],
@@ -280,6 +283,46 @@ export default function OwnerDashboard() {
             </ul>
           ) : (
             <Empty text="You're all caught up!" />
+          )}
+        </Card>
+      </div>
+
+        <Card title="Recent report cards" icon={FileHeart} viewAllTo="/portal/report-cards">
+          {reportCards && reportCards.length > 0 ? (
+            <ul className="space-y-3">
+              {reportCards.slice(0, 3).map((c: any) => {
+                const r = ratingMeta(c.overall_rating);
+                return (
+                  <li key={c.id}>
+                    <Link
+                      to={`/portal/report-cards/${c.id}`}
+                      className="-mx-2 flex items-center gap-3 rounded-md px-2 py-2 transition hover:bg-card-alt"
+                    >
+                      {c.pets?.photo_url ? (
+                        <img src={c.pets.photo_url} alt={c.pets.name} className="h-10 w-10 rounded-full object-cover" />
+                      ) : (
+                        <span className="flex h-10 w-10 items-center justify-center rounded-full bg-muted text-lg">
+                          {speciesIcon(c.pets?.species)}
+                        </span>
+                      )}
+                      <div className="min-w-0 flex-1">
+                        <p className="font-medium text-foreground truncate">{c.pets?.name}</p>
+                        <p className="text-sm text-muted-foreground truncate">
+                          {formatDate(c.reservations?.start_at, { month: "short", day: "numeric" })}
+                        </p>
+                      </div>
+                      {r && (
+                        <span className={`inline-flex items-center gap-1 rounded-pill px-2 py-0.5 text-xs font-semibold ${r.tone}`}>
+                          {r.emoji} {r.label}
+                        </span>
+                      )}
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
+          ) : (
+            <Empty text="No report cards yet" />
           )}
         </Card>
       </div>
