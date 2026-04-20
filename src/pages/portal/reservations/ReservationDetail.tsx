@@ -46,6 +46,7 @@ export default function ReservationDetail() {
   const [cancelReason, setCancelReason] = useState("");
   const [noShowOpen, setNoShowOpen] = useState(false);
   const [addPetId, setAddPetId] = useState<string>("");
+  const [reportPet, setReportPet] = useState<{ id: string; name: string } | null>(null);
 
   const { data: r, isLoading } = useQuery({
     queryKey: ["reservation", id],
