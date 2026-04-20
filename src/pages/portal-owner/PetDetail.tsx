@@ -23,6 +23,8 @@ import {
 } from "@/components/ui/alert-dialog";
 import PetPhotoUpload from "@/components/portal-owner/PetPhotoUpload";
 import VaccinationFormDialog from "@/components/portal-owner/VaccinationFormDialog";
+import PetTraitsOwnerSection from "@/components/portal-owner/PetTraitsOwnerSection";
+import PetIncidentsOwnerSection from "@/components/portal-owner/PetIncidentsOwnerSection";
 import { usePetMedications } from "@/hooks/usePetMedications";
 import { usePetFeeding } from "@/hooks/usePetFeeding";
 import VaccinationStatusBadge, {
@@ -334,11 +336,17 @@ export default function OwnerPetDetail() {
         </dl>
       </section>
 
+      {/* Traits & behavior (read-only, from pet_traits) */}
+      <PetTraitsOwnerSection petId={pet.id} petName={pet.name} orgName={orgName} />
+
       {/* Medications (read-only) */}
       <MedicationsSection petId={pet.id} orgName={orgName} />
 
       {/* Feeding (read-only) */}
       <FeedingSection petId={pet.id} orgName={orgName} />
+
+      {/* Incident history (owner-visible only) */}
+      <PetIncidentsOwnerSection petId={pet.id} petName={pet.name} />
 
       {/* Vaccinations */}
       <section className="rounded-2xl border border-border bg-card p-6 shadow-sm sm:p-8">
