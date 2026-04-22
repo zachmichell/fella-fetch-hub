@@ -10,6 +10,7 @@ import SubscriptionTab from "./SubscriptionTab";
 import PaymentsTab from "./PaymentsTab";
 import BillingTab from "./BillingTab";
 import EmailTab from "./EmailTab";
+import DepositsTab from "./DepositsTab";
 import { usePermissions } from "@/hooks/usePermissions";
 import type { Permission } from "@/lib/permissions";
 
@@ -18,6 +19,7 @@ const TAB_CONFIG: Array<{ key: string; label: string; permission: Permission }> 
   { key: "locations", label: "Locations", permission: "settings.locations" },
   { key: "team", label: "Team", permission: "settings.team" },
   { key: "payments", label: "Payments", permission: "settings.payments" },
+  { key: "deposits", label: "Deposits", permission: "settings.payments" },
   { key: "billing", label: "Billing", permission: "settings.billing" },
   { key: "email", label: "Email", permission: "settings.email" },
   { key: "subscription", label: "Subscription", permission: "settings.subscription" },
@@ -85,6 +87,11 @@ export default function Settings() {
         {can("settings.payments") && (
           <TabsContent value="payments" className="mt-6">
             <PaymentsTab />
+          </TabsContent>
+        )}
+        {can("settings.payments") && (
+          <TabsContent value="deposits" className="mt-6">
+            <DepositsTab />
           </TabsContent>
         )}
         {can("settings.billing") && (

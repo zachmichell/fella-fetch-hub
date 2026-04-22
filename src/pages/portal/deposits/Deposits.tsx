@@ -73,7 +73,12 @@ export default function Deposits() {
 
   const updateStatus = useMutation({
     mutationFn: async ({ id, newStatus }: { id: string; newStatus: "paid" | "refunded" | "forfeited" }) => {
-      const patch: Record<string, any> = { status: newStatus };
+      const patch: {
+        status: string;
+        paid_at?: string;
+        refunded_at?: string;
+        forfeited_at?: string;
+      } = { status: newStatus };
       if (newStatus === "paid") patch.paid_at = new Date().toISOString();
       if (newStatus === "refunded") patch.refunded_at = new Date().toISOString();
       if (newStatus === "forfeited") patch.forfeited_at = new Date().toISOString();

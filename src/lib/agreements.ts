@@ -28,10 +28,10 @@ export function renderTemplate(
   ctx: { owner_name?: string; pet_name?: string; date?: string; business_name?: string },
 ): string {
   return (body ?? "")
-    .replaceAll("{{owner_name}}", ctx.owner_name ?? "")
-    .replaceAll("{{pet_name}}", ctx.pet_name ?? "")
-    .replaceAll("{{date}}", ctx.date ?? new Date().toLocaleDateString())
-    .replaceAll("{{business_name}}", ctx.business_name ?? "");
+    .split("{{owner_name}}").join(ctx.owner_name ?? "")
+    .split("{{pet_name}}").join(ctx.pet_name ?? "")
+    .split("{{date}}").join(ctx.date ?? new Date().toLocaleDateString())
+    .split("{{business_name}}").join(ctx.business_name ?? "");
 }
 
 export const MERGE_FIELDS = [
