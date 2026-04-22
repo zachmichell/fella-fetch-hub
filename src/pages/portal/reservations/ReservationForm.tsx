@@ -666,7 +666,7 @@ export default function ReservationForm() {
               Cancel
             </Button>
             <Button type="submit" disabled={saving}>
-              {saving ? "Saving…" : "Create Reservation"}
+              {saving ? "Saving…" : isRecurring ? `Create ${recurrenceDates.length || ""} Reservations` : "Create Reservation"}
             </Button>
           </div>
         </form>
