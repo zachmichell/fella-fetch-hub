@@ -298,7 +298,7 @@ export async function fetchStandingReservations(orgId: string) {
 
 export async function fetchAvgPetsPerWeek(orgId: string, range: DateRange) {
   const { data } = await supabase
-    .from("reservation_pets" as any)
+    .from("reservation_pets")
     .select("pet_id, reservations!inner(start_at, organization_id, deleted_at)")
     .eq("reservations.organization_id", orgId)
     .is("reservations.deleted_at", null)
