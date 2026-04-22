@@ -54,6 +54,8 @@ import OwnerInvoices from "./pages/portal-owner/Invoices";
 import OwnerInvoiceDetail from "./pages/portal-owner/InvoiceDetail";
 import OwnerWaivers from "./pages/portal-owner/Waivers";
 import OwnerWaiverDetail from "./pages/portal-owner/WaiverDetail";
+import OwnerPurchases from "./pages/portal-owner/Purchases";
+import OwnerServiceHistory from "./pages/portal-owner/ServiceHistory";
 import Lodging from "./pages/portal/lodging/Lodging";
 import Grooming from "./pages/portal/grooming/Grooming";
 import SuiteManagement from "./pages/portal/facility/SuiteManagement";
@@ -166,6 +168,8 @@ const App = () => (
             <Route path="/portal/report-cards" element={customer(<OwnerReportCards />)} />
             <Route path="/portal/report-cards/:id" element={customer(<OwnerReportCardDetail />)} />
             <Route path="/portal/messages" element={customer(<OwnerMessages />)} />
+            <Route path="/portal/purchases" element={customer(<OwnerPurchases />)} />
+            <Route path="/portal/history" element={customer(<OwnerServiceHistory />)} />
 
             <Route path="*" element={<NotFound />} />
           </Routes>
