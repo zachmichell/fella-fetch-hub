@@ -271,6 +271,60 @@ export type Database = {
           },
         ]
       }
+      capacity_settings: {
+        Row: {
+          created_at: string
+          id: string
+          max_per_day: number | null
+          max_per_window: number | null
+          organization_id: string
+          overbooking_buffer: number
+          service_id: string
+          updated_at: string
+          weekday_max: number | null
+          weekend_max: number | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          max_per_day?: number | null
+          max_per_window?: number | null
+          organization_id: string
+          overbooking_buffer?: number
+          service_id: string
+          updated_at?: string
+          weekday_max?: number | null
+          weekend_max?: number | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          max_per_day?: number | null
+          max_per_window?: number | null
+          organization_id?: string
+          overbooking_buffer?: number
+          service_id?: string
+          updated_at?: string
+          weekday_max?: number | null
+          weekend_max?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "capacity_settings_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "capacity_settings_service_id_fkey"
+            columns: ["service_id"]
+            isOneToOne: false
+            referencedRelation: "services"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       checklist_completions: {
         Row: {
           completed_items: Json
