@@ -172,6 +172,48 @@ export type Database = {
           },
         ]
       }
+      email_campaigns: {
+        Row: {
+          body: string
+          created_at: string
+          id: string
+          name: string
+          organization_id: string
+          recipient_count: number
+          segment: string
+          sent_at: string | null
+          status: string
+          subject: string
+          updated_at: string
+        }
+        Insert: {
+          body?: string
+          created_at?: string
+          id?: string
+          name: string
+          organization_id: string
+          recipient_count?: number
+          segment?: string
+          sent_at?: string | null
+          status?: string
+          subject?: string
+          updated_at?: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          id?: string
+          name?: string
+          organization_id?: string
+          recipient_count?: number
+          segment?: string
+          sent_at?: string | null
+          status?: string
+          subject?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       email_log: {
         Row: {
           email_type: string
@@ -940,6 +982,39 @@ export type Database = {
           },
         ]
       }
+      notification_settings: {
+        Row: {
+          channel: string
+          created_at: string
+          enabled: boolean
+          event_type: string
+          id: string
+          organization_id: string
+          template_text: string
+          updated_at: string
+        }
+        Insert: {
+          channel?: string
+          created_at?: string
+          enabled?: boolean
+          event_type: string
+          id?: string
+          organization_id: string
+          template_text?: string
+          updated_at?: string
+        }
+        Update: {
+          channel?: string
+          created_at?: string
+          enabled?: boolean
+          event_type?: string
+          id?: string
+          organization_id?: string
+          template_text?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       organizations: {
         Row: {
           country: Database["public"]["Enums"]["country_enum"]
@@ -978,6 +1053,45 @@ export type Database = {
           status?: Database["public"]["Enums"]["org_status_enum"]
           timezone?: string
           trial_ends_at?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      owner_subscriptions: {
+        Row: {
+          created_at: string
+          id: string
+          next_billing_date: string | null
+          organization_id: string
+          owner_id: string
+          package_id: string
+          purchased_at: string
+          remaining_credits: Json
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          next_billing_date?: string | null
+          organization_id: string
+          owner_id: string
+          package_id: string
+          purchased_at?: string
+          remaining_credits?: Json
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          next_billing_date?: string | null
+          organization_id?: string
+          owner_id?: string
+          package_id?: string
+          purchased_at?: string
+          remaining_credits?: Json
+          status?: string
           updated_at?: string
         }
         Relationships: []
@@ -1113,6 +1227,36 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      pending_invitations: {
+        Row: {
+          consumed_at: string | null
+          created_at: string
+          email: string
+          id: string
+          invited_by: string | null
+          organization_id: string
+          role: string
+        }
+        Insert: {
+          consumed_at?: string | null
+          created_at?: string
+          email: string
+          id?: string
+          invited_by?: string | null
+          organization_id: string
+          role?: string
+        }
+        Update: {
+          consumed_at?: string | null
+          created_at?: string
+          email?: string
+          id?: string
+          invited_by?: string | null
+          organization_id?: string
+          role?: string
+        }
+        Relationships: []
       }
       pet_care_logs: {
         Row: {
@@ -1885,8 +2029,10 @@ export type Database = {
           created_at: string
           deleted_at: string | null
           description: string | null
+          duration_minutes: number | null
           duration_type: Database["public"]["Enums"]["duration_type_enum"]
           id: string
+          is_addon: boolean
           location_id: string | null
           max_pets_per_booking: number | null
           module: Database["public"]["Enums"]["module_enum"]
@@ -1900,8 +2046,10 @@ export type Database = {
           created_at?: string
           deleted_at?: string | null
           description?: string | null
+          duration_minutes?: number | null
           duration_type: Database["public"]["Enums"]["duration_type_enum"]
           id?: string
+          is_addon?: boolean
           location_id?: string | null
           max_pets_per_booking?: number | null
           module: Database["public"]["Enums"]["module_enum"]
@@ -1915,8 +2063,10 @@ export type Database = {
           created_at?: string
           deleted_at?: string | null
           description?: string | null
+          duration_minutes?: number | null
           duration_type?: Database["public"]["Enums"]["duration_type_enum"]
           id?: string
+          is_addon?: boolean
           location_id?: string | null
           max_pets_per_booking?: number | null
           module?: Database["public"]["Enums"]["module_enum"]
@@ -2062,6 +2212,48 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      subscription_packages: {
+        Row: {
+          active: boolean
+          billing_cycle: string
+          created_at: string
+          deleted_at: string | null
+          description: string | null
+          id: string
+          included_credits: Json
+          name: string
+          organization_id: string
+          price_cents: number
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          billing_cycle?: string
+          created_at?: string
+          deleted_at?: string | null
+          description?: string | null
+          id?: string
+          included_credits?: Json
+          name: string
+          organization_id: string
+          price_cents?: number
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          billing_cycle?: string
+          created_at?: string
+          deleted_at?: string | null
+          description?: string | null
+          id?: string
+          included_credits?: Json
+          name?: string
+          organization_id?: string
+          price_cents?: number
+          updated_at?: string
+        }
+        Relationships: []
       }
       subscriptions: {
         Row: {
@@ -2420,7 +2612,19 @@ export type Database = {
         Returns: string
       }
       current_org_id: { Args: never; Returns: string }
+      is_org_admin: { Args: { _org_id: string }; Returns: boolean }
       is_org_member: { Args: { _org_id: string }; Returns: boolean }
+      set_member_active: {
+        Args: { _active: boolean; _membership_id: string }
+        Returns: undefined
+      }
+      update_member_role: {
+        Args: {
+          _membership_id: string
+          _new_role: Database["public"]["Enums"]["membership_role"]
+        }
+        Returns: undefined
+      }
     }
     Enums: {
       communication_pref: "email" | "sms" | "both"
