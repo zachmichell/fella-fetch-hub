@@ -83,6 +83,10 @@ import DataMerge from "./pages/portal/settings/DataMerge";
 import AuditLog from "./pages/portal/settings/AuditLog";
 import GroupClasses from "./pages/portal/group-classes/GroupClasses";
 import OwnerClasses from "./pages/portal-owner/Classes";
+import Deposits from "./pages/portal/deposits/Deposits";
+import AgreementTemplates from "./pages/portal/agreements/AgreementTemplates";
+import AgreementTracking from "./pages/portal/agreements/AgreementTracking";
+import OwnerAgreements from "./pages/portal-owner/Agreements";
 
 const queryClient = new QueryClient();
 
@@ -182,6 +186,9 @@ const App = () => (
             <Route path="/pos/open-invoices" element={staff(<PosOpenInvoices />)} />
             <Route path="/pos/closed-invoices" element={staff(<PosClosedInvoices />)} />
             <Route path="/settings" element={staff(<Settings />, "settings.view")} />
+            <Route path="/deposits" element={staff(<Deposits />)} />
+            <Route path="/agreements" element={staff(<AgreementTracking />)} />
+            <Route path="/agreements/templates" element={staff(<AgreementTemplates />)} />
 
             {/* Owner portal */}
             <Route path="/portal/dashboard" element={customer(<OwnerDashboard />)} />
@@ -199,6 +206,7 @@ const App = () => (
             <Route path="/portal/purchases" element={customer(<OwnerPurchases />)} />
             <Route path="/portal/history" element={customer(<OwnerServiceHistory />)} />
             <Route path="/portal/classes" element={customer(<OwnerClasses />)} />
+            <Route path="/portal/agreements" element={customer(<OwnerAgreements />)} />
 
             <Route path="*" element={<NotFound />} />
           </Routes>

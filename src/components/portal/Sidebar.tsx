@@ -41,6 +41,8 @@ import {
   GitMerge,
   ScrollText,
   GraduationCap,
+  Banknote,
+  FileSignature,
 } from "lucide-react";
 import Logo from "./Logo";
 import { useAuth } from "@/hooks/useAuth";
@@ -91,6 +93,7 @@ const sections: Array<{
       { to: "/kennel-runs", icon: DoorClosed, label: "Kennel Runs", permission: "kennels.manage" },
       { to: "/suite-management", icon: DoorOpen, label: "Suite Management" },
       { to: "/groomer-management", icon: UserCog, label: "Groomer Management" },
+      { to: "/agreements", icon: FileSignature, label: "Agreements" },
     ],
   },
   {
@@ -126,6 +129,8 @@ const sections: Array<{
       { to: "/settings/data-import", icon: Database, label: "Data Import", permission: "data.import" },
       { to: "/settings/data-merge", icon: GitMerge, label: "Merge Duplicates", permission: "data.merge" },
       { to: "/settings/audit-log", icon: ScrollText, label: "Audit Log", permission: "audit.view" },
+      { to: "/deposits", icon: Banknote, label: "Deposits" },
+      { to: "/agreements/templates", icon: FileSignature, label: "Agreement Templates" },
       { to: "/subscriptions", icon: CreditCard, label: "Subscriptions" },
       { to: "/marketing", icon: Megaphone, label: "Marketing" },
       { to: "/sms-comms", icon: Phone, label: "SMS & Comms" },
