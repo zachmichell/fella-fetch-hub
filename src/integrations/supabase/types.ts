@@ -1937,6 +1937,69 @@ export type Database = {
         }
         Relationships: []
       }
+      recurring_reservation_groups: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          days_of_week: number[]
+          end_date: string | null
+          end_time: string
+          id: string
+          location_id: string | null
+          max_occurrences: number | null
+          notes: string | null
+          organization_id: string
+          owner_id: string
+          pet_ids: string[]
+          service_id: string | null
+          start_date: string
+          start_time: string
+          status: string
+          suite_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          days_of_week?: number[]
+          end_date?: string | null
+          end_time: string
+          id?: string
+          location_id?: string | null
+          max_occurrences?: number | null
+          notes?: string | null
+          organization_id: string
+          owner_id: string
+          pet_ids?: string[]
+          service_id?: string | null
+          start_date: string
+          start_time: string
+          status?: string
+          suite_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          days_of_week?: number[]
+          end_date?: string | null
+          end_time?: string
+          id?: string
+          location_id?: string | null
+          max_occurrences?: number | null
+          notes?: string | null
+          organization_id?: string
+          owner_id?: string
+          pet_ids?: string[]
+          service_id?: string | null
+          start_date?: string
+          start_time?: string
+          status?: string
+          suite_id?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       report_cards: {
         Row: {
           appetite: string | null
@@ -2084,10 +2147,12 @@ export type Database = {
           deleted_at: string | null
           end_at: string
           id: string
+          is_recurring: boolean
           location_id: string | null
           notes: string | null
           organization_id: string
           primary_owner_id: string | null
+          recurring_group_id: string | null
           requested_at: string | null
           service_id: string | null
           source: Database["public"]["Enums"]["reservation_source"]
@@ -2110,10 +2175,12 @@ export type Database = {
           deleted_at?: string | null
           end_at: string
           id?: string
+          is_recurring?: boolean
           location_id?: string | null
           notes?: string | null
           organization_id: string
           primary_owner_id?: string | null
+          recurring_group_id?: string | null
           requested_at?: string | null
           service_id?: string | null
           source?: Database["public"]["Enums"]["reservation_source"]
@@ -2136,10 +2203,12 @@ export type Database = {
           deleted_at?: string | null
           end_at?: string
           id?: string
+          is_recurring?: boolean
           location_id?: string | null
           notes?: string | null
           organization_id?: string
           primary_owner_id?: string | null
+          recurring_group_id?: string | null
           requested_at?: string | null
           service_id?: string | null
           source?: Database["public"]["Enums"]["reservation_source"]
@@ -2175,6 +2244,13 @@ export type Database = {
             columns: ["primary_owner_id"]
             isOneToOne: false
             referencedRelation: "owners"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reservations_recurring_group_id_fkey"
+            columns: ["recurring_group_id"]
+            isOneToOne: false
+            referencedRelation: "recurring_reservation_groups"
             referencedColumns: ["id"]
           },
           {
