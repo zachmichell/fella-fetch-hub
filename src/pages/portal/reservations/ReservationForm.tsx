@@ -10,6 +10,9 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Switch } from "@/components/ui/switch";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
@@ -19,6 +22,14 @@ import {
   computeEndFromStart,
   toDatetimeLocalValue,
 } from "@/lib/money";
+import {
+  DAY_LABELS_SHORT,
+  combineDateTime,
+  generateOccurrenceDates,
+  toDateOnly,
+  toTimeOnly,
+  type EndsKind,
+} from "@/lib/recurrence";
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
@@ -74,6 +85,13 @@ export default function ReservationForm() {
   const [notes, setNotes] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
+
+  // Recurrence
+  const [isRecurring, setIsRecurring] = useState(false);
+  const [daysOfWeek, setDaysOfWeek] = useState<number[]>([]);
+  const [endsKind, setEndsKind] = useState<EndsKind>("never");
+  const [occurrencesCount, setOccurrencesCount] = useState<number>(8);
+  const [endDate, setEndDate] = useState<string>("");
 
   const { data: suites = [] } = useSuites({ activeOnly: true });
 
@@ -154,6 +172,21 @@ export default function ReservationForm() {
     }
   }, [selectedService, startAt]);
 
+  // Build recurrence preview (next 4 dates)
+  const recurrenceDates = useMemo(() => {
+    if (!isRecurring || !startAt || daysOfWeek.length === 0) return [] as string[];
+    const startD = new Date(startAt);
+    return generateOccurrenceDates({
+      daysOfWeek,
+      startDate: toDateOnly(startD),
+      endsKind,
+      occurrencesCount,
+      endDate: endDate || undefined,
+    });
+  }, [isRecurring, startAt, daysOfWeek, endsKind, occurrencesCount, endDate]);
+
+  const previewDates = recurrenceDates.slice(0, 4);
+
   const validate = () => {
     const e: Record<string, string> = {};
     if (!ownerId) e.owner = "Required";
@@ -165,8 +198,54 @@ export default function ReservationForm() {
     if (selectedService?.max_pets_per_booking && petIds.length > selectedService.max_pets_per_booking) {
       e.pets = `Max ${selectedService.max_pets_per_booking} pet(s) per booking`;
     }
+    if (isRecurring) {
+      if (daysOfWeek.length === 0) e.daysOfWeek = "Pick at least one day";
+      if (endsKind === "after" && (!occurrencesCount || occurrencesCount < 1)) {
+        e.occurrencesCount = "Must be at least 1";
+      }
+      if (endsKind === "on" && !endDate) e.endDate = "Required";
+      if (recurrenceDates.length === 0) e.daysOfWeek = "No matching dates in the selected window";
+    }
     setErrors(e);
     return Object.keys(e).length === 0;
+  };
+
+  const insertOneReservation = async (
+    startIso: string,
+    endIso: string,
+    extras: { recurringGroupId?: string | null; isRecurring?: boolean } = {},
+  ) => {
+    const nowIso = new Date().toISOString();
+    const { data: resv, error: rErr } = await supabase
+      .from("reservations")
+      .insert({
+        organization_id: membership!.organization_id,
+        location_id: selectedService!.location_id,
+        service_id: serviceId,
+        primary_owner_id: ownerId,
+        start_at: startIso,
+        end_at: endIso,
+        status: "requested",
+        source: "staff_created",
+        notes: notes || null,
+        created_by: user?.id ?? null,
+        requested_at: nowIso,
+        suite_id: suiteId && suiteId !== "none" ? suiteId : null,
+        recurring_group_id: extras.recurringGroupId ?? null,
+        is_recurring: !!extras.isRecurring,
+      } as any)
+      .select("id")
+      .single();
+    if (rErr) throw rErr;
+
+    const links = petIds.map((pid) => ({
+      reservation_id: resv.id,
+      pet_id: pid,
+      organization_id: membership!.organization_id,
+    }));
+    const { error: pErr } = await supabase.from("reservation_pets").insert(links);
+    if (pErr) throw pErr;
+    return resv.id as string;
   };
 
   const handleSubmit = async (ev: React.FormEvent) => {
@@ -174,54 +253,89 @@ export default function ReservationForm() {
     if (!validate() || !membership || !selectedService) return;
     setSaving(true);
 
-    const nowIso = new Date().toISOString();
-    const { data: resv, error: rErr } = await supabase
-      .from("reservations")
-      .insert({
+    try {
+      if (!isRecurring) {
+        const resvId = await insertOneReservation(
+          new Date(startAt).toISOString(),
+          new Date(endAt).toISOString(),
+        );
+        const { logActivity } = await import("@/lib/activity");
+        await logActivity({
+          organization_id: membership.organization_id,
+          action: "created",
+          entity_type: "reservation",
+          entity_id: resvId,
+          metadata: { service_id: serviceId, pet_count: petIds.length, start_at: startAt },
+        });
+        setSaving(false);
+        toast.success("Reservation created");
+        navigate(`/reservations/${resvId}`);
+        return;
+      }
+
+      // Recurring path: create the group, then one reservation per occurrence date.
+      const startD = new Date(startAt);
+      const endD = new Date(endAt);
+      const startTime = toTimeOnly(startD);
+      const endTime = toTimeOnly(endD);
+
+      const { data: group, error: gErr } = await supabase
+        .from("recurring_reservation_groups")
+        .insert({
+          organization_id: membership.organization_id,
+          owner_id: ownerId,
+          pet_ids: petIds,
+          service_id: serviceId,
+          location_id: selectedService.location_id,
+          suite_id: suiteId && suiteId !== "none" ? suiteId : null,
+          start_time: startTime,
+          end_time: endTime,
+          days_of_week: daysOfWeek,
+          start_date: toDateOnly(startD),
+          end_date: endsKind === "on" && endDate ? endDate : null,
+          max_occurrences: endsKind === "after" ? occurrencesCount : null,
+          status: "active",
+          notes: notes || null,
+          created_by: user?.id ?? null,
+        } as any)
+        .select("id")
+        .single();
+      if (gErr) throw gErr;
+
+      // Create individual reservations
+      const sameDayDelta = endD.getDate() === startD.getDate() ? 0 : 1;
+      let firstId: string | null = null;
+      for (const dateStr of recurrenceDates) {
+        const occStart = combineDateTime(dateStr, startTime);
+        const occEnd = combineDateTime(dateStr, endTime);
+        if (sameDayDelta) occEnd.setDate(occEnd.getDate() + sameDayDelta);
+        const id = await insertOneReservation(occStart.toISOString(), occEnd.toISOString(), {
+          recurringGroupId: group.id,
+          isRecurring: true,
+        });
+        if (!firstId) firstId = id;
+      }
+
+      const { logActivity } = await import("@/lib/activity");
+      await logActivity({
         organization_id: membership.organization_id,
-        location_id: selectedService.location_id,
-        service_id: serviceId,
-        primary_owner_id: ownerId,
-        start_at: new Date(startAt).toISOString(),
-        end_at: new Date(endAt).toISOString(),
-        status: "requested",
-        source: "staff_created",
-        notes: notes || null,
-        created_by: user?.id ?? null,
-        requested_at: nowIso,
-        suite_id: suiteId && suiteId !== "none" ? suiteId : null,
-      } as any)
-      .select("id")
-      .single();
+        action: "recurring_created",
+        entity_type: "recurring_reservation_group",
+        entity_id: group.id,
+        metadata: {
+          service_id: serviceId,
+          days_of_week: daysOfWeek,
+          occurrences: recurrenceDates.length,
+        },
+      });
 
-    if (rErr) {
       setSaving(false);
-      return toast.error(rErr.message);
-    }
-
-    const links = petIds.map((pid) => ({
-      reservation_id: resv.id,
-      pet_id: pid,
-      organization_id: membership.organization_id,
-    }));
-    const { error: pErr } = await supabase.from("reservation_pets").insert(links);
-    if (pErr) {
+      toast.success(`Created ${recurrenceDates.length} recurring reservations`);
+      navigate("/standing-reservations");
+    } catch (err: any) {
       setSaving(false);
-      return toast.error(pErr.message);
+      toast.error(err.message ?? "Failed to create reservation");
     }
-
-    const { logActivity } = await import("@/lib/activity");
-    await logActivity({
-      organization_id: membership.organization_id,
-      action: "created",
-      entity_type: "reservation",
-      entity_id: resv.id,
-      metadata: { service_id: serviceId, pet_count: petIds.length, start_at: startAt },
-    });
-
-    setSaving(false);
-    toast.success("Reservation created");
-    navigate(`/reservations/${resv.id}`);
   };
 
   return (
@@ -395,6 +509,151 @@ export default function ReservationForm() {
               </Field>
             </Section>
 
+            <Section title="Recurring">
+              <div className="md:col-span-2 space-y-4">
+                <div className="flex items-center justify-between rounded-md border border-border bg-background px-4 py-3">
+                  <div>
+                    <div className="text-sm font-medium text-foreground">Make this a recurring reservation</div>
+                    <div className="text-xs text-text-secondary">
+                      Automatically generates one reservation per occurrence.
+                    </div>
+                  </div>
+                  <Switch checked={isRecurring} onCheckedChange={setIsRecurring} />
+                </div>
+
+                {isRecurring && (
+                  <div className="space-y-4 rounded-md border border-border bg-background p-4">
+                    <div>
+                      <Label className="mb-2 block text-xs font-semibold text-text-secondary">
+                        Repeat
+                      </Label>
+                      <Select value="weekly" disabled>
+                        <SelectTrigger className="bg-card">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="weekly">Weekly</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div>
+                      <Label className="mb-2 block text-xs font-semibold text-text-secondary">
+                        Days of week <span className="text-destructive">*</span>
+                      </Label>
+                      <div className="flex flex-wrap gap-2">
+                        {DAY_LABELS_SHORT.map((label, idx) => {
+                          const checked = daysOfWeek.includes(idx);
+                          return (
+                            <button
+                              key={label}
+                              type="button"
+                              onClick={() =>
+                                setDaysOfWeek((cur) =>
+                                  checked ? cur.filter((d) => d !== idx) : [...cur, idx],
+                                )
+                              }
+                              className={`min-w-[52px] rounded-md border px-3 py-1.5 text-xs font-semibold transition-colors ${
+                                checked
+                                  ? "border-primary bg-primary text-primary-foreground"
+                                  : "border-border bg-card text-text-secondary hover:border-primary/40"
+                              }`}
+                            >
+                              {label}
+                            </button>
+                          );
+                        })}
+                      </div>
+                      {errors.daysOfWeek && (
+                        <p className="mt-1 text-xs text-destructive">{errors.daysOfWeek}</p>
+                      )}
+                    </div>
+
+                    <div>
+                      <Label className="mb-2 block text-xs font-semibold text-text-secondary">Ends</Label>
+                      <RadioGroup
+                        value={endsKind}
+                        onValueChange={(v) => setEndsKind(v as EndsKind)}
+                        className="space-y-2"
+                      >
+                        <div className="flex items-center gap-2">
+                          <RadioGroupItem value="never" id="ends-never" />
+                          <Label htmlFor="ends-never" className="text-sm font-normal">
+                            Never (next 26 weeks)
+                          </Label>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <RadioGroupItem value="after" id="ends-after" />
+                          <Label htmlFor="ends-after" className="text-sm font-normal">
+                            After
+                          </Label>
+                          <Input
+                            type="number"
+                            min={1}
+                            max={365}
+                            value={occurrencesCount}
+                            onChange={(e) => setOccurrencesCount(Number(e.target.value))}
+                            disabled={endsKind !== "after"}
+                            className="h-8 w-20 bg-card"
+                          />
+                          <span className="text-sm text-text-secondary">occurrences</span>
+                        </div>
+                        {errors.occurrencesCount && endsKind === "after" && (
+                          <p className="ml-6 text-xs text-destructive">{errors.occurrencesCount}</p>
+                        )}
+                        <div className="flex items-center gap-2">
+                          <RadioGroupItem value="on" id="ends-on" />
+                          <Label htmlFor="ends-on" className="text-sm font-normal">
+                            On
+                          </Label>
+                          <Input
+                            type="date"
+                            value={endDate}
+                            onChange={(e) => setEndDate(e.target.value)}
+                            disabled={endsKind !== "on"}
+                            className="h-8 w-44 bg-card"
+                          />
+                        </div>
+                        {errors.endDate && endsKind === "on" && (
+                          <p className="ml-6 text-xs text-destructive">{errors.endDate}</p>
+                        )}
+                      </RadioGroup>
+                    </div>
+
+                    <div className="rounded-md border border-border-subtle bg-card px-3 py-2.5">
+                      <div className="label-eyebrow mb-1.5">Preview · next 4 dates</div>
+                      {previewDates.length === 0 ? (
+                        <div className="text-xs text-text-tertiary">
+                          Pick a start date & at least one day of week to see a preview.
+                        </div>
+                      ) : (
+                        <ul className="space-y-1 text-sm text-foreground">
+                          {previewDates.map((d) => {
+                            const dt = new Date(d + "T00:00:00");
+                            return (
+                              <li key={d}>
+                                {dt.toLocaleDateString(undefined, {
+                                  weekday: "short",
+                                  month: "short",
+                                  day: "numeric",
+                                  year: "numeric",
+                                })}
+                              </li>
+                            );
+                          })}
+                          {recurrenceDates.length > 4 && (
+                            <li className="pt-1 text-xs text-text-tertiary">
+                              + {recurrenceDates.length - 4} more
+                            </li>
+                          )}
+                        </ul>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </Section>
+
             <Section title="Notes">
               <Field label="Notes" span={2} hint="Visible internally and to owner">
                 <Textarea rows={3} value={notes} onChange={(e) => setNotes(e.target.value)} />
@@ -407,7 +666,7 @@ export default function ReservationForm() {
               Cancel
             </Button>
             <Button type="submit" disabled={saving}>
-              {saving ? "Saving…" : "Create Reservation"}
+              {saving ? "Saving…" : isRecurring ? `Create ${recurrenceDates.length || ""} Reservations` : "Create Reservation"}
             </Button>
           </div>
         </form>
