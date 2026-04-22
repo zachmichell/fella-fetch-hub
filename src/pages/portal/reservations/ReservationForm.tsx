@@ -59,17 +59,23 @@ function Field({
 export default function ReservationForm() {
   const navigate = useNavigate();
   const { membership, user } = useAuth();
+  const [searchParams] = useSearchParams();
+  const presetSuiteId = searchParams.get("suite_id") ?? "";
+  const presetStart = searchParams.get("start") ?? "";
 
   const [ownerSearch, setOwnerSearch] = useState("");
   const [ownerId, setOwnerId] = useState("");
   const [showOwnerResults, setShowOwnerResults] = useState(false);
   const [serviceId, setServiceId] = useState("");
-  const [startAt, setStartAt] = useState("");
+  const [suiteId, setSuiteId] = useState<string>(presetSuiteId || "none");
+  const [startAt, setStartAt] = useState(presetStart);
   const [endAt, setEndAt] = useState("");
   const [petIds, setPetIds] = useState<string[]>([]);
   const [notes, setNotes] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
+
+  const { data: suites = [] } = useSuites({ activeOnly: true });
 
   // Owner search
   const { data: ownerResults } = useQuery({
