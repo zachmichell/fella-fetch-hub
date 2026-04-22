@@ -69,6 +69,7 @@ import ServiceTypes from "./pages/portal/management/ServiceTypes";
 import Subscriptions from "./pages/portal/settings/Subscriptions";
 import Marketing from "./pages/portal/settings/Marketing";
 import SmsComms from "./pages/portal/settings/SmsComms";
+import LocationsPage from "./pages/portal/settings/LocationsPage";
 
 const queryClient = new QueryClient();
 
@@ -153,6 +154,7 @@ const App = () => (
             <Route path="/incidents/:id/edit" element={staff(<IncidentForm />, "incidents.edit")} />
             <Route path="/playgroups" element={staff(<Playgroups />, "playgroups.manage")} />
             <Route path="/kennel-runs" element={staff(<KennelRuns />, "kennels.manage")} />
+            <Route path="/settings/locations" element={staff(<LocationsPage />, "settings.locations")} />
             <Route path="/settings" element={staff(<Settings />, "settings.view")} />
 
             {/* Owner portal */}

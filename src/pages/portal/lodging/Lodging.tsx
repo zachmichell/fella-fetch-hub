@@ -25,6 +25,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useSuites, type SuiteRow } from "@/hooks/useSuites";
 import { cn } from "@/lib/utils";
+import { useLocationFilter } from "@/contexts/LocationContext";
 
 type ViewMode = "weekly" | "monthly";
 
@@ -47,11 +48,16 @@ export default function Lodging() {
   const navigate = useNavigate();
   const { membership } = useAuth();
   const orgId = membership?.organization_id;
+  const locationId = useLocationFilter();
 
   const [view, setView] = useState<ViewMode>("weekly");
   const [anchor, setAnchor] = useState<Date>(startOfDay(new Date()));
 
-  const { data: suites = [], isLoading: suitesLoading } = useSuites({ activeOnly: false });
+  const allSuites = useSuites({ activeOnly: false });
+  const suites = (allSuites.data ?? []).filter(
+    (s: any) => !locationId || s.location_id === locationId,
+  );
+  const suitesLoading = allSuites.isLoading;
 
   const { rangeStart, rangeEnd, days } = useMemo(() => {
     if (view === "weekly") {
@@ -69,12 +75,18 @@ export default function Lodging() {
   }, [view, anchor]);
 
   const { data: reservations = [] } = useQuery({
-    queryKey: ["lodging-reservations", orgId, rangeStart.toISOString(), rangeEnd.toISOString()],
+    queryKey: [
+      "lodging-reservations",
+      orgId,
+      rangeStart.toISOString(),
+      rangeEnd.toISOString(),
+      locationId,
+    ],
     enabled: !!orgId,
     queryFn: async () => {
       const startIso = rangeStart.toISOString();
       const endIso = addDays(rangeEnd, 1).toISOString();
-      const { data, error } = await supabase
+      let q = supabase
         .from("reservations")
         .select("id, status, start_at, end_at, suite_id, reservation_pets(pets(name))")
         .eq("organization_id", orgId!)
@@ -83,6 +95,8 @@ export default function Lodging() {
         .is("deleted_at", null)
         .lt("start_at", endIso)
         .gte("end_at", startIso);
+      if (locationId) q = q.eq("location_id", locationId);
+      const { data, error } = await q;
       if (error) throw error;
       return (data ?? []) as ResvRow[];
     },

@@ -536,6 +536,7 @@ export type Database = {
           id: string
           invoice_number: string | null
           issued_at: string | null
+          location_id: string | null
           notes: string | null
           organization_id: string
           owner_id: string
@@ -558,6 +559,7 @@ export type Database = {
           id?: string
           invoice_number?: string | null
           issued_at?: string | null
+          location_id?: string | null
           notes?: string | null
           organization_id: string
           owner_id: string
@@ -580,6 +582,7 @@ export type Database = {
           id?: string
           invoice_number?: string | null
           issued_at?: string | null
+          location_id?: string | null
           notes?: string | null
           organization_id?: string
           owner_id?: string
@@ -593,6 +596,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "invoices_location_id_fkey"
+            columns: ["location_id"]
+            isOneToOne: false
+            referencedRelation: "locations"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "invoices_organization_id_fkey"
             columns: ["organization_id"]
@@ -734,6 +744,50 @@ export type Database = {
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      location_hours: {
+        Row: {
+          close_time: string | null
+          closed: boolean
+          created_at: string
+          day_of_week: number
+          id: string
+          location_id: string
+          open_time: string | null
+          organization_id: string
+          updated_at: string
+        }
+        Insert: {
+          close_time?: string | null
+          closed?: boolean
+          created_at?: string
+          day_of_week: number
+          id?: string
+          location_id: string
+          open_time?: string | null
+          organization_id: string
+          updated_at?: string
+        }
+        Update: {
+          close_time?: string | null
+          closed?: boolean
+          created_at?: string
+          day_of_week?: number
+          id?: string
+          location_id?: string
+          open_time?: string | null
+          organization_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "location_hours_location_id_fkey"
+            columns: ["location_id"]
+            isOneToOne: false
+            referencedRelation: "locations"
             referencedColumns: ["id"]
           },
         ]

@@ -31,8 +31,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Pencil, Plus, Trash2 } from "lucide-react";
+import { Pencil, Plus, Trash2, Clock } from "lucide-react";
 import { TIMEZONE_OPTIONS } from "@/lib/timezones";
+import LocationHoursDialog from "@/components/portal/facility/LocationHoursDialog";
 
 type LocationRow = {
   id: string;
@@ -96,6 +97,7 @@ export default function LocationsTab() {
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<LocationRow | null>(null);
   const [form, setForm] = useState<Partial<LocationRow>>(empty);
+  const [hoursFor, setHoursFor] = useState<LocationRow | null>(null);
 
   function openNew() {
     setEditing(null);
@@ -236,6 +238,14 @@ export default function LocationsTab() {
                     </div>
                   </TableCell>
                   <TableCell className="text-right">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setHoursFor(loc)}
+                      title="Operating hours"
+                    >
+                      <Clock className="h-4 w-4" />
+                    </Button>
                     <Button variant="ghost" size="sm" onClick={() => openEdit(loc)}>
                       <Pencil className="h-4 w-4" />
                     </Button>
@@ -347,6 +357,13 @@ export default function LocationsTab() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <LocationHoursDialog
+        locationId={hoursFor?.id ?? null}
+        locationName={hoursFor?.name}
+        open={!!hoursFor}
+        onOpenChange={(o) => !o && setHoursFor(null)}
+      />
     </div>
   );
 }

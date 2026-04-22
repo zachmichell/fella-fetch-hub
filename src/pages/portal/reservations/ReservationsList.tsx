@@ -13,6 +13,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { formatDateTime } from "@/lib/money";
 import { formatDate } from "@/lib/format";
 import { usePermissions } from "@/hooks/usePermissions";
+import { useLocationFilter } from "@/contexts/LocationContext";
 
 const PAGE_SIZE = 10;
 
@@ -37,13 +38,14 @@ export default function ReservationsList() {
   const navigate = useNavigate();
   const { can } = usePermissions();
   const canCreate = can("reservations.create");
+  const locationId = useLocationFilter();
   const [startDate, setStartDate] = useState<string>(startOfWeekISO());
   const [endDate, setEndDate] = useState<string>(endOfWeekISO());
   const [status, setStatus] = useState<string>("all");
   const [page, setPage] = useState(0);
 
   const { data, isLoading } = useQuery({
-    queryKey: ["reservations", startDate, endDate, status, page],
+    queryKey: ["reservations", startDate, endDate, status, page, locationId],
     queryFn: async () => {
       let q = supabase
         .from("reservations")
@@ -58,6 +60,7 @@ export default function ReservationsList() {
       if (startDate) q = q.gte("start_at", new Date(startDate + "T00:00:00").toISOString());
       if (endDate) q = q.lte("start_at", new Date(endDate + "T23:59:59").toISOString());
       if (status !== "all") q = q.eq("status", status as any);
+      if (locationId) q = q.eq("location_id", locationId);
 
       const { data, count, error } = await q;
       if (error) throw error;

@@ -13,6 +13,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { formatCentsShort, formatDateTime } from "@/lib/money";
 import { effectiveInvoiceStatus } from "@/lib/invoice";
 import { usePermissions } from "@/hooks/usePermissions";
+import { useLocationFilter } from "@/contexts/LocationContext";
 
 const PAGE_SIZE = 10;
 
@@ -36,6 +37,7 @@ function ymd(d: Date) {
 export default function InvoicesList() {
   const { can } = usePermissions();
   const canCreate = can("invoices.create");
+  const locationId = useLocationFilter();
   const [status, setStatus] = useState<string>("all");
   const [from, setFrom] = useState<string>(ymd(firstOfMonth()));
   const [to, setTo] = useState<string>(ymd(lastOfMonth()));
@@ -43,7 +45,7 @@ export default function InvoicesList() {
   const [page, setPage] = useState(0);
 
   const { data: rows = [], isLoading } = useQuery({
-    queryKey: ["invoices-list", status, from, to],
+    queryKey: ["invoices-list", status, from, to, locationId],
     queryFn: async () => {
       let q = supabase
         .from("invoices")
@@ -56,6 +58,7 @@ export default function InvoicesList() {
       if (status !== "all") q = q.eq("status", status as any);
       if (from) q = q.gte("issued_at", new Date(from + "T00:00:00").toISOString());
       if (to) q = q.lte("issued_at", new Date(to + "T23:59:59").toISOString());
+      if (locationId) q = q.eq("location_id", locationId);
       const { data, error } = await q.limit(500);
       if (error) throw error;
       return data ?? [];
