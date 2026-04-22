@@ -3,7 +3,8 @@ import { Link } from "react-router-dom";
 import { History, ChevronRight, Filter } from "lucide-react";
 import { useOwnerRecord } from "@/hooks/useOwnerRecord";
 import { useOwnerServiceHistory, type OwnerHistoryEntry } from "@/hooks/useOwnerServiceHistory";
-import { formatDate, formatDateTime } from "@/lib/format";
+import { formatDate } from "@/lib/format";
+import { formatDateTime } from "@/lib/money";
 import {
   Select,
   SelectContent,
