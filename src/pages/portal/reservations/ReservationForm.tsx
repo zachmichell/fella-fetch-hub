@@ -189,6 +189,7 @@ export default function ReservationForm() {
         notes: notes || null,
         created_by: user?.id ?? null,
         requested_at: nowIso,
+        suite_id: suiteId && suiteId !== "none" ? suiteId : null,
       } as any)
       .select("id")
       .single();
