@@ -154,6 +154,53 @@ export type Database = {
           },
         ]
       }
+      breeds: {
+        Row: {
+          avg_weight_max: number | null
+          avg_weight_min: number | null
+          created_at: string
+          id: string
+          name: string
+          organization_id: string
+          size_category: string | null
+          species: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          avg_weight_max?: number | null
+          avg_weight_min?: number | null
+          created_at?: string
+          id?: string
+          name: string
+          organization_id: string
+          size_category?: string | null
+          species?: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          avg_weight_max?: number | null
+          avg_weight_min?: number | null
+          created_at?: string
+          id?: string
+          name?: string
+          organization_id?: string
+          size_category?: string | null
+          species?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "breeds_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       call_logs: {
         Row: {
           call_at: string
@@ -2219,9 +2266,13 @@ export type Database = {
           allergies: string | null
           behavioral_notes: string | null
           breed: string | null
+          breed_id: string | null
           color: string | null
           created_at: string
           date_of_birth: string | null
+          deactivated_at: string | null
+          deactivation_notes: string | null
+          deactivation_reason: string | null
           deleted_at: string | null
           feeding_notes: string | null
           id: string
@@ -2237,15 +2288,20 @@ export type Database = {
           species: Database["public"]["Enums"]["species_enum"]
           temperament_tags: string[]
           updated_at: string
+          vet_id: string | null
           weight_kg: number | null
         }
         Insert: {
           allergies?: string | null
           behavioral_notes?: string | null
           breed?: string | null
+          breed_id?: string | null
           color?: string | null
           created_at?: string
           date_of_birth?: string | null
+          deactivated_at?: string | null
+          deactivation_notes?: string | null
+          deactivation_reason?: string | null
           deleted_at?: string | null
           feeding_notes?: string | null
           id?: string
@@ -2261,15 +2317,20 @@ export type Database = {
           species?: Database["public"]["Enums"]["species_enum"]
           temperament_tags?: string[]
           updated_at?: string
+          vet_id?: string | null
           weight_kg?: number | null
         }
         Update: {
           allergies?: string | null
           behavioral_notes?: string | null
           breed?: string | null
+          breed_id?: string | null
           color?: string | null
           created_at?: string
           date_of_birth?: string | null
+          deactivated_at?: string | null
+          deactivation_notes?: string | null
+          deactivation_reason?: string | null
           deleted_at?: string | null
           feeding_notes?: string | null
           id?: string
@@ -2285,14 +2346,29 @@ export type Database = {
           species?: Database["public"]["Enums"]["species_enum"]
           temperament_tags?: string[]
           updated_at?: string
+          vet_id?: string | null
           weight_kg?: number | null
         }
         Relationships: [
+          {
+            foreignKeyName: "pets_breed_id_fkey"
+            columns: ["breed_id"]
+            isOneToOne: false
+            referencedRelation: "breeds"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "pets_organization_id_fkey"
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pets_vet_id_fkey"
+            columns: ["vet_id"]
+            isOneToOne: false
+            referencedRelation: "veterinarians"
             referencedColumns: ["id"]
           },
         ]
@@ -3985,6 +4061,53 @@ export type Database = {
             columns: ["pet_id"]
             isOneToOne: false
             referencedRelation: "pets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      veterinarians: {
+        Row: {
+          address: string | null
+          clinic_name: string | null
+          created_at: string
+          email: string | null
+          id: string
+          name: string
+          notes: string | null
+          organization_id: string
+          phone: string | null
+          updated_at: string
+        }
+        Insert: {
+          address?: string | null
+          clinic_name?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          name: string
+          notes?: string | null
+          organization_id: string
+          phone?: string | null
+          updated_at?: string
+        }
+        Update: {
+          address?: string | null
+          clinic_name?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          name?: string
+          notes?: string | null
+          organization_id?: string
+          phone?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "veterinarians_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
         ]
