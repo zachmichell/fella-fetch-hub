@@ -35,6 +35,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
+import { useLocationFilter } from "@/contexts/LocationContext";
 
 function useOrgCurrency() {
   const { membership } = useAuth();
@@ -134,6 +135,7 @@ export default function Analytics() {
   const [preset, setPreset] = useState<RangePreset>("7d");
   const [customFrom, setCustomFrom] = useState<Date | undefined>();
   const [customTo, setCustomTo] = useState<Date | undefined>();
+  const locationId = useLocationFilter();
 
   const range = useMemo(
     () =>
@@ -146,7 +148,7 @@ export default function Analytics() {
     [preset, customFrom, customTo],
   );
 
-  const { data, isLoading } = useAnalytics(range);
+  const { data, isLoading } = useAnalytics(range, locationId);
   const { data: currency = "CAD" } = useOrgCurrency();
 
   const reservationSpark = data?.reservationSeries.map((d) => ({ x: d.key, y: d.total })) ?? [];

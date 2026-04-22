@@ -65,7 +65,7 @@ async function fetchInvoicesPeriod(orgId: string, from: Date, to: Date, location
   return (data ?? []) as Invoice[];
 }
 
-export function useAnalytics(range: DateRange) {
+export function useAnalytics(range: DateRange, locationId: string | null = null) {
   const { membership } = useAuth();
   const orgId = membership?.organization_id;
   const prev = getPreviousRange(range);
@@ -73,9 +73,41 @@ export function useAnalytics(range: DateRange) {
   return useQuery({
     enabled: !!orgId,
     staleTime: 60_000,
-    queryKey: ["analytics", orgId, range.from.toISOString(), range.to.toISOString()],
+    queryKey: [
+      "analytics",
+      orgId,
+      range.from.toISOString(),
+      range.to.toISOString(),
+      locationId,
+    ],
     queryFn: async () => {
       if (!orgId) throw new Error("no org");
+
+      const outstandingQ = supabase
+        .from("invoices")
+        .select("id,status,total_cents,due_at,invoice_number,owner_id,balance_due_cents")
+        .eq("organization_id", orgId)
+        .is("deleted_at", null)
+        .in("status", ["sent", "overdue"])
+        .order("due_at", { ascending: true, nullsFirst: false })
+        .limit(10);
+      const playgroupsQ = supabase
+        .from("playgroups")
+        .select("id,capacity")
+        .eq("organization_id", orgId)
+        .eq("active", true)
+        .is("deleted_at", null);
+      const kennelRunsQ = supabase
+        .from("kennel_runs")
+        .select("id,capacity")
+        .eq("organization_id", orgId)
+        .eq("active", true)
+        .is("deleted_at", null);
+      const servicesQ = supabase
+        .from("services")
+        .select("id,name,module")
+        .eq("organization_id", orgId)
+        .is("deleted_at", null);
 
       const [
         reservationsRes,
@@ -89,21 +121,14 @@ export function useAnalytics(range: DateRange) {
         kennelAssignmentsRes,
         newPetsRes,
       ] = await Promise.all([
-        fetchReservations(orgId, range.from, range.to),
-        fetchReservations(orgId, prev.from, prev.to),
-        fetchInvoicesPeriod(orgId, range.from, range.to),
-        fetchInvoicesPeriod(orgId, prev.from, prev.to),
-        supabase
-          .from("invoices")
-          .select("id,status,total_cents,due_at,invoice_number,owner_id,balance_due_cents")
-          .eq("organization_id", orgId)
-          .is("deleted_at", null)
-          .in("status", ["sent", "overdue"])
-          .order("due_at", { ascending: true, nullsFirst: false })
-          .limit(10),
-        supabase.from("services").select("id,name,module").eq("organization_id", orgId).is("deleted_at", null),
-        supabase.from("playgroups").select("id,capacity").eq("organization_id", orgId).eq("active", true).is("deleted_at", null),
-        supabase.from("kennel_runs").select("id,capacity").eq("organization_id", orgId).eq("active", true).is("deleted_at", null),
+        fetchReservations(orgId, range.from, range.to, locationId),
+        fetchReservations(orgId, prev.from, prev.to, locationId),
+        fetchInvoicesPeriod(orgId, range.from, range.to, locationId),
+        fetchInvoicesPeriod(orgId, prev.from, prev.to, locationId),
+        locationId ? outstandingQ.eq("location_id", locationId) : outstandingQ,
+        servicesQ,
+        locationId ? playgroupsQ.eq("location_id", locationId) : playgroupsQ,
+        locationId ? kennelRunsQ.eq("location_id", locationId) : kennelRunsQ,
         supabase
           .from("kennel_run_assignments")
           .select("id,kennel_run_id,removed_at")
