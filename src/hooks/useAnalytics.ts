@@ -35,8 +35,8 @@ type Invoice = {
   created_at: string;
 };
 
-async function fetchReservations(orgId: string, from: Date, to: Date) {
-  const { data, error } = await supabase
+async function fetchReservations(orgId: string, from: Date, to: Date, locationId: string | null) {
+  let q = supabase
     .from("reservations")
     .select("id,status,start_at,service_id,primary_owner_id,created_at,checked_in_at,deleted_at")
     .eq("organization_id", orgId)
@@ -44,12 +44,14 @@ async function fetchReservations(orgId: string, from: Date, to: Date) {
     .gte("start_at", from.toISOString())
     .lte("start_at", to.toISOString())
     .limit(5000);
+  if (locationId) q = q.eq("location_id", locationId);
+  const { data, error } = await q;
   if (error) throw error;
   return (data ?? []) as (Reservation & { checked_in_at: string | null })[];
 }
 
-async function fetchInvoicesPeriod(orgId: string, from: Date, to: Date) {
-  const { data, error } = await supabase
+async function fetchInvoicesPeriod(orgId: string, from: Date, to: Date, locationId: string | null) {
+  let q = supabase
     .from("invoices")
     .select("id,status,total_cents,paid_at,issued_at,due_at,invoice_number,owner_id,created_at")
     .eq("organization_id", orgId)
@@ -57,6 +59,8 @@ async function fetchInvoicesPeriod(orgId: string, from: Date, to: Date) {
     .gte("created_at", from.toISOString())
     .lte("created_at", to.toISOString())
     .limit(5000);
+  if (locationId) q = q.eq("location_id", locationId);
+  const { data, error } = await q;
   if (error) throw error;
   return (data ?? []) as Invoice[];
 }
