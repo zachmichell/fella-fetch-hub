@@ -81,6 +81,8 @@ import PosClosedInvoices from "./pages/portal/pos/PosClosedInvoices";
 import DataImport from "./pages/portal/settings/DataImport";
 import DataMerge from "./pages/portal/settings/DataMerge";
 import AuditLog from "./pages/portal/settings/AuditLog";
+import GroupClasses from "./pages/portal/group-classes/GroupClasses";
+import OwnerClasses from "./pages/portal-owner/Classes";
 
 const queryClient = new QueryClient();
 
@@ -156,6 +158,7 @@ const App = () => (
             <Route path="/reservations/:id" element={staff(<ReservationDetail />)} />
             <Route path="/reservations/:id/edit" element={staff(<ReservationEdit />, "reservations.edit")} />
             <Route path="/standing-reservations" element={staff(<StandingReservations />)} />
+            <Route path="/group-classes" element={staff(<GroupClasses />)} />
             <Route path="/invoices" element={staff(<InvoicesList />, "invoices.view")} />
             <Route path="/invoices/:id" element={staff(<InvoiceDetail />, "invoices.view")} />
             <Route path="/dashboard/check-in-out" element={staff(<CheckInOut />, "checkinout.perform")} />
@@ -195,6 +198,7 @@ const App = () => (
             <Route path="/portal/messages" element={customer(<OwnerMessages />)} />
             <Route path="/portal/purchases" element={customer(<OwnerPurchases />)} />
             <Route path="/portal/history" element={customer(<OwnerServiceHistory />)} />
+            <Route path="/portal/classes" element={customer(<OwnerClasses />)} />
 
             <Route path="*" element={<NotFound />} />
           </Routes>

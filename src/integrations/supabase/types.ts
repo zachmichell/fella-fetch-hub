@@ -62,6 +62,217 @@ export type Database = {
           },
         ]
       }
+      class_enrollments: {
+        Row: {
+          attended: boolean | null
+          cancelled_at: string | null
+          class_instance_id: string
+          created_at: string
+          enrolled_at: string
+          enrolled_by: string | null
+          id: string
+          invoice_id: string | null
+          organization_id: string
+          owner_id: string
+          payment_status: string
+          pet_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          attended?: boolean | null
+          cancelled_at?: string | null
+          class_instance_id: string
+          created_at?: string
+          enrolled_at?: string
+          enrolled_by?: string | null
+          id?: string
+          invoice_id?: string | null
+          organization_id: string
+          owner_id: string
+          payment_status?: string
+          pet_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          attended?: boolean | null
+          cancelled_at?: string | null
+          class_instance_id?: string
+          created_at?: string
+          enrolled_at?: string
+          enrolled_by?: string | null
+          id?: string
+          invoice_id?: string | null
+          organization_id?: string
+          owner_id?: string
+          payment_status?: string
+          pet_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "class_enrollments_class_instance_id_fkey"
+            columns: ["class_instance_id"]
+            isOneToOne: false
+            referencedRelation: "class_instances"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "class_enrollments_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "class_enrollments_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "owners"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "class_enrollments_pet_id_fkey"
+            columns: ["pet_id"]
+            isOneToOne: false
+            referencedRelation: "pets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      class_instances: {
+        Row: {
+          auto_generated: boolean
+          class_type_id: string
+          created_at: string
+          deleted_at: string | null
+          end_at: string
+          id: string
+          instructor_user_id: string | null
+          location_id: string | null
+          notes: string | null
+          organization_id: string
+          start_at: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          auto_generated?: boolean
+          class_type_id: string
+          created_at?: string
+          deleted_at?: string | null
+          end_at: string
+          id?: string
+          instructor_user_id?: string | null
+          location_id?: string | null
+          notes?: string | null
+          organization_id: string
+          start_at: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          auto_generated?: boolean
+          class_type_id?: string
+          created_at?: string
+          deleted_at?: string | null
+          end_at?: string
+          id?: string
+          instructor_user_id?: string | null
+          location_id?: string | null
+          notes?: string | null
+          organization_id?: string
+          start_at?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "class_instances_class_type_id_fkey"
+            columns: ["class_type_id"]
+            isOneToOne: false
+            referencedRelation: "class_types"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "class_instances_location_id_fkey"
+            columns: ["location_id"]
+            isOneToOne: false
+            referencedRelation: "locations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      class_types: {
+        Row: {
+          category: string
+          created_at: string
+          deleted_at: string | null
+          description: string | null
+          duration_minutes: number
+          id: string
+          instructor_user_id: string | null
+          location_id: string | null
+          max_enrollment: number
+          name: string
+          organization_id: string
+          prerequisites: string | null
+          price_cents: number
+          schedule_day_of_week: number | null
+          schedule_time: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          category?: string
+          created_at?: string
+          deleted_at?: string | null
+          description?: string | null
+          duration_minutes?: number
+          id?: string
+          instructor_user_id?: string | null
+          location_id?: string | null
+          max_enrollment?: number
+          name: string
+          organization_id: string
+          prerequisites?: string | null
+          price_cents?: number
+          schedule_day_of_week?: number | null
+          schedule_time?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          deleted_at?: string | null
+          description?: string | null
+          duration_minutes?: number
+          id?: string
+          instructor_user_id?: string | null
+          location_id?: string | null
+          max_enrollment?: number
+          name?: string
+          organization_id?: string
+          prerequisites?: string | null
+          price_cents?: number
+          schedule_day_of_week?: number | null
+          schedule_time?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "class_types_location_id_fkey"
+            columns: ["location_id"]
+            isOneToOne: false
+            referencedRelation: "locations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       conversations: {
         Row: {
           created_at: string
