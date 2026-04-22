@@ -107,6 +107,123 @@ export type Database = {
         }
         Relationships: []
       }
+      auto_reply_settings: {
+        Row: {
+          active_days: number[]
+          business_hours_end: string
+          business_hours_start: string
+          created_at: string
+          enabled: boolean
+          id: string
+          message: string
+          organization_id: string
+          timezone: string
+          updated_at: string
+        }
+        Insert: {
+          active_days?: number[]
+          business_hours_end?: string
+          business_hours_start?: string
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          message?: string
+          organization_id: string
+          timezone?: string
+          updated_at?: string
+        }
+        Update: {
+          active_days?: number[]
+          business_hours_end?: string
+          business_hours_start?: string
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          message?: string
+          organization_id?: string
+          timezone?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "auto_reply_settings_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: true
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      call_logs: {
+        Row: {
+          call_at: string
+          created_at: string
+          direction: string
+          duration_seconds: number
+          follow_up_completed_at: string | null
+          follow_up_required: boolean
+          id: string
+          notes: string | null
+          organization_id: string
+          owner_id: string | null
+          phone: string
+          staff_user_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          call_at?: string
+          created_at?: string
+          direction?: string
+          duration_seconds?: number
+          follow_up_completed_at?: string | null
+          follow_up_required?: boolean
+          id?: string
+          notes?: string | null
+          organization_id: string
+          owner_id?: string | null
+          phone: string
+          staff_user_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          call_at?: string
+          created_at?: string
+          direction?: string
+          duration_seconds?: number
+          follow_up_completed_at?: string | null
+          follow_up_required?: boolean
+          id?: string
+          notes?: string | null
+          organization_id?: string
+          owner_id?: string | null
+          phone?: string
+          staff_user_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "call_logs_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "call_logs_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "owners"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "call_logs_staff_user_id_fkey"
+            columns: ["staff_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       checklist_completions: {
         Row: {
           completed_items: Json
@@ -1246,6 +1363,69 @@ export type Database = {
           },
         ]
       }
+      leads: {
+        Row: {
+          converted_owner_id: string | null
+          created_at: string
+          email: string | null
+          id: string
+          name: string
+          notes: string | null
+          organization_id: string
+          pet_breed: string | null
+          pet_name: string | null
+          phone: string | null
+          source: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          converted_owner_id?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          name: string
+          notes?: string | null
+          organization_id: string
+          pet_breed?: string | null
+          pet_name?: string | null
+          phone?: string | null
+          source?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          converted_owner_id?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          name?: string
+          notes?: string | null
+          organization_id?: string
+          pet_breed?: string | null
+          pet_name?: string | null
+          phone?: string | null
+          source?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "leads_converted_owner_id_fkey"
+            columns: ["converted_owner_id"]
+            isOneToOne: false
+            referencedRelation: "owners"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leads_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       location_hours: {
         Row: {
           close_time: string | null
@@ -1396,6 +1576,53 @@ export type Database = {
             columns: ["profile_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      message_templates: {
+        Row: {
+          active: boolean
+          body: string
+          category: string
+          channel: string
+          created_at: string
+          id: string
+          name: string
+          organization_id: string
+          subject: string | null
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          body?: string
+          category?: string
+          channel?: string
+          created_at?: string
+          id?: string
+          name: string
+          organization_id: string
+          subject?: string | null
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          body?: string
+          category?: string
+          channel?: string
+          created_at?: string
+          id?: string
+          name?: string
+          organization_id?: string
+          subject?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "message_templates_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
         ]
@@ -2192,6 +2419,59 @@ export type Database = {
           },
         ]
       }
+      portal_settings: {
+        Row: {
+          booking_rules: Json
+          business_name: string | null
+          created_at: string
+          feature_toggles: Json
+          id: string
+          lead_form_enabled: boolean
+          lead_form_fields: Json
+          logo_url: string | null
+          organization_id: string
+          primary_color: string
+          updated_at: string
+          welcome_message: string
+        }
+        Insert: {
+          booking_rules?: Json
+          business_name?: string | null
+          created_at?: string
+          feature_toggles?: Json
+          id?: string
+          lead_form_enabled?: boolean
+          lead_form_fields?: Json
+          logo_url?: string | null
+          organization_id: string
+          primary_color?: string
+          updated_at?: string
+          welcome_message?: string
+        }
+        Update: {
+          booking_rules?: Json
+          business_name?: string | null
+          created_at?: string
+          feature_toggles?: Json
+          id?: string
+          lead_form_enabled?: boolean
+          lead_form_fields?: Json
+          logo_url?: string | null
+          organization_id?: string
+          primary_color?: string
+          updated_at?: string
+          welcome_message?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "portal_settings_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: true
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       pos_cart_items: {
         Row: {
           cart_id: string
@@ -2296,6 +2576,109 @@ export type Database = {
           voided_at?: string | null
         }
         Relationships: []
+      }
+      precheck_settings: {
+        Row: {
+          created_at: string
+          enabled: boolean
+          hours_before: number
+          id: string
+          organization_id: string
+          questions: Json
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          enabled?: boolean
+          hours_before?: number
+          id?: string
+          organization_id: string
+          questions?: Json
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          enabled?: boolean
+          hours_before?: number
+          id?: string
+          organization_id?: string
+          questions?: Json
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "precheck_settings_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: true
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      precheck_submissions: {
+        Row: {
+          created_at: string
+          id: string
+          organization_id: string
+          owner_id: string
+          pet_id: string
+          reservation_id: string
+          responses: Json
+          submitted_at: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          organization_id: string
+          owner_id: string
+          pet_id: string
+          reservation_id: string
+          responses?: Json
+          submitted_at?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          organization_id?: string
+          owner_id?: string
+          pet_id?: string
+          reservation_id?: string
+          responses?: Json
+          submitted_at?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "precheck_submissions_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "precheck_submissions_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "owners"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "precheck_submissions_pet_id_fkey"
+            columns: ["pet_id"]
+            isOneToOne: false
+            referencedRelation: "pets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "precheck_submissions_reservation_id_fkey"
+            columns: ["reservation_id"]
+            isOneToOne: false
+            referencedRelation: "reservations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
@@ -3366,6 +3749,118 @@ export type Database = {
             foreignKeyName: "suites_organization_id_fkey"
             columns: ["organization_id"]
             isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      survey_responses: {
+        Row: {
+          created_at: string
+          feedback: string | null
+          id: string
+          organization_id: string
+          owner_id: string
+          pet_id: string | null
+          rating: number | null
+          reservation_id: string | null
+          responded_at: string | null
+          sent_at: string
+          updated_at: string
+          would_recommend: boolean | null
+        }
+        Insert: {
+          created_at?: string
+          feedback?: string | null
+          id?: string
+          organization_id: string
+          owner_id: string
+          pet_id?: string | null
+          rating?: number | null
+          reservation_id?: string | null
+          responded_at?: string | null
+          sent_at?: string
+          updated_at?: string
+          would_recommend?: boolean | null
+        }
+        Update: {
+          created_at?: string
+          feedback?: string | null
+          id?: string
+          organization_id?: string
+          owner_id?: string
+          pet_id?: string | null
+          rating?: number | null
+          reservation_id?: string | null
+          responded_at?: string | null
+          sent_at?: string
+          updated_at?: string
+          would_recommend?: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "survey_responses_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "survey_responses_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "owners"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "survey_responses_pet_id_fkey"
+            columns: ["pet_id"]
+            isOneToOne: false
+            referencedRelation: "pets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "survey_responses_reservation_id_fkey"
+            columns: ["reservation_id"]
+            isOneToOne: false
+            referencedRelation: "reservations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      survey_settings: {
+        Row: {
+          created_at: string
+          enabled: boolean
+          feedback_prompt: string
+          id: string
+          organization_id: string
+          send_hours_after_checkout: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          enabled?: boolean
+          feedback_prompt?: string
+          id?: string
+          organization_id: string
+          send_hours_after_checkout?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          enabled?: boolean
+          feedback_prompt?: string
+          id?: string
+          organization_id?: string
+          send_hours_after_checkout?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "survey_settings_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: true
             referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
