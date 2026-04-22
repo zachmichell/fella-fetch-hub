@@ -2987,6 +2987,68 @@ export type Database = {
           },
         ]
       }
+      pricing_rules: {
+        Row: {
+          applies_to_services: string[]
+          conditions: Json
+          created_at: string
+          description: string | null
+          discount_type: string
+          discount_value: number
+          end_date: string | null
+          id: string
+          name: string
+          organization_id: string
+          priority: number
+          rule_type: string
+          start_date: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          applies_to_services?: string[]
+          conditions?: Json
+          created_at?: string
+          description?: string | null
+          discount_type?: string
+          discount_value?: number
+          end_date?: string | null
+          id?: string
+          name: string
+          organization_id: string
+          priority?: number
+          rule_type: string
+          start_date?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          applies_to_services?: string[]
+          conditions?: Json
+          created_at?: string
+          description?: string | null
+          discount_type?: string
+          discount_value?: number
+          end_date?: string | null
+          id?: string
+          name?: string
+          organization_id?: string
+          priority?: number
+          rule_type?: string
+          start_date?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pricing_rules_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
