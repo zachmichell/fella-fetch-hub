@@ -30,7 +30,11 @@ export type Permission =
   | "owners.edit"
   | "services.manage"
   | "playgroups.manage"
-  | "kennels.manage";
+  | "kennels.manage"
+  | "data.import"
+  | "data.export"
+  | "data.merge"
+  | "audit.view";
 
 const ALL: Permission[] = [
   "settings.view",
@@ -63,6 +67,10 @@ const ALL: Permission[] = [
   "services.manage",
   "playgroups.manage",
   "kennels.manage",
+  "data.import",
+  "data.export",
+  "data.merge",
+  "audit.view",
 ];
 
 const ADMIN: Permission[] = ALL.filter(
@@ -93,6 +101,8 @@ const MANAGER: Permission[] = [
   "owners.edit",
   "playgroups.manage",
   "kennels.manage",
+  "data.export",
+  "audit.view",
 ];
 
 const STAFF: Permission[] = [
