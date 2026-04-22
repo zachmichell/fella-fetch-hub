@@ -31,6 +31,12 @@ import {
   ChevronLeft,
   ChevronRight,
   MapPin,
+  ShoppingCart,
+  FileClock,
+  FileCheck,
+  Package,
+  Tag,
+  Boxes,
 } from "lucide-react";
 import Logo from "./Logo";
 import { useAuth } from "@/hooks/useAuth";
@@ -56,6 +62,17 @@ const sections: Array<{
       { to: "/dashboard/check-in-out", icon: ClipboardCheck, label: "Check-in/out" },
       { to: "/lodging", icon: BedDouble, label: "Lodging" },
       { to: "/grooming", icon: Scissors, label: "Grooming" },
+    ],
+  },
+  {
+    label: "Point of Sale",
+    items: [
+      { to: "/pos/cart", icon: ShoppingCart, label: "Shopping Cart" },
+      { to: "/pos/open-invoices", icon: FileClock, label: "Open Invoices" },
+      { to: "/pos/closed-invoices", icon: FileCheck, label: "Closed Invoices" },
+      { to: "/pos/products", icon: Boxes, label: "Retail Products" },
+      { to: "/pos/packages", icon: Package, label: "Packages" },
+      { to: "/pos/promotions", icon: Tag, label: "Promotions" },
     ],
   },
   {

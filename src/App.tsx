@@ -8,6 +8,7 @@ import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import RoleRoute from "@/components/auth/RoleRoute";
 import RequirePermission from "@/components/auth/RequirePermission";
 import OwnerPortalLayout from "@/components/portal-owner/OwnerPortalLayout";
+import { LocationProvider } from "@/contexts/LocationContext";
 import type { Permission } from "@/lib/permissions";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
@@ -70,13 +71,21 @@ import Subscriptions from "./pages/portal/settings/Subscriptions";
 import Marketing from "./pages/portal/settings/Marketing";
 import SmsComms from "./pages/portal/settings/SmsComms";
 import LocationsPage from "./pages/portal/settings/LocationsPage";
+import PosCart from "./pages/portal/pos/PosCart";
+import PosProducts from "./pages/portal/pos/PosProducts";
+import PosPackages from "./pages/portal/pos/PosPackages";
+import PosPromotions from "./pages/portal/pos/PosPromotions";
+import PosOpenInvoices from "./pages/portal/pos/PosOpenInvoices";
+import PosClosedInvoices from "./pages/portal/pos/PosClosedInvoices";
 
 const queryClient = new QueryClient();
 
 const staff = (el: React.ReactNode, permission?: Permission) => (
   <ProtectedRoute>
     <RoleRoute allow="staff">
-      {permission ? <RequirePermission permission={permission}>{el}</RequirePermission> : el}
+      <LocationProvider>
+        {permission ? <RequirePermission permission={permission}>{el}</RequirePermission> : el}
+      </LocationProvider>
     </RoleRoute>
   </ProtectedRoute>
 );
