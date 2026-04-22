@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -54,6 +54,19 @@ import OwnerInvoices from "./pages/portal-owner/Invoices";
 import OwnerInvoiceDetail from "./pages/portal-owner/InvoiceDetail";
 import OwnerWaivers from "./pages/portal-owner/Waivers";
 import OwnerWaiverDetail from "./pages/portal-owner/WaiverDetail";
+import Lodging from "./pages/portal/lodging/Lodging";
+import Grooming from "./pages/portal/grooming/Grooming";
+import SuiteManagement from "./pages/portal/facility/SuiteManagement";
+import GroomerManagement from "./pages/portal/facility/GroomerManagement";
+import ReportCardsPlaceholder from "./pages/portal/pet-care/ReportCardsPlaceholder";
+import Traits from "./pages/portal/pet-care/Traits";
+import PetCare from "./pages/portal/pet-care/PetCare";
+import UserManagement from "./pages/portal/management/UserManagement";
+import StaffCodes from "./pages/portal/management/StaffCodes";
+import ServiceTypes from "./pages/portal/management/ServiceTypes";
+import Subscriptions from "./pages/portal/settings/Subscriptions";
+import Marketing from "./pages/portal/settings/Marketing";
+import SmsComms from "./pages/portal/settings/SmsComms";
 
 const queryClient = new QueryClient();
 
@@ -95,7 +108,21 @@ const App = () => (
 
             {/* Staff portal */}
             <Route path="/dashboard" element={staff(<Dashboard />)} />
-            <Route path="/schedule" element={staff(<Schedule />)} />
+            <Route path="/calendar" element={staff(<Schedule />)} />
+            <Route path="/schedule" element={<Navigate to="/calendar" replace />} />
+            <Route path="/lodging" element={staff(<Lodging />)} />
+            <Route path="/grooming" element={staff(<Grooming />)} />
+            <Route path="/suite-management" element={staff(<SuiteManagement />)} />
+            <Route path="/groomer-management" element={staff(<GroomerManagement />)} />
+            <Route path="/report-cards" element={staff(<ReportCardsPlaceholder />)} />
+            <Route path="/traits" element={staff(<Traits />)} />
+            <Route path="/pet-care" element={staff(<PetCare />)} />
+            <Route path="/user-management" element={staff(<UserManagement />)} />
+            <Route path="/staff-codes" element={staff(<StaffCodes />)} />
+            <Route path="/service-types" element={staff(<ServiceTypes />)} />
+            <Route path="/subscriptions" element={staff(<Subscriptions />)} />
+            <Route path="/marketing" element={staff(<Marketing />)} />
+            <Route path="/sms-comms" element={staff(<SmsComms />)} />
             <Route path="/pets" element={staff(<PetsList />)} />
             <Route path="/pets/new" element={staff(<PetForm />)} />
             <Route path="/pets/:id" element={staff(<PetDetail />)} />
