@@ -14,6 +14,8 @@ import { formatCentsShort, formatDateTime } from "@/lib/money";
 import { effectiveInvoiceStatus } from "@/lib/invoice";
 import { usePermissions } from "@/hooks/usePermissions";
 import { useLocationFilter } from "@/contexts/LocationContext";
+import { downloadCsv, toCsv } from "@/lib/csv";
+import { Download } from "lucide-react";
 
 const PAGE_SIZE = 10;
 
@@ -85,18 +87,33 @@ export default function InvoicesList() {
           title="Invoices"
           description="Billing records — auto-generated when reservations check out."
           actions={
-            canCreate ? (
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <span>
-                    <Button disabled className="opacity-60">
-                      <Plus className="h-4 w-4" /> New Invoice
-                    </Button>
-                  </span>
-                </TooltipTrigger>
-                <TooltipContent>Coming soon</TooltipContent>
-              </Tooltip>
-            ) : null
+            <div className="flex gap-2">
+              {can("data.export") && (
+                <Button variant="outline" onClick={() => {
+                  const exportRows = filtered.map((r: any) => ({
+                    invoice_number: r.invoice_number ?? "",
+                    status: r.status, issued_at: r.issued_at, due_at: r.due_at,
+                    total_cents: r.total_cents, currency: r.currency,
+                    owner: r.owners ? `${r.owners.first_name} ${r.owners.last_name}` : "",
+                  }));
+                  downloadCsv(`invoices-${from}-to-${to}.csv`, toCsv(exportRows));
+                }}>
+                  <Download className="h-4 w-4" /> Export CSV
+                </Button>
+              )}
+              {canCreate && (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <span>
+                      <Button disabled className="opacity-60">
+                        <Plus className="h-4 w-4" /> New Invoice
+                      </Button>
+                    </span>
+                  </TooltipTrigger>
+                  <TooltipContent>Coming soon</TooltipContent>
+                </Tooltip>
+              )}
+            </div>
           }
         />
 

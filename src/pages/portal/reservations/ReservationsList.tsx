@@ -14,6 +14,8 @@ import { formatDateTime } from "@/lib/money";
 import { formatDate } from "@/lib/format";
 import { usePermissions } from "@/hooks/usePermissions";
 import { useLocationFilter } from "@/contexts/LocationContext";
+import { downloadCsv, toCsv } from "@/lib/csv";
+import { Download } from "lucide-react";
 
 const PAGE_SIZE = 10;
 
@@ -76,11 +78,27 @@ export default function ReservationsList() {
         <PageHeader
           title="Reservations"
           actions={
-            canCreate ? (
-              <Button onClick={() => navigate("/reservations/new")}>
-                <Plus className="h-4 w-4" /> New Reservation
-              </Button>
-            ) : null
+            <div className="flex gap-2">
+              {can("data.export") && (
+                <Button variant="outline" onClick={() => {
+                  const rows = (data?.rows ?? []).map((r: any) => ({
+                    start_at: r.start_at, end_at: r.end_at, status: r.status, source: r.source,
+                    owner: r.owners ? `${r.owners.first_name} ${r.owners.last_name}` : "",
+                    service: r.services?.name ?? "",
+                    pets: (r.reservation_pets ?? []).map((rp: any) => rp.pets?.name).filter(Boolean).join("; "),
+                    created_at: r.created_at,
+                  }));
+                  downloadCsv(`reservations-${startDate}-to-${endDate}.csv`, toCsv(rows));
+                }}>
+                  <Download className="h-4 w-4" /> Export CSV
+                </Button>
+              )}
+              {canCreate && (
+                <Button onClick={() => navigate("/reservations/new")}>
+                  <Plus className="h-4 w-4" /> New Reservation
+                </Button>
+              )}
+            </div>
           }
         />
 
