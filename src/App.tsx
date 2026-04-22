@@ -155,6 +155,7 @@ const App = () => (
             <Route path="/reservations/new" element={staff(<ReservationForm />, "reservations.create")} />
             <Route path="/reservations/:id" element={staff(<ReservationDetail />)} />
             <Route path="/reservations/:id/edit" element={staff(<ReservationEdit />, "reservations.edit")} />
+            <Route path="/standing-reservations" element={staff(<StandingReservations />)} />
             <Route path="/invoices" element={staff(<InvoicesList />, "invoices.view")} />
             <Route path="/invoices/:id" element={staff(<InvoiceDetail />, "invoices.view")} />
             <Route path="/dashboard/check-in-out" element={staff(<CheckInOut />, "checkinout.perform")} />
