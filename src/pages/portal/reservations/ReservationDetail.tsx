@@ -39,6 +39,7 @@ import { formatCentsShort, formatDateTime, formatDurationType } from "@/lib/mone
 import { createInvoiceForReservation } from "@/lib/invoice";
 import { sendReservationConfirmation } from "@/lib/email";
 import { usePermissions } from "@/hooks/usePermissions";
+import { logActivity } from "@/lib/activity";
 
 export default function ReservationDetail() {
   const { id } = useParams();
@@ -105,10 +106,19 @@ export default function ReservationDetail() {
 
   const refresh = () => qc.invalidateQueries({ queryKey: ["reservation", id] });
 
-  const updateStatus = async (patch: Record<string, any>, label: string) => {
+  const updateStatus = async (patch: Record<string, any>, label: string, action?: string) => {
     if (!r) return;
     const { error } = await supabase.from("reservations").update(patch as any).eq("id", r.id);
     if (error) return toast.error(error.message);
+    if (r.organization_id && action) {
+      await logActivity({
+        organization_id: r.organization_id,
+        action,
+        entity_type: "reservation",
+        entity_id: r.id,
+        metadata: { status: patch.status },
+      });
+    }
     toast.success(label);
     refresh();
   };
@@ -117,6 +127,7 @@ export default function ReservationDetail() {
     await updateStatus(
       { status: "confirmed", confirmed_at: new Date().toISOString(), confirmed_by_user_id: user?.id ?? null },
       "Reservation confirmed",
+      "confirmed",
     );
     // Send confirmation email (fire-and-forget; respects email_settings)
     if (r) {
