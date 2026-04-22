@@ -509,6 +509,151 @@ export default function ReservationForm() {
               </Field>
             </Section>
 
+            <Section title="Recurring">
+              <div className="md:col-span-2 space-y-4">
+                <div className="flex items-center justify-between rounded-md border border-border bg-background px-4 py-3">
+                  <div>
+                    <div className="text-sm font-medium text-foreground">Make this a recurring reservation</div>
+                    <div className="text-xs text-text-secondary">
+                      Automatically generates one reservation per occurrence.
+                    </div>
+                  </div>
+                  <Switch checked={isRecurring} onCheckedChange={setIsRecurring} />
+                </div>
+
+                {isRecurring && (
+                  <div className="space-y-4 rounded-md border border-border bg-background p-4">
+                    <div>
+                      <Label className="mb-2 block text-xs font-semibold text-text-secondary">
+                        Repeat
+                      </Label>
+                      <Select value="weekly" disabled>
+                        <SelectTrigger className="bg-card">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="weekly">Weekly</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div>
+                      <Label className="mb-2 block text-xs font-semibold text-text-secondary">
+                        Days of week <span className="text-destructive">*</span>
+                      </Label>
+                      <div className="flex flex-wrap gap-2">
+                        {DAY_LABELS_SHORT.map((label, idx) => {
+                          const checked = daysOfWeek.includes(idx);
+                          return (
+                            <button
+                              key={label}
+                              type="button"
+                              onClick={() =>
+                                setDaysOfWeek((cur) =>
+                                  checked ? cur.filter((d) => d !== idx) : [...cur, idx],
+                                )
+                              }
+                              className={`min-w-[52px] rounded-md border px-3 py-1.5 text-xs font-semibold transition-colors ${
+                                checked
+                                  ? "border-primary bg-primary text-primary-foreground"
+                                  : "border-border bg-card text-text-secondary hover:border-primary/40"
+                              }`}
+                            >
+                              {label}
+                            </button>
+                          );
+                        })}
+                      </div>
+                      {errors.daysOfWeek && (
+                        <p className="mt-1 text-xs text-destructive">{errors.daysOfWeek}</p>
+                      )}
+                    </div>
+
+                    <div>
+                      <Label className="mb-2 block text-xs font-semibold text-text-secondary">Ends</Label>
+                      <RadioGroup
+                        value={endsKind}
+                        onValueChange={(v) => setEndsKind(v as EndsKind)}
+                        className="space-y-2"
+                      >
+                        <div className="flex items-center gap-2">
+                          <RadioGroupItem value="never" id="ends-never" />
+                          <Label htmlFor="ends-never" className="text-sm font-normal">
+                            Never (next 26 weeks)
+                          </Label>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <RadioGroupItem value="after" id="ends-after" />
+                          <Label htmlFor="ends-after" className="text-sm font-normal">
+                            After
+                          </Label>
+                          <Input
+                            type="number"
+                            min={1}
+                            max={365}
+                            value={occurrencesCount}
+                            onChange={(e) => setOccurrencesCount(Number(e.target.value))}
+                            disabled={endsKind !== "after"}
+                            className="h-8 w-20 bg-card"
+                          />
+                          <span className="text-sm text-text-secondary">occurrences</span>
+                        </div>
+                        {errors.occurrencesCount && endsKind === "after" && (
+                          <p className="ml-6 text-xs text-destructive">{errors.occurrencesCount}</p>
+                        )}
+                        <div className="flex items-center gap-2">
+                          <RadioGroupItem value="on" id="ends-on" />
+                          <Label htmlFor="ends-on" className="text-sm font-normal">
+                            On
+                          </Label>
+                          <Input
+                            type="date"
+                            value={endDate}
+                            onChange={(e) => setEndDate(e.target.value)}
+                            disabled={endsKind !== "on"}
+                            className="h-8 w-44 bg-card"
+                          />
+                        </div>
+                        {errors.endDate && endsKind === "on" && (
+                          <p className="ml-6 text-xs text-destructive">{errors.endDate}</p>
+                        )}
+                      </RadioGroup>
+                    </div>
+
+                    <div className="rounded-md border border-border-subtle bg-card px-3 py-2.5">
+                      <div className="label-eyebrow mb-1.5">Preview · next 4 dates</div>
+                      {previewDates.length === 0 ? (
+                        <div className="text-xs text-text-tertiary">
+                          Pick a start date & at least one day of week to see a preview.
+                        </div>
+                      ) : (
+                        <ul className="space-y-1 text-sm text-foreground">
+                          {previewDates.map((d) => {
+                            const dt = new Date(d + "T00:00:00");
+                            return (
+                              <li key={d}>
+                                {dt.toLocaleDateString(undefined, {
+                                  weekday: "short",
+                                  month: "short",
+                                  day: "numeric",
+                                  year: "numeric",
+                                })}
+                              </li>
+                            );
+                          })}
+                          {recurrenceDates.length > 4 && (
+                            <li className="pt-1 text-xs text-text-tertiary">
+                              + {recurrenceDates.length - 4} more
+                            </li>
+                          )}
+                        </ul>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </Section>
+
             <Section title="Notes">
               <Field label="Notes" span={2} hint="Visible internally and to owner">
                 <Textarea rows={3} value={notes} onChange={(e) => setNotes(e.target.value)} />
