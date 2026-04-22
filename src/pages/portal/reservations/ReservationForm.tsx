@@ -210,6 +210,15 @@ export default function ReservationForm() {
       return toast.error(pErr.message);
     }
 
+    const { logActivity } = await import("@/lib/activity");
+    await logActivity({
+      organization_id: membership.organization_id,
+      action: "created",
+      entity_type: "reservation",
+      entity_id: resv.id,
+      metadata: { service_id: serviceId, pet_count: petIds.length, start_at: startAt },
+    });
+
     setSaving(false);
     toast.success("Reservation created");
     navigate(`/reservations/${resv.id}`);
