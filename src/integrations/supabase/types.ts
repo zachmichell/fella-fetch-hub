@@ -571,6 +571,7 @@ export type Database = {
         Row: {
           amount_paid_cents: number
           balance_due_cents: number | null
+          cashier_user_id: string | null
           created_at: string
           currency: Database["public"]["Enums"]["currency_enum"]
           deleted_at: string | null
@@ -583,8 +584,11 @@ export type Database = {
           organization_id: string
           owner_id: string
           paid_at: string | null
+          promotion_discount_cents: number
+          promotion_id: string | null
           reservation_id: string | null
           status: Database["public"]["Enums"]["invoice_status"]
+          store_credit_applied_cents: number
           stripe_checkout_session_id: string | null
           subtotal_cents: number
           tax_cents: number
@@ -594,6 +598,7 @@ export type Database = {
         Insert: {
           amount_paid_cents?: number
           balance_due_cents?: number | null
+          cashier_user_id?: string | null
           created_at?: string
           currency: Database["public"]["Enums"]["currency_enum"]
           deleted_at?: string | null
@@ -606,8 +611,11 @@ export type Database = {
           organization_id: string
           owner_id: string
           paid_at?: string | null
+          promotion_discount_cents?: number
+          promotion_id?: string | null
           reservation_id?: string | null
           status?: Database["public"]["Enums"]["invoice_status"]
+          store_credit_applied_cents?: number
           stripe_checkout_session_id?: string | null
           subtotal_cents?: number
           tax_cents?: number
@@ -617,6 +625,7 @@ export type Database = {
         Update: {
           amount_paid_cents?: number
           balance_due_cents?: number | null
+          cashier_user_id?: string | null
           created_at?: string
           currency?: Database["public"]["Enums"]["currency_enum"]
           deleted_at?: string | null
@@ -629,8 +638,11 @@ export type Database = {
           organization_id?: string
           owner_id?: string
           paid_at?: string | null
+          promotion_discount_cents?: number
+          promotion_id?: string | null
           reservation_id?: string | null
           status?: Database["public"]["Enums"]["invoice_status"]
+          store_credit_applied_cents?: number
           stripe_checkout_session_id?: string | null
           subtotal_cents?: number
           tax_cents?: number
@@ -1112,6 +1124,7 @@ export type Database = {
           postal_code: string | null
           profile_id: string | null
           state_province: string | null
+          store_credit_cents: number
           street_address: string | null
           updated_at: string
         }
@@ -1130,6 +1143,7 @@ export type Database = {
           postal_code?: string | null
           profile_id?: string | null
           state_province?: string | null
+          store_credit_cents?: number
           street_address?: string | null
           updated_at?: string
         }
@@ -1148,6 +1162,7 @@ export type Database = {
           postal_code?: string | null
           profile_id?: string | null
           state_province?: string | null
+          store_credit_cents?: number
           street_address?: string | null
           updated_at?: string
         }
@@ -1733,6 +1748,111 @@ export type Database = {
           },
         ]
       }
+      pos_cart_items: {
+        Row: {
+          cart_id: string
+          created_at: string
+          id: string
+          item_kind: string
+          line_total_cents: number
+          name: string
+          organization_id: string
+          package_id: string | null
+          product_id: string | null
+          quantity: number
+          service_id: string | null
+          unit_price_cents: number
+        }
+        Insert: {
+          cart_id: string
+          created_at?: string
+          id?: string
+          item_kind: string
+          line_total_cents?: number
+          name: string
+          organization_id: string
+          package_id?: string | null
+          product_id?: string | null
+          quantity?: number
+          service_id?: string | null
+          unit_price_cents?: number
+        }
+        Update: {
+          cart_id?: string
+          created_at?: string
+          id?: string
+          item_kind?: string
+          line_total_cents?: number
+          name?: string
+          organization_id?: string
+          package_id?: string | null
+          product_id?: string | null
+          quantity?: number
+          service_id?: string | null
+          unit_price_cents?: number
+        }
+        Relationships: []
+      }
+      pos_carts: {
+        Row: {
+          applied_store_credit_cents: number
+          cashier_user_id: string | null
+          charged_at: string | null
+          created_at: string
+          discount_cents: number
+          id: string
+          invoice_id: string | null
+          notes: string | null
+          organization_id: string
+          owner_id: string
+          promotion_id: string | null
+          status: string
+          subtotal_cents: number
+          tax_cents: number
+          total_cents: number
+          updated_at: string
+          voided_at: string | null
+        }
+        Insert: {
+          applied_store_credit_cents?: number
+          cashier_user_id?: string | null
+          charged_at?: string | null
+          created_at?: string
+          discount_cents?: number
+          id?: string
+          invoice_id?: string | null
+          notes?: string | null
+          organization_id: string
+          owner_id: string
+          promotion_id?: string | null
+          status?: string
+          subtotal_cents?: number
+          tax_cents?: number
+          total_cents?: number
+          updated_at?: string
+          voided_at?: string | null
+        }
+        Update: {
+          applied_store_credit_cents?: number
+          cashier_user_id?: string | null
+          charged_at?: string | null
+          created_at?: string
+          discount_cents?: number
+          id?: string
+          invoice_id?: string | null
+          notes?: string | null
+          organization_id?: string
+          owner_id?: string
+          promotion_id?: string | null
+          status?: string
+          subtotal_cents?: number
+          tax_cents?: number
+          total_cents?: number
+          updated_at?: string
+          voided_at?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -1763,6 +1883,57 @@ export type Database = {
           last_name?: string | null
           phone?: string | null
           updated_at?: string
+        }
+        Relationships: []
+      }
+      promotions: {
+        Row: {
+          active: boolean
+          code: string
+          created_at: string
+          deleted_at: string | null
+          description: string | null
+          discount_type: string
+          discount_value: number
+          id: string
+          max_uses: number | null
+          organization_id: string
+          updated_at: string
+          usage_count: number
+          valid_from: string | null
+          valid_to: string | null
+        }
+        Insert: {
+          active?: boolean
+          code: string
+          created_at?: string
+          deleted_at?: string | null
+          description?: string | null
+          discount_type?: string
+          discount_value?: number
+          id?: string
+          max_uses?: number | null
+          organization_id: string
+          updated_at?: string
+          usage_count?: number
+          valid_from?: string | null
+          valid_to?: string | null
+        }
+        Update: {
+          active?: boolean
+          code?: string
+          created_at?: string
+          deleted_at?: string | null
+          description?: string | null
+          discount_type?: string
+          discount_value?: number
+          id?: string
+          max_uses?: number | null
+          organization_id?: string
+          updated_at?: string
+          usage_count?: number
+          valid_from?: string | null
+          valid_to?: string | null
         }
         Relationships: []
       }
@@ -2022,6 +2193,66 @@ export type Database = {
           },
         ]
       }
+      retail_products: {
+        Row: {
+          active: boolean
+          category: string
+          cost_cents: number
+          created_at: string
+          deleted_at: string | null
+          description: string | null
+          id: string
+          manufacturer: string | null
+          name: string
+          organization_id: string
+          photo_url: string | null
+          price_cents: number
+          reorder_point: number
+          sku: string | null
+          stock_quantity: number
+          updated_at: string
+          vendor: string | null
+        }
+        Insert: {
+          active?: boolean
+          category?: string
+          cost_cents?: number
+          created_at?: string
+          deleted_at?: string | null
+          description?: string | null
+          id?: string
+          manufacturer?: string | null
+          name: string
+          organization_id: string
+          photo_url?: string | null
+          price_cents?: number
+          reorder_point?: number
+          sku?: string | null
+          stock_quantity?: number
+          updated_at?: string
+          vendor?: string | null
+        }
+        Update: {
+          active?: boolean
+          category?: string
+          cost_cents?: number
+          created_at?: string
+          deleted_at?: string | null
+          description?: string | null
+          id?: string
+          manufacturer?: string | null
+          name?: string
+          organization_id?: string
+          photo_url?: string | null
+          price_cents?: number
+          reorder_point?: number
+          sku?: string | null
+          stock_quantity?: number
+          updated_at?: string
+          vendor?: string | null
+        }
+        Relationships: []
+      }
       services: {
         Row: {
           active: boolean
@@ -2225,7 +2456,9 @@ export type Database = {
           name: string
           organization_id: string
           price_cents: number
+          service_type: string | null
           updated_at: string
+          validity_days: number | null
         }
         Insert: {
           active?: boolean
@@ -2238,7 +2471,9 @@ export type Database = {
           name: string
           organization_id: string
           price_cents?: number
+          service_type?: string | null
           updated_at?: string
+          validity_days?: number | null
         }
         Update: {
           active?: boolean
@@ -2251,7 +2486,9 @@ export type Database = {
           name?: string
           organization_id?: string
           price_cents?: number
+          service_type?: string | null
           updated_at?: string
+          validity_days?: number | null
         }
         Relationships: []
       }
@@ -2612,6 +2849,14 @@ export type Database = {
         Returns: string
       }
       current_org_id: { Args: never; Returns: string }
+      decrement_product_stock: {
+        Args: {
+          _allow_negative?: boolean
+          _product_id: string
+          _quantity: number
+        }
+        Returns: undefined
+      }
       is_org_admin: { Args: { _org_id: string }; Returns: boolean }
       is_org_member: { Args: { _org_id: string }; Returns: boolean }
       set_member_active: {
