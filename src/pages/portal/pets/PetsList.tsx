@@ -12,6 +12,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { supabase } from "@/integrations/supabase/client";
 import { formatDate, speciesIcon } from "@/lib/format";
 import { usePermissions } from "@/hooks/usePermissions";
+import { downloadCsv, toCsv } from "@/lib/csv";
+import { Download } from "lucide-react";
 
 const PAGE_SIZE = 10;
 
@@ -53,11 +55,23 @@ export default function PetsList() {
         <PageHeader
           title="Pets"
           actions={
-            canCreate ? (
-              <Button onClick={() => navigate("/pets/new")}>
-                <Plus className="h-4 w-4" /> Add Pet
-              </Button>
-            ) : null
+            <div className="flex gap-2">
+              {can("data.export") && (
+                <Button variant="outline" onClick={async () => {
+                  const { data } = await supabase.from("pets")
+                    .select("name, species, breed, color, sex, date_of_birth, weight_kg, microchip_id, intake_status, allergies, created_at")
+                    .is("deleted_at", null).order("created_at", { ascending: false }).limit(5000);
+                  downloadCsv(`pets-${new Date().toISOString().slice(0,10)}.csv`, toCsv(data ?? []));
+                }}>
+                  <Download className="h-4 w-4" /> Export CSV
+                </Button>
+              )}
+              {canCreate && (
+                <Button onClick={() => navigate("/pets/new")}>
+                  <Plus className="h-4 w-4" /> Add Pet
+                </Button>
+              )}
+            </div>
           }
         />
 

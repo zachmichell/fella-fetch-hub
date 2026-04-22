@@ -11,6 +11,8 @@ import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import { formatDate } from "@/lib/format";
 import { usePermissions } from "@/hooks/usePermissions";
+import { downloadCsv, toCsv } from "@/lib/csv";
+import { Download } from "lucide-react";
 
 const PAGE_SIZE = 10;
 
@@ -53,11 +55,23 @@ export default function OwnersList() {
         <PageHeader
           title="Owners"
           actions={
-            canCreate ? (
-              <Button onClick={() => navigate("/owners/new")}>
-                <Plus className="h-4 w-4" /> Add Owner
-              </Button>
-            ) : null
+            <div className="flex gap-2">
+              {can("data.export") && (
+                <Button variant="outline" onClick={async () => {
+                  const { data } = await supabase.from("owners")
+                    .select("first_name, last_name, email, phone, street_address, city, state_province, postal_code, communication_preference, notes, store_credit_cents, created_at")
+                    .is("deleted_at", null).order("created_at", { ascending: false }).limit(5000);
+                  downloadCsv(`owners-${new Date().toISOString().slice(0,10)}.csv`, toCsv(data ?? []));
+                }}>
+                  <Download className="h-4 w-4" /> Export CSV
+                </Button>
+              )}
+              {canCreate && (
+                <Button onClick={() => navigate("/owners/new")}>
+                  <Plus className="h-4 w-4" /> Add Owner
+                </Button>
+              )}
+            </div>
           }
         />
 
