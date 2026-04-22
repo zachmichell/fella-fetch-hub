@@ -31,8 +31,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Pencil, Plus, Trash2 } from "lucide-react";
+import { Pencil, Plus, Trash2, Clock } from "lucide-react";
 import { TIMEZONE_OPTIONS } from "@/lib/timezones";
+import LocationHoursDialog from "@/components/portal/facility/LocationHoursDialog";
 
 type LocationRow = {
   id: string;
