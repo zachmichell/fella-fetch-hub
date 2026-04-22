@@ -130,14 +130,31 @@ export default function LocationsTab() {
         phone: form.phone || null,
         email: form.email || null,
       };
+      const { logActivity } = await import("@/lib/activity");
       if (editing) {
         const { error } = await supabase.from("locations").update(payload).eq("id", editing.id);
         if (error) throw error;
+        await logActivity({
+          organization_id: orgId!,
+          action: "updated",
+          entity_type: "location",
+          entity_id: editing.id,
+          metadata: { name: payload.name },
+        });
       } else {
-        const { error } = await supabase
+        const { data, error } = await supabase
           .from("locations")
-          .insert({ ...payload, organization_id: orgId!, active: true });
+          .insert({ ...payload, organization_id: orgId!, active: true })
+          .select("id")
+          .single();
         if (error) throw error;
+        await logActivity({
+          organization_id: orgId!,
+          action: "created",
+          entity_type: "location",
+          entity_id: data.id,
+          metadata: { name: payload.name },
+        });
       }
     },
     onSuccess: () => {
@@ -152,6 +169,13 @@ export default function LocationsTab() {
     mutationFn: async ({ id, active }: { id: string; active: boolean }) => {
       const { error } = await supabase.from("locations").update({ active }).eq("id", id);
       if (error) throw error;
+      const { logActivity } = await import("@/lib/activity");
+      await logActivity({
+        organization_id: orgId!,
+        action: active ? "activated" : "deactivated",
+        entity_type: "location",
+        entity_id: id,
+      });
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["locations", orgId] }),
     onError: (e: any) => toast.error(e.message ?? "Failed"),

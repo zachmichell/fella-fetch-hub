@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { logActivity } from "@/lib/activity";
 import { toast } from "sonner";
 import type { Database } from "@/integrations/supabase/types";
 
@@ -141,12 +142,26 @@ export default function OwnerForm() {
       const { error } = await supabase.from("owners").update(payload).eq("id", id!);
       setSaving(false);
       if (error) return toast.error(error.message);
+      await logActivity({
+        organization_id: membership.organization_id,
+        action: "updated",
+        entity_type: "owner",
+        entity_id: id!,
+        metadata: { name: `${form.first_name} ${form.last_name}`.trim() },
+      });
       toast.success("Owner updated");
       navigate(`/owners/${id}`);
     } else {
       const { data, error } = await supabase.from("owners").insert(payload).select("id").single();
       setSaving(false);
       if (error) return toast.error(error.message);
+      await logActivity({
+        organization_id: membership.organization_id,
+        action: "created",
+        entity_type: "owner",
+        entity_id: data.id,
+        metadata: { name: `${form.first_name} ${form.last_name}`.trim() },
+      });
       toast.success("Owner created");
       navigate(`/owners/${data.id}`);
     }

@@ -107,6 +107,15 @@ export default function InvoiceDetail() {
   const saveNotes = async () => {
     const { error } = await supabase.from("invoices").update({ notes }).eq("id", id!);
     if (error) return toast.error(error.message);
+    if (inv) {
+      const { logActivity } = await import("@/lib/activity");
+      await logActivity({
+        organization_id: inv.organization_id,
+        action: "notes_updated",
+        entity_type: "invoice",
+        entity_id: inv.id,
+      });
+    }
     toast.success("Notes saved");
     setNotesDirty(false);
     qc.invalidateQueries({ queryKey: ["invoice", id] });

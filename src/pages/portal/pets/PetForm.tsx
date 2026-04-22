@@ -11,6 +11,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { logActivity } from "@/lib/activity";
 import { toast } from "sonner";
 import type { Database } from "@/integrations/supabase/types";
 
@@ -217,6 +218,13 @@ export default function PetForm() {
         setSaving(false);
         return toast.error(error.message);
       }
+      await logActivity({
+        organization_id: membership.organization_id,
+        action: "updated",
+        entity_type: "pet",
+        entity_id: id!,
+        metadata: { name: form.name },
+      });
     } else {
       const { data, error } = await supabase.from("pets").insert(payload).select("id").single();
       if (error) {
@@ -224,6 +232,13 @@ export default function PetForm() {
         return toast.error(error.message);
       }
       petId = data.id;
+      await logActivity({
+        organization_id: membership.organization_id,
+        action: "created",
+        entity_type: "pet",
+        entity_id: data.id,
+        metadata: { name: form.name },
+      });
     }
 
     // Photo upload

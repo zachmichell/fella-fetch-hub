@@ -54,6 +54,14 @@ export default function OrganizationTab() {
         .update({ name, timezone })
         .eq("id", orgId!);
       if (error) throw error;
+      const { logActivity } = await import("@/lib/activity");
+      await logActivity({
+        organization_id: orgId!,
+        action: "updated",
+        entity_type: "organization",
+        entity_id: orgId!,
+        metadata: { name, timezone },
+      });
     },
     onSuccess: () => {
       toast.success("Organization updated");

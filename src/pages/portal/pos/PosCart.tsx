@@ -322,6 +322,20 @@ export default function PosCart() {
       // Link invoice on cart
       await supabase.from("pos_carts").update({ invoice_id: inv.id }).eq("id", cartId!);
 
+      const { logActivity } = await import("@/lib/activity");
+      await logActivity({
+        organization_id: orgId!,
+        action: "pos_sale",
+        entity_type: "invoice",
+        entity_id: inv.id,
+        metadata: {
+          invoice_number: invoiceNumber,
+          total_cents: totals.total,
+          method: paymentMethod,
+          item_count: items.length,
+        },
+      });
+
       return { cartId, invoiceId: inv.id };
     },
     onSuccess: (r, charge) => {
