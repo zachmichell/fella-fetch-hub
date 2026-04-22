@@ -32,6 +32,7 @@ import { useAuth } from "@/hooks/useAuth";
 
 export default function PetDetail() {
   const { can } = usePermissions();
+  const { membership } = useAuth();
   const canEdit = can("pets.edit");
   const { id } = useParams();
   const navigate = useNavigate();
