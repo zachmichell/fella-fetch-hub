@@ -172,6 +172,21 @@ export default function ReservationForm() {
     }
   }, [selectedService, startAt]);
 
+  // Build recurrence preview (next 4 dates)
+  const recurrenceDates = useMemo(() => {
+    if (!isRecurring || !startAt || daysOfWeek.length === 0) return [] as string[];
+    const startD = new Date(startAt);
+    return generateOccurrenceDates({
+      daysOfWeek,
+      startDate: toDateOnly(startD),
+      endsKind,
+      occurrencesCount,
+      endDate: endDate || undefined,
+    });
+  }, [isRecurring, startAt, daysOfWeek, endsKind, occurrencesCount, endDate]);
+
+  const previewDates = recurrenceDates.slice(0, 4);
+
   const validate = () => {
     const e: Record<string, string> = {};
     if (!ownerId) e.owner = "Required";
@@ -183,8 +198,54 @@ export default function ReservationForm() {
     if (selectedService?.max_pets_per_booking && petIds.length > selectedService.max_pets_per_booking) {
       e.pets = `Max ${selectedService.max_pets_per_booking} pet(s) per booking`;
     }
+    if (isRecurring) {
+      if (daysOfWeek.length === 0) e.daysOfWeek = "Pick at least one day";
+      if (endsKind === "after" && (!occurrencesCount || occurrencesCount < 1)) {
+        e.occurrencesCount = "Must be at least 1";
+      }
+      if (endsKind === "on" && !endDate) e.endDate = "Required";
+      if (recurrenceDates.length === 0) e.daysOfWeek = "No matching dates in the selected window";
+    }
     setErrors(e);
     return Object.keys(e).length === 0;
+  };
+
+  const insertOneReservation = async (
+    startIso: string,
+    endIso: string,
+    extras: { recurringGroupId?: string | null; isRecurring?: boolean } = {},
+  ) => {
+    const nowIso = new Date().toISOString();
+    const { data: resv, error: rErr } = await supabase
+      .from("reservations")
+      .insert({
+        organization_id: membership!.organization_id,
+        location_id: selectedService!.location_id,
+        service_id: serviceId,
+        primary_owner_id: ownerId,
+        start_at: startIso,
+        end_at: endIso,
+        status: "requested",
+        source: "staff_created",
+        notes: notes || null,
+        created_by: user?.id ?? null,
+        requested_at: nowIso,
+        suite_id: suiteId && suiteId !== "none" ? suiteId : null,
+        recurring_group_id: extras.recurringGroupId ?? null,
+        is_recurring: !!extras.isRecurring,
+      } as any)
+      .select("id")
+      .single();
+    if (rErr) throw rErr;
+
+    const links = petIds.map((pid) => ({
+      reservation_id: resv.id,
+      pet_id: pid,
+      organization_id: membership!.organization_id,
+    }));
+    const { error: pErr } = await supabase.from("reservation_pets").insert(links);
+    if (pErr) throw pErr;
+    return resv.id as string;
   };
 
   const handleSubmit = async (ev: React.FormEvent) => {
@@ -192,52 +253,90 @@ export default function ReservationForm() {
     if (!validate() || !membership || !selectedService) return;
     setSaving(true);
 
-    const nowIso = new Date().toISOString();
-    const { data: resv, error: rErr } = await supabase
-      .from("reservations")
-      .insert({
+    try {
+      if (!isRecurring) {
+        const resvId = await insertOneReservation(
+          new Date(startAt).toISOString(),
+          new Date(endAt).toISOString(),
+        );
+        const { logActivity } = await import("@/lib/activity");
+        await logActivity({
+          organization_id: membership.organization_id,
+          action: "created",
+          entity_type: "reservation",
+          entity_id: resvId,
+          metadata: { service_id: serviceId, pet_count: petIds.length, start_at: startAt },
+        });
+        setSaving(false);
+        toast.success("Reservation created");
+        navigate(`/reservations/${resvId}`);
+        return;
+      }
+
+      // Recurring path: create the group, then one reservation per occurrence date.
+      const startD = new Date(startAt);
+      const endD = new Date(endAt);
+      const startTime = toTimeOnly(startD);
+      const endTime = toTimeOnly(endD);
+
+      const { data: group, error: gErr } = await supabase
+        .from("recurring_reservation_groups")
+        .insert({
+          organization_id: membership.organization_id,
+          owner_id: ownerId,
+          pet_ids: petIds,
+          service_id: serviceId,
+          location_id: selectedService.location_id,
+          suite_id: suiteId && suiteId !== "none" ? suiteId : null,
+          start_time: startTime,
+          end_time: endTime,
+          days_of_week: daysOfWeek,
+          start_date: toDateOnly(startD),
+          end_date: endsKind === "on" && endDate ? endDate : null,
+          max_occurrences: endsKind === "after" ? occurrencesCount : null,
+          status: "active",
+          notes: notes || null,
+          created_by: user?.id ?? null,
+        } as any)
+        .select("id")
+        .single();
+      if (gErr) throw gErr;
+
+      // Create individual reservations
+      const sameDayDelta = endD.getDate() === startD.getDate() ? 0 : 1;
+      let firstId: string | null = null;
+      for (const dateStr of recurrenceDates) {
+        const occStart = combineDateTime(dateStr, startTime);
+        const occEnd = combineDateTime(dateStr, endTime);
+        if (sameDayDelta) occEnd.setDate(occEnd.getDate() + sameDayDelta);
+        const id = await insertOneReservation(occStart.toISOString(), occEnd.toISOString(), {
+          recurringGroupId: group.id,
+          isRecurring: true,
+        });
+        if (!firstId) firstId = id;
+      }
+
+      const { logActivity } = await import("@/lib/activity");
+      await logActivity({
         organization_id: membership.organization_id,
-        location_id: selectedService.location_id,
-        service_id: serviceId,
-        primary_owner_id: ownerId,
-        start_at: new Date(startAt).toISOString(),
-        end_at: new Date(endAt).toISOString(),
-        status: "requested",
-        source: "staff_created",
-        notes: notes || null,
-        created_by: user?.id ?? null,
-        requested_at: nowIso,
-        suite_id: suiteId && suiteId !== "none" ? suiteId : null,
-      } as any)
-      .select("id")
-      .single();
+        action: "recurring_created",
+        entity_type: "recurring_reservation_group",
+        entity_id: group.id,
+        metadata: {
+          service_id: serviceId,
+          days_of_week: daysOfWeek,
+          occurrences: recurrenceDates.length,
+        },
+      });
 
-    if (rErr) {
       setSaving(false);
-      return toast.error(rErr.message);
-    }
-
-    const links = petIds.map((pid) => ({
-      reservation_id: resv.id,
-      pet_id: pid,
-      organization_id: membership.organization_id,
-    }));
-    const { error: pErr } = await supabase.from("reservation_pets").insert(links);
-    if (pErr) {
+      toast.success(`Created ${recurrenceDates.length} recurring reservations`);
+      navigate("/standing-reservations");
+    } catch (err: any) {
       setSaving(false);
-      return toast.error(pErr.message);
+      toast.error(err.message ?? "Failed to create reservation");
     }
-
-    const { logActivity } = await import("@/lib/activity");
-    await logActivity({
-      organization_id: membership.organization_id,
-      action: "created",
-      entity_type: "reservation",
-      entity_id: resv.id,
-      metadata: { service_id: serviceId, pet_count: petIds.length, start_at: startAt },
-    });
-
-    setSaving(false);
+  };
     toast.success("Reservation created");
     navigate(`/reservations/${resv.id}`);
   };
