@@ -271,6 +271,101 @@ export type Database = {
           },
         ]
       }
+      cancellation_policies: {
+        Row: {
+          created_at: string
+          free_cancel_hours: number
+          id: string
+          late_cancel_fee_type: string
+          late_cancel_fee_value: number
+          noshow_fee_type: string
+          noshow_fee_value: number
+          organization_id: string
+          service_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          free_cancel_hours?: number
+          id?: string
+          late_cancel_fee_type?: string
+          late_cancel_fee_value?: number
+          noshow_fee_type?: string
+          noshow_fee_value?: number
+          organization_id: string
+          service_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          free_cancel_hours?: number
+          id?: string
+          late_cancel_fee_type?: string
+          late_cancel_fee_value?: number
+          noshow_fee_type?: string
+          noshow_fee_value?: number
+          organization_id?: string
+          service_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cancellation_policies_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cancellation_policies_service_id_fkey"
+            columns: ["service_id"]
+            isOneToOne: false
+            referencedRelation: "services"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cancellation_reasons: {
+        Row: {
+          active: boolean
+          created_at: string
+          id: string
+          is_default: boolean
+          name: string
+          organization_id: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          is_default?: boolean
+          name: string
+          organization_id: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          is_default?: boolean
+          name?: string
+          organization_id?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cancellation_reasons_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       capacity_settings: {
         Row: {
           created_at: string
@@ -2197,6 +2292,8 @@ export type Database = {
           method: Database["public"]["Enums"]["payment_method_enum"]
           organization_id: string
           processed_at: string | null
+          refund_notes: string | null
+          refund_reason_id: string | null
           status: Database["public"]["Enums"]["payment_status"]
           stripe_payment_intent_id: string | null
           updated_at: string
@@ -2211,6 +2308,8 @@ export type Database = {
           method: Database["public"]["Enums"]["payment_method_enum"]
           organization_id: string
           processed_at?: string | null
+          refund_notes?: string | null
+          refund_reason_id?: string | null
           status?: Database["public"]["Enums"]["payment_status"]
           stripe_payment_intent_id?: string | null
           updated_at?: string
@@ -2225,6 +2324,8 @@ export type Database = {
           method?: Database["public"]["Enums"]["payment_method_enum"]
           organization_id?: string
           processed_at?: string | null
+          refund_notes?: string | null
+          refund_reason_id?: string | null
           status?: Database["public"]["Enums"]["payment_status"]
           stripe_payment_intent_id?: string | null
           updated_at?: string
@@ -2242,6 +2343,13 @@ export type Database = {
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payments_refund_reason_id_fkey"
+            columns: ["refund_reason_id"]
+            isOneToOne: false
+            referencedRelation: "refund_reasons"
             referencedColumns: ["id"]
           },
         ]
@@ -3250,6 +3358,47 @@ export type Database = {
         }
         Relationships: []
       }
+      refund_reasons: {
+        Row: {
+          active: boolean
+          created_at: string
+          id: string
+          is_default: boolean
+          name: string
+          organization_id: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          is_default?: boolean
+          name: string
+          organization_id: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          is_default?: boolean
+          name?: string
+          organization_id?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "refund_reasons_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       report_cards: {
         Row: {
           appetite: string | null
@@ -3464,6 +3613,8 @@ export type Database = {
       }
       reservations: {
         Row: {
+          cancellation_notes: string | null
+          cancellation_reason_id: string | null
           cancelled_at: string | null
           cancelled_reason: string | null
           checked_in_at: string | null
@@ -3492,6 +3643,8 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          cancellation_notes?: string | null
+          cancellation_reason_id?: string | null
           cancelled_at?: string | null
           cancelled_reason?: string | null
           checked_in_at?: string | null
@@ -3520,6 +3673,8 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          cancellation_notes?: string | null
+          cancellation_reason_id?: string | null
           cancelled_at?: string | null
           cancelled_reason?: string | null
           checked_in_at?: string | null
@@ -3548,6 +3703,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "reservations_cancellation_reason_id_fkey"
+            columns: ["cancellation_reason_id"]
+            isOneToOne: false
+            referencedRelation: "cancellation_reasons"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "reservations_created_by_fkey"
             columns: ["created_by"]
