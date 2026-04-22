@@ -18,9 +18,11 @@ const navItems = [
   { to: "/portal/dashboard", label: "Dashboard" },
   { to: "/portal/pets", label: "My Pets" },
   { to: "/portal/bookings", label: "Bookings" },
+  { to: "/portal/history", label: "History" },
   { to: "/portal/report-cards", label: "Report Cards" },
   { to: "/portal/messages", label: "Messages", badge: "messages" as const },
   { to: "/portal/invoices", label: "Invoices" },
+  { to: "/portal/purchases", label: "Purchases" },
   { to: "/portal/waivers", label: "Waivers" },
 ];
 
