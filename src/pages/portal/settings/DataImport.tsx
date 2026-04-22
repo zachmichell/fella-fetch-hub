@@ -302,7 +302,7 @@ export default function DataImport() {
             start_at: new Date(r.start_at).toISOString(),
             end_at: new Date(r.end_at).toISOString(),
             notes: r.notes || null,
-            source: "staff",
+            source: "staff_created",
             status: "confirmed",
             created_by: user?.id ?? null,
           }).select("id").single();
