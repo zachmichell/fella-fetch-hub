@@ -30,6 +30,7 @@ import {
   Phone,
   ChevronLeft,
   ChevronRight,
+  MapPin,
 } from "lucide-react";
 import Logo from "./Logo";
 import { useAuth } from "@/hooks/useAuth";
@@ -98,6 +99,7 @@ const sections: Array<{
     items: [
       { to: "/services", icon: Wrench, label: "Services", permission: "services.manage" },
       { to: "/invoices", icon: Receipt, label: "Invoices", permission: "invoices.create" },
+      { to: "/settings/locations", icon: MapPin, label: "Locations", permission: "settings.locations" },
       { to: "/subscriptions", icon: CreditCard, label: "Subscriptions" },
       { to: "/marketing", icon: Megaphone, label: "Marketing" },
       { to: "/sms-comms", icon: Phone, label: "SMS & Comms" },
