@@ -277,7 +277,7 @@ export async function fetchFutureReservations(orgId: string) {
     .is("deleted_at", null)
     .gte("start_at", now.toISOString())
     .lte("start_at", future.toISOString())
-    .in("status", ["pending", "confirmed"]);
+    .in("status", ["requested", "confirmed"]);
   const byWeek = new Map<string, number>();
   (data ?? []).forEach((r) => {
     if (!r.start_at) return;
@@ -380,10 +380,10 @@ export async function fetchVaccineExpirations(orgId: string) {
   const today = new Date();
   const in90 = new Date();
   in90.setDate(in90.getDate() + 90);
-  const { data } = await supabase
-    .from("vaccinations" as any)
+  const { data } = await (supabase as any)
+    .from("vaccinations")
     .select("id, vaccine_type, expires_on, pet_id, pets(name, organization_id)")
-    .eq("pets.organization_id" as any, orgId)
+    .eq("pets.organization_id", orgId)
     .gte("expires_on", today.toISOString().slice(0, 10))
     .lte("expires_on", in90.toISOString().slice(0, 10));
   const rows = ((data ?? []) as any[]).map((v: any) => {
