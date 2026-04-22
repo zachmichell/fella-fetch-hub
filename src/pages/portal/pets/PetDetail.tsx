@@ -27,6 +27,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { calcAge, formatDate, formatVaccineType, isExpired, isExpiringSoon, kgToLbs, speciesIcon } from "@/lib/format";
 import { toast } from "sonner";
 import { usePermissions } from "@/hooks/usePermissions";
+import { logActivity } from "@/lib/activity";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function PetDetail() {
   const { can } = usePermissions();
@@ -79,6 +81,15 @@ export default function PetDetail() {
   const archive = async () => {
     const { error } = await supabase.from("pets").update({ deleted_at: new Date().toISOString() }).eq("id", id!);
     if (error) return toast.error(error.message);
+    if (membership) {
+      await logActivity({
+        organization_id: membership.organization_id,
+        action: "deleted",
+        entity_type: "pet",
+        entity_id: id!,
+        metadata: { name: pet?.name },
+      });
+    }
     toast.success("Pet archived");
     navigate("/pets");
   };
