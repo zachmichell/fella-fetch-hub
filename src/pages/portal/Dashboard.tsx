@@ -4,6 +4,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { greeting } from "@/lib/timezones";
 import { supabase } from "@/integrations/supabase/client";
 import { formatCentsShort } from "@/lib/money";
+import { useLocationFilter } from "@/contexts/LocationContext";
 
 const TZ = "America/Edmonton";
 
@@ -19,18 +20,21 @@ function todayBoundsEdmonton() {
 
 export default function Dashboard() {
   const { profile } = useAuth();
+  const locationId = useLocationFilter();
 
   const { data: revenueCents = 0 } = useQuery({
-    queryKey: ["dashboard-today-revenue"],
+    queryKey: ["dashboard-today-revenue", locationId],
     queryFn: async () => {
       const { startISO, endISO } = todayBoundsEdmonton();
-      const { data, error } = await supabase
+      let q = supabase
         .from("invoices")
         .select("total_cents")
         .eq("status", "paid")
         .gte("paid_at", startISO)
         .lte("paid_at", endISO)
         .is("deleted_at", null);
+      if (locationId) q = q.eq("location_id", locationId);
+      const { data, error } = await q;
       if (error) throw error;
       return (data ?? []).reduce((sum: number, r: any) => sum + (r.total_cents ?? 0), 0);
     },

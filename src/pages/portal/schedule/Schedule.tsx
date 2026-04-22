@@ -14,6 +14,7 @@ import WeekView from "@/components/portal/schedule/WeekView";
 import { formatTime } from "@/lib/money";
 import { createInvoiceForReservation } from "@/lib/invoice";
 import { Link } from "react-router-dom";
+import { useLocationFilter } from "@/contexts/LocationContext";
 
 const TZ = "America/Edmonton";
 
@@ -46,6 +47,7 @@ export default function Schedule() {
   const qc = useQueryClient();
   const { user } = useAuth();
   const { data: enabledModules } = useOrgModules();
+  const locationId = useLocationFilter();
   const [view, setView] = useState<"day" | "week">("day");
   const [date, setDate] = useState<Date>(() => startOfDay(new Date()));
   const [moduleFilter, setModuleFilter] = useState<ModuleFilter>("all");
@@ -55,12 +57,12 @@ export default function Schedule() {
   const dayEnd = endOfDay(date);
 
   const { data: rows = [], isLoading } = useQuery({
-    queryKey: ["schedule-day", ymd(date)],
+    queryKey: ["schedule-day", ymd(date), locationId],
     queryFn: async () => {
       // Fetch reservations whose start_at falls on the selected day
       // OR are still checked_in (multi-day boarders)
       // OR were checked out today
-      const { data, error } = await supabase
+      let q = supabase
         .from("reservations")
         .select(
           `id, start_at, end_at, status, notes,
@@ -74,6 +76,8 @@ export default function Schedule() {
           `and(start_at.gte.${dayStart.toISOString()},start_at.lte.${dayEnd.toISOString()}),status.eq.checked_in,and(status.eq.checked_out,checked_out_at.gte.${dayStart.toISOString()},checked_out_at.lte.${dayEnd.toISOString()})`,
         )
         .order("start_at", { ascending: true });
+      if (locationId) q = q.eq("location_id", locationId);
+      const { data, error } = await q;
       if (error) throw error;
       return (data ?? []) as unknown as ScheduleReservation[];
     },

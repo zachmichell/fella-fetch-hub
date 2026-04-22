@@ -27,6 +27,7 @@ import CheckOutFlow from "@/components/portal/check-in-out/CheckOutFlow";
 import { useMarkNoShow } from "@/hooks/useCheckInOut";
 import StatusBadge from "@/components/portal/StatusBadge";
 import { speciesIcon } from "@/lib/format";
+import { useLocationFilter } from "@/contexts/LocationContext";
 
 const TZ = "America/Edmonton";
 
@@ -80,6 +81,7 @@ export default function CheckInOut() {
   const qc = useQueryClient();
   const { membership } = useAuth();
   const orgId = membership?.organization_id;
+  const locationId = useLocationFilter();
   const [date, setDate] = useState<Date>(() => startOfDay(new Date()));
   const [openFlow, setOpenFlow] = useState<{ kind: "in" | "out"; reservationId: string } | null>(null);
 
@@ -87,12 +89,12 @@ export default function CheckInOut() {
   const dayEnd = endOfDay(date);
 
   const { data: rows = [], isLoading } = useQuery({
-    queryKey: ["checkin-board", ymd(date), orgId],
+    queryKey: ["checkin-board", ymd(date), orgId, locationId],
     enabled: !!orgId,
     queryFn: async () => {
       const startISO = dayStart.toISOString();
       const endISO = dayEnd.toISOString();
-      const { data, error } = await supabase
+      let q = supabase
         .from("reservations")
         .select(
           `id, start_at, end_at, status, primary_owner_id, location_id, checked_in_at, checked_out_at, organization_id,
@@ -109,6 +111,8 @@ export default function CheckInOut() {
           `and(start_at.gte.${startISO},start_at.lte.${endISO}),status.eq.checked_in,and(status.eq.checked_out,checked_out_at.gte.${startISO},checked_out_at.lte.${endISO})`,
         )
         .order("start_at", { ascending: true });
+      if (locationId) q = q.eq("location_id", locationId);
+      const { data, error } = await q;
       if (error) throw error;
       // Strip soft-deleted vaccinations
       return ((data ?? []) as any[]).map((r) => ({
