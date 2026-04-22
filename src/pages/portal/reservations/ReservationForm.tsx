@@ -86,6 +86,13 @@ export default function ReservationForm() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
 
+  // Recurrence
+  const [isRecurring, setIsRecurring] = useState(false);
+  const [daysOfWeek, setDaysOfWeek] = useState<number[]>([]);
+  const [endsKind, setEndsKind] = useState<EndsKind>("never");
+  const [occurrencesCount, setOccurrencesCount] = useState<number>(8);
+  const [endDate, setEndDate] = useState<string>("");
+
   const { data: suites = [] } = useSuites({ activeOnly: true });
 
   // Owner search
