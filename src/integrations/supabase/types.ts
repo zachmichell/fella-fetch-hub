@@ -2825,6 +2825,7 @@ export type Database = {
           module: Database["public"]["Enums"]["module_enum"]
           name: string
           organization_id: string
+          time_windows: Json
           updated_at: string
         }
         Insert: {
@@ -2842,6 +2843,7 @@ export type Database = {
           module: Database["public"]["Enums"]["module_enum"]
           name: string
           organization_id: string
+          time_windows?: Json
           updated_at?: string
         }
         Update: {
@@ -2859,6 +2861,7 @@ export type Database = {
           module?: Database["public"]["Enums"]["module_enum"]
           name?: string
           organization_id?: string
+          time_windows?: Json
           updated_at?: string
         }
         Relationships: [
@@ -2977,6 +2980,47 @@ export type Database = {
             columns: ["template_id"]
             isOneToOne: false
             referencedRelation: "agreement_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      staff_notices: {
+        Row: {
+          body: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          notice_date: string
+          organization_id: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          body?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          notice_date: string
+          organization_id: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          body?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          notice_date?: string
+          organization_id?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "staff_notices_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
         ]
