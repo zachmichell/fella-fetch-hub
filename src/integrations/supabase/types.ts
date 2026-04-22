@@ -107,6 +107,104 @@ export type Database = {
         }
         Relationships: []
       }
+      checklist_completions: {
+        Row: {
+          completed_items: Json
+          completion_date: string
+          created_at: string
+          created_by: string | null
+          id: string
+          notes: string | null
+          organization_id: string
+          template_id: string
+          updated_at: string
+        }
+        Insert: {
+          completed_items?: Json
+          completion_date: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          notes?: string | null
+          organization_id: string
+          template_id: string
+          updated_at?: string
+        }
+        Update: {
+          completed_items?: Json
+          completion_date?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          notes?: string | null
+          organization_id?: string
+          template_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "checklist_completions_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "checklist_completions_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "checklist_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      checklist_templates: {
+        Row: {
+          active: boolean
+          created_at: string
+          deleted_at: string | null
+          department: string | null
+          description: string | null
+          id: string
+          items: Json
+          name: string
+          organization_id: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          deleted_at?: string | null
+          department?: string | null
+          description?: string | null
+          id?: string
+          items?: Json
+          name: string
+          organization_id: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          deleted_at?: string | null
+          department?: string | null
+          description?: string | null
+          id?: string
+          items?: Json
+          name?: string
+          organization_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "checklist_templates_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       class_enrollments: {
         Row: {
           attended: boolean | null
@@ -2780,6 +2878,53 @@ export type Database = {
           },
         ]
       }
+      shift_templates: {
+        Row: {
+          color: string
+          created_at: string
+          deleted_at: string | null
+          department: string | null
+          end_time: string
+          id: string
+          name: string
+          organization_id: string
+          start_time: string
+          updated_at: string
+        }
+        Insert: {
+          color?: string
+          created_at?: string
+          deleted_at?: string | null
+          department?: string | null
+          end_time: string
+          id?: string
+          name: string
+          organization_id: string
+          start_time: string
+          updated_at?: string
+        }
+        Update: {
+          color?: string
+          created_at?: string
+          deleted_at?: string | null
+          department?: string | null
+          end_time?: string
+          id?: string
+          name?: string
+          organization_id?: string
+          start_time?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shift_templates_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       signed_agreements: {
         Row: {
           created_at: string
@@ -2832,6 +2977,66 @@ export type Database = {
             columns: ["template_id"]
             isOneToOne: false
             referencedRelation: "agreement_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      staff_shifts: {
+        Row: {
+          created_at: string
+          deleted_at: string | null
+          department: string | null
+          end_time: string
+          id: string
+          notes: string | null
+          organization_id: string
+          shift_date: string
+          shift_template_id: string | null
+          start_time: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          deleted_at?: string | null
+          department?: string | null
+          end_time: string
+          id?: string
+          notes?: string | null
+          organization_id: string
+          shift_date: string
+          shift_template_id?: string | null
+          start_time: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          deleted_at?: string | null
+          department?: string | null
+          end_time?: string
+          id?: string
+          notes?: string | null
+          organization_id?: string
+          shift_date?: string
+          shift_template_id?: string | null
+          start_time?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "staff_shifts_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "staff_shifts_shift_template_id_fkey"
+            columns: ["shift_template_id"]
+            isOneToOne: false
+            referencedRelation: "shift_templates"
             referencedColumns: ["id"]
           },
         ]
