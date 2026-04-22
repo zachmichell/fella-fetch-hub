@@ -3282,6 +3282,86 @@ export type Database = {
           },
         ]
       }
+      reservation_belongings: {
+        Row: {
+          condition_notes: string | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          item_name: string
+          notes: string | null
+          organization_id: string
+          quantity: number
+          reservation_id: string
+          returned_at: string | null
+          returned_by: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          condition_notes?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          item_name: string
+          notes?: string | null
+          organization_id: string
+          quantity?: number
+          reservation_id: string
+          returned_at?: string | null
+          returned_by?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          condition_notes?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          item_name?: string
+          notes?: string | null
+          organization_id?: string
+          quantity?: number
+          reservation_id?: string
+          returned_at?: string | null
+          returned_by?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reservation_belongings_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reservation_belongings_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reservation_belongings_reservation_id_fkey"
+            columns: ["reservation_id"]
+            isOneToOne: false
+            referencedRelation: "reservations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reservation_belongings_returned_by_fkey"
+            columns: ["returned_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       reservation_pets: {
         Row: {
           created_at: string
