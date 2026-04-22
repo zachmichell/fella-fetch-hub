@@ -62,6 +62,51 @@ export type Database = {
           },
         ]
       }
+      agreement_templates: {
+        Row: {
+          body: string
+          created_at: string
+          deleted_at: string | null
+          id: string
+          name: string
+          organization_id: string
+          required_for: string
+          required_service_ids: string[]
+          status: string
+          type: string
+          updated_at: string
+          version: number
+        }
+        Insert: {
+          body?: string
+          created_at?: string
+          deleted_at?: string | null
+          id?: string
+          name: string
+          organization_id: string
+          required_for?: string
+          required_service_ids?: string[]
+          status?: string
+          type?: string
+          updated_at?: string
+          version?: number
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          deleted_at?: string | null
+          id?: string
+          name?: string
+          organization_id?: string
+          required_for?: string
+          required_service_ids?: string[]
+          status?: string
+          type?: string
+          updated_at?: string
+          version?: number
+        }
+        Relationships: []
+      }
       class_enrollments: {
         Row: {
           attended: boolean | null
@@ -305,6 +350,96 @@ export type Database = {
           owner_id?: string
           unread_owner?: number
           unread_staff?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      deposit_settings: {
+        Row: {
+          amount_type: string
+          created_at: string
+          default_amount_cents: number
+          default_percentage_bp: number
+          enabled: boolean
+          id: string
+          organization_id: string
+          refund_cutoff_hours: number
+          refund_policy: string
+          updated_at: string
+        }
+        Insert: {
+          amount_type?: string
+          created_at?: string
+          default_amount_cents?: number
+          default_percentage_bp?: number
+          enabled?: boolean
+          id?: string
+          organization_id: string
+          refund_cutoff_hours?: number
+          refund_policy?: string
+          updated_at?: string
+        }
+        Update: {
+          amount_type?: string
+          created_at?: string
+          default_amount_cents?: number
+          default_percentage_bp?: number
+          enabled?: boolean
+          id?: string
+          organization_id?: string
+          refund_cutoff_hours?: number
+          refund_policy?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      deposits: {
+        Row: {
+          amount_cents: number
+          created_at: string
+          forfeited_at: string | null
+          id: string
+          notes: string | null
+          organization_id: string
+          owner_id: string
+          paid_at: string | null
+          pet_id: string | null
+          refunded_at: string | null
+          reservation_id: string | null
+          service_id: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          amount_cents?: number
+          created_at?: string
+          forfeited_at?: string | null
+          id?: string
+          notes?: string | null
+          organization_id: string
+          owner_id: string
+          paid_at?: string | null
+          pet_id?: string | null
+          refunded_at?: string | null
+          reservation_id?: string | null
+          service_id?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          amount_cents?: number
+          created_at?: string
+          forfeited_at?: string | null
+          id?: string
+          notes?: string | null
+          organization_id?: string
+          owner_id?: string
+          paid_at?: string | null
+          pet_id?: string | null
+          refunded_at?: string | null
+          reservation_id?: string | null
+          service_id?: string | null
+          status?: string
           updated_at?: string
         }
         Relationships: []
@@ -2540,6 +2675,42 @@ export type Database = {
         }
         Relationships: []
       }
+      service_deposit_overrides: {
+        Row: {
+          amount_cents: number
+          amount_type: string
+          created_at: string
+          enabled: boolean
+          id: string
+          organization_id: string
+          percentage_bp: number
+          service_id: string
+          updated_at: string
+        }
+        Insert: {
+          amount_cents?: number
+          amount_type?: string
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          organization_id: string
+          percentage_bp?: number
+          service_id: string
+          updated_at?: string
+        }
+        Update: {
+          amount_cents?: number
+          amount_type?: string
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          organization_id?: string
+          percentage_bp?: number
+          service_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       services: {
         Row: {
           active: boolean
@@ -2605,6 +2776,62 @@ export type Database = {
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      signed_agreements: {
+        Row: {
+          created_at: string
+          id: string
+          ip_address: string | null
+          organization_id: string
+          owner_id: string
+          pet_id: string | null
+          rendered_body: string
+          signature_data: string
+          signed_at: string
+          signer_name: string
+          template_id: string
+          template_version: number
+          user_agent: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          ip_address?: string | null
+          organization_id: string
+          owner_id: string
+          pet_id?: string | null
+          rendered_body?: string
+          signature_data: string
+          signed_at?: string
+          signer_name: string
+          template_id: string
+          template_version?: number
+          user_agent?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          ip_address?: string | null
+          organization_id?: string
+          owner_id?: string
+          pet_id?: string | null
+          rendered_body?: string
+          signature_data?: string
+          signed_at?: string
+          signer_name?: string
+          template_id?: string
+          template_version?: number
+          user_agent?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "signed_agreements_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "agreement_templates"
             referencedColumns: ["id"]
           },
         ]
