@@ -337,9 +337,6 @@ export default function ReservationForm() {
       toast.error(err.message ?? "Failed to create reservation");
     }
   };
-    toast.success("Reservation created");
-    navigate(`/reservations/${resv.id}`);
-  };
 
   return (
     <PortalLayout>
