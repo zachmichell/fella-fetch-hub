@@ -1363,6 +1363,69 @@ export type Database = {
           },
         ]
       }
+      leads: {
+        Row: {
+          converted_owner_id: string | null
+          created_at: string
+          email: string | null
+          id: string
+          name: string
+          notes: string | null
+          organization_id: string
+          pet_breed: string | null
+          pet_name: string | null
+          phone: string | null
+          source: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          converted_owner_id?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          name: string
+          notes?: string | null
+          organization_id: string
+          pet_breed?: string | null
+          pet_name?: string | null
+          phone?: string | null
+          source?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          converted_owner_id?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          name?: string
+          notes?: string | null
+          organization_id?: string
+          pet_breed?: string | null
+          pet_name?: string | null
+          phone?: string | null
+          source?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "leads_converted_owner_id_fkey"
+            columns: ["converted_owner_id"]
+            isOneToOne: false
+            referencedRelation: "owners"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leads_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       location_hours: {
         Row: {
           close_time: string | null
@@ -2351,6 +2414,59 @@ export type Database = {
             foreignKeyName: "playgroups_organization_id_fkey"
             columns: ["organization_id"]
             isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      portal_settings: {
+        Row: {
+          booking_rules: Json
+          business_name: string | null
+          created_at: string
+          feature_toggles: Json
+          id: string
+          lead_form_enabled: boolean
+          lead_form_fields: Json
+          logo_url: string | null
+          organization_id: string
+          primary_color: string
+          updated_at: string
+          welcome_message: string
+        }
+        Insert: {
+          booking_rules?: Json
+          business_name?: string | null
+          created_at?: string
+          feature_toggles?: Json
+          id?: string
+          lead_form_enabled?: boolean
+          lead_form_fields?: Json
+          logo_url?: string | null
+          organization_id: string
+          primary_color?: string
+          updated_at?: string
+          welcome_message?: string
+        }
+        Update: {
+          booking_rules?: Json
+          business_name?: string | null
+          created_at?: string
+          feature_toggles?: Json
+          id?: string
+          lead_form_enabled?: boolean
+          lead_form_fields?: Json
+          logo_url?: string | null
+          organization_id?: string
+          primary_color?: string
+          updated_at?: string
+          welcome_message?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "portal_settings_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: true
             referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
