@@ -77,6 +77,9 @@ import PosPackages from "./pages/portal/pos/PosPackages";
 import PosPromotions from "./pages/portal/pos/PosPromotions";
 import PosOpenInvoices from "./pages/portal/pos/PosOpenInvoices";
 import PosClosedInvoices from "./pages/portal/pos/PosClosedInvoices";
+import DataImport from "./pages/portal/settings/DataImport";
+import DataMerge from "./pages/portal/settings/DataMerge";
+import AuditLog from "./pages/portal/settings/AuditLog";
 
 const queryClient = new QueryClient();
 
@@ -164,6 +167,15 @@ const App = () => (
             <Route path="/playgroups" element={staff(<Playgroups />, "playgroups.manage")} />
             <Route path="/kennel-runs" element={staff(<KennelRuns />, "kennels.manage")} />
             <Route path="/settings/locations" element={staff(<LocationsPage />, "settings.locations")} />
+            <Route path="/settings/data-import" element={staff(<DataImport />, "data.import")} />
+            <Route path="/settings/data-merge" element={staff(<DataMerge />, "data.merge")} />
+            <Route path="/settings/audit-log" element={staff(<AuditLog />, "audit.view")} />
+            <Route path="/pos/cart" element={staff(<PosCart />)} />
+            <Route path="/pos/products" element={staff(<PosProducts />)} />
+            <Route path="/pos/packages" element={staff(<PosPackages />)} />
+            <Route path="/pos/promotions" element={staff(<PosPromotions />)} />
+            <Route path="/pos/open-invoices" element={staff(<PosOpenInvoices />)} />
+            <Route path="/pos/closed-invoices" element={staff(<PosClosedInvoices />)} />
             <Route path="/settings" element={staff(<Settings />, "settings.view")} />
 
             {/* Owner portal */}
