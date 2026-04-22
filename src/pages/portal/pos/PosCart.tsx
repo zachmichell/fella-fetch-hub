@@ -285,12 +285,13 @@ export default function PosCart() {
       }));
       await supabase.from("invoice_lines").insert(lineRows);
 
-      // Payment row (if any cash actually changed hands; store-credit-only sales also get a $0 line for trail)
+      // Payment row (map UI methods to DB enum: card -> card, cash/check/other -> in_person)
       if (totals.total > 0) {
+        const dbMethod: "card" | "in_person" = paymentMethod === "card" ? "card" : "in_person";
         await supabase.from("payments").insert({
-          organization_id: orgId, invoice_id: inv.id,
+          organization_id: orgId!, invoice_id: inv.id,
           amount_cents: totals.total, currency,
-          method: paymentMethod === "card" ? "card" : paymentMethod,
+          method: dbMethod,
           status: "succeeded", processed_at: now,
         });
       }
