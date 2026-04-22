@@ -19,7 +19,14 @@ import StatusBadge from "@/components/portal/StatusBadge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ChevronLeft, ChevronRight, BedDouble } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { ChevronLeft, ChevronRight, BedDouble, ArrowRightLeft } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -28,6 +35,7 @@ import { cn } from "@/lib/utils";
 import { useLocationFilter } from "@/contexts/LocationContext";
 
 type ViewMode = "weekly" | "monthly";
+type VacancyFilter = "all" | "vacant" | "occupied";
 
 type ResvRow = {
   id: string;
@@ -35,7 +43,8 @@ type ResvRow = {
   start_at: string;
   end_at: string;
   suite_id: string | null;
-  reservation_pets: { pets: { name: string } | null }[];
+  service_id: string | null;
+  reservation_pets: { pets: { id: string; name: string } | null }[];
 };
 
 const TYPE_TONES: Record<SuiteRow["type"], "muted" | "primary" | "plum"> = {
@@ -43,6 +52,12 @@ const TYPE_TONES: Record<SuiteRow["type"], "muted" | "primary" | "plum"> = {
   deluxe: "primary",
   presidential: "plum",
 };
+
+function occupancyHeaderClass(pct: number) {
+  if (pct > 90) return "bg-danger-light text-danger";
+  if (pct >= 70) return "bg-warning-light text-warning";
+  return "bg-success-light text-success";
+}
 
 export default function Lodging() {
   const navigate = useNavigate();
@@ -52,9 +67,11 @@ export default function Lodging() {
 
   const [view, setView] = useState<ViewMode>("weekly");
   const [anchor, setAnchor] = useState<Date>(startOfDay(new Date()));
+  const [vacancyFilter, setVacancyFilter] = useState<VacancyFilter>("all");
+  const [serviceFilter, setServiceFilter] = useState<string>("all");
 
   const allSuites = useSuites({ activeOnly: false });
-  const suites = (allSuites.data ?? []).filter(
+  const allSuitesScoped = (allSuites.data ?? []).filter(
     (s: any) => !locationId || s.location_id === locationId,
   );
   const suitesLoading = allSuites.isLoading;
@@ -74,6 +91,21 @@ export default function Lodging() {
     return { rangeStart: start, rangeEnd: end, days: ds };
   }, [view, anchor]);
 
+  const { data: services = [] } = useQuery({
+    queryKey: ["lodging-services", orgId],
+    enabled: !!orgId,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("services")
+        .select("id, name")
+        .eq("organization_id", orgId!)
+        .is("deleted_at", null)
+        .order("name");
+      if (error) throw error;
+      return (data ?? []) as { id: string; name: string }[];
+    },
+  });
+
   const { data: reservations = [] } = useQuery({
     queryKey: [
       "lodging-reservations",
@@ -88,7 +120,7 @@ export default function Lodging() {
       const endIso = addDays(rangeEnd, 1).toISOString();
       let q = supabase
         .from("reservations")
-        .select("id, status, start_at, end_at, suite_id, reservation_pets(pets(name))")
+        .select("id, status, start_at, end_at, suite_id, service_id, reservation_pets(pets(id, name))")
         .eq("organization_id", orgId!)
         .not("suite_id", "is", null)
         .in("status", ["confirmed", "checked_in", "requested"])
@@ -102,10 +134,16 @@ export default function Lodging() {
     },
   });
 
+  // Apply service filter to reservations
+  const filteredReservations = useMemo(() => {
+    if (serviceFilter === "all") return reservations;
+    return reservations.filter((r) => r.service_id === serviceFilter);
+  }, [reservations, serviceFilter]);
+
   // Cell lookup: suiteId|YYYY-MM-DD -> reservation
   const cellMap = useMemo(() => {
     const m = new Map<string, ResvRow>();
-    for (const r of reservations) {
+    for (const r of filteredReservations) {
       if (!r.suite_id) continue;
       const start = startOfDay(new Date(r.start_at));
       const end = startOfDay(new Date(r.end_at));
@@ -114,19 +152,87 @@ export default function Lodging() {
       }
     }
     return m;
-  }, [reservations]);
+  }, [filteredReservations]);
+
+  // Per-day occupancy across visible suites (for column headers)
+  const dayOccupancy = useMemo(() => {
+    const map = new Map<string, { occupied: number; total: number; pct: number }>();
+    const total = allSuitesScoped.filter((s) => s.status === "active").length;
+    for (const d of days) {
+      const key = format(d, "yyyy-MM-dd");
+      let occ = 0;
+      for (const s of allSuitesScoped) {
+        if (cellMap.has(`${s.id}|${key}`)) occ++;
+      }
+      const pct = total > 0 ? Math.round((occ / total) * 100) : 0;
+      map.set(key, { occupied: occ, total, pct });
+    }
+    return map;
+  }, [allSuitesScoped, days, cellMap]);
+
+  // Vacancy filter: hide suites that don't match within range
+  const suites = useMemo(() => {
+    if (vacancyFilter === "all") return allSuitesScoped;
+    return allSuitesScoped.filter((s) => {
+      const hasAny = days.some((d) => cellMap.has(`${s.id}|${format(d, "yyyy-MM-dd")}`));
+      return vacancyFilter === "occupied" ? hasAny : !hasAny;
+    });
+  }, [allSuitesScoped, vacancyFilter, days, cellMap]);
+
+  // Pet transfers: pet_id -> ordered list of (suite_id, dayKey)
+  // Used to mark a cell as the FIRST day in a new suite when the same pet
+  // was in a different suite on the prior day within range.
+  const transferStartKeys = useMemo(() => {
+    const set = new Set<string>(); // `${suiteId}|${dayKey}`
+    // Build per-pet map: dayKey -> suite_id (using filtered reservations)
+    const byPet = new Map<string, Map<string, string>>();
+    for (const r of filteredReservations) {
+      if (!r.suite_id) continue;
+      const petId = r.reservation_pets?.[0]?.pets?.id;
+      if (!petId) continue;
+      const start = startOfDay(new Date(r.start_at));
+      const end = startOfDay(new Date(r.end_at));
+      let perDay = byPet.get(petId);
+      if (!perDay) {
+        perDay = new Map();
+        byPet.set(petId, perDay);
+      }
+      for (let d = start; d <= end; d = addDays(d, 1)) {
+        perDay.set(format(d, "yyyy-MM-dd"), r.suite_id);
+      }
+    }
+    for (const [, perDay] of byPet) {
+      const sorted = Array.from(perDay.entries()).sort(([a], [b]) => a.localeCompare(b));
+      let prevSuite: string | null = null;
+      let prevDate: Date | null = null;
+      for (const [dayKey, suiteId] of sorted) {
+        const dt = new Date(dayKey);
+        if (
+          prevSuite &&
+          prevSuite !== suiteId &&
+          prevDate &&
+          Math.round((dt.getTime() - prevDate.getTime()) / (1000 * 60 * 60 * 24)) <= 1
+        ) {
+          set.add(`${suiteId}|${dayKey}`);
+        }
+        prevSuite = suiteId;
+        prevDate = dt;
+      }
+    }
+    return set;
+  }, [filteredReservations]);
 
   // Stats
   const today = startOfDay(new Date());
   const occupiedToday = useMemo(() => {
     const set = new Set<string>();
     const key = format(today, "yyyy-MM-dd");
-    for (const s of suites) {
+    for (const s of allSuitesScoped) {
       if (cellMap.has(`${s.id}|${key}`)) set.add(s.id);
     }
     return set.size;
-  }, [cellMap, suites, today]);
-  const totalActive = suites.filter((s) => s.status === "active").length;
+  }, [cellMap, allSuitesScoped, today]);
+  const totalActive = allSuitesScoped.filter((s) => s.status === "active").length;
   const available = Math.max(0, totalActive - occupiedToday);
   const occupancyPct = totalActive > 0 ? Math.round((occupiedToday / totalActive) * 100) : 0;
 
@@ -171,8 +277,8 @@ export default function Lodging() {
           <StatCard label="Occupancy" value={`${occupancyPct}%`} accent="bg-brand-frost" />
         </div>
 
-        {/* Date nav */}
-        <div className="mb-4 flex items-center justify-between gap-4">
+        {/* Date nav + filters */}
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-2">
             <Button variant="outline" size="sm" onClick={goPrev} aria-label="Previous">
               <ChevronLeft className="h-4 w-4" />
@@ -183,13 +289,38 @@ export default function Lodging() {
             <Button variant="outline" size="sm" onClick={goNext} aria-label="Next">
               <ChevronRight className="h-4 w-4" />
             </Button>
+            <div className="ml-3 font-display text-lg text-foreground">{rangeLabel}</div>
           </div>
-          <div className="font-display text-lg text-foreground">{rangeLabel}</div>
+          <div className="flex flex-wrap items-center gap-2">
+            <Select value={vacancyFilter} onValueChange={(v) => setVacancyFilter(v as VacancyFilter)}>
+              <SelectTrigger className="h-9 w-[170px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All suites</SelectItem>
+                <SelectItem value="vacant">Show only vacant</SelectItem>
+                <SelectItem value="occupied">Show only occupied</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select value={serviceFilter} onValueChange={setServiceFilter}>
+              <SelectTrigger className="h-9 w-[180px]">
+                <SelectValue placeholder="Reservation type" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All reservation types</SelectItem>
+                {services.map((s) => (
+                  <SelectItem key={s.id} value={s.id}>
+                    {s.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
 
         {suitesLoading ? (
           <div className="h-64 animate-pulse rounded-lg bg-surface" />
-        ) : suites.length === 0 ? (
+        ) : allSuitesScoped.length === 0 ? (
           <div className="rounded-lg border border-dashed border-border bg-surface p-12 text-center shadow-card">
             <BedDouble className="mx-auto h-10 w-10 text-text-tertiary" />
             <div className="mt-3 font-display text-lg">No suites yet</div>
@@ -200,6 +331,11 @@ export default function Lodging() {
               Manage suites
             </Button>
           </div>
+        ) : suites.length === 0 ? (
+          <div className="rounded-lg border border-dashed border-border bg-surface p-12 text-center shadow-card">
+            <div className="font-display text-lg">No suites match the current filters</div>
+            <p className="mt-1 text-sm text-text-secondary">Try clearing the vacancy or type filter.</p>
+          </div>
         ) : (
           <>
             {/* Desktop grid */}
@@ -209,6 +345,8 @@ export default function Lodging() {
                   suites={suites}
                   days={days}
                   cellMap={cellMap}
+                  dayOccupancy={dayOccupancy}
+                  transferStartKeys={transferStartKeys}
                   petName={petName}
                   onEmptyClick={handleEmptyCell}
                   onOccupiedClick={(r) => navigate(`/reservations/${r.id}`)}
@@ -218,7 +356,8 @@ export default function Lodging() {
                   suites={suites}
                   days={days}
                   cellMap={cellMap}
-                  reservations={reservations}
+                  dayOccupancy={dayOccupancy}
+                  reservations={filteredReservations}
                   petName={petName}
                   rangeStart={rangeStart}
                   rangeEnd={rangeEnd}
@@ -242,7 +381,9 @@ export default function Lodging() {
                         <StatusBadge tone={TYPE_TONES[s.type]}>
                           {s.type.charAt(0).toUpperCase() + s.type.slice(1)}
                         </StatusBadge>
-                        <span className="text-xs text-text-secondary">Cap {s.capacity}</span>
+                        <span className="text-xs text-text-secondary">
+                          {s.capacity} {s.capacity === 1 ? "pet" : "pets"}
+                        </span>
                       </div>
                     </div>
                   </div>
@@ -279,6 +420,20 @@ export default function Lodging() {
           <LegendDot className="bg-success" label="Checked in" />
           <LegendDot className="bg-primary" label="Reserved" />
           <LegendDot className="bg-border" label="Available" />
+          <span className="inline-flex items-center gap-1.5">
+            <ArrowRightLeft className="h-3 w-3" /> Transfer between suites
+          </span>
+          <span className="inline-flex items-center gap-1.5">
+            <span className="rounded px-1.5 py-0.5 text-[10px] font-medium bg-success-light text-success">
+              &lt;70%
+            </span>
+            <span className="rounded px-1.5 py-0.5 text-[10px] font-medium bg-warning-light text-warning">
+              70–90%
+            </span>
+            <span className="rounded px-1.5 py-0.5 text-[10px] font-medium bg-danger-light text-danger">
+              &gt;90%
+            </span>
+          </span>
         </div>
       </div>
     </PortalLayout>
@@ -322,8 +477,54 @@ function SuiteRowHeader({ s }: { s: SuiteRow }) {
         <StatusBadge tone={TYPE_TONES[s.type]}>
           {s.type.charAt(0).toUpperCase() + s.type.slice(1)}
         </StatusBadge>
-        <span className="text-[11px] text-text-tertiary">Cap {s.capacity}</span>
+        <span className="text-[11px] text-text-tertiary">
+          {s.capacity} {s.capacity === 1 ? "pet" : "pets"}
+        </span>
       </div>
+    </div>
+  );
+}
+
+function DayHeader({
+  day,
+  occ,
+  compact = false,
+  isToday,
+}: {
+  day: Date;
+  occ?: { occupied: number; total: number; pct: number };
+  compact?: boolean;
+  isToday: boolean;
+}) {
+  const tone = occ ? occupancyHeaderClass(occ.pct) : "";
+  return (
+    <div
+      className={cn(
+        "border-l border-border-subtle text-center",
+        compact ? "py-1.5" : "py-2",
+        isToday && "ring-1 ring-inset ring-primary/40",
+        tone,
+      )}
+    >
+      {compact ? (
+        <>
+          <div className="text-[10px] font-semibold">{format(day, "d")}</div>
+          <div className="text-[9px] opacity-80">{format(day, "EEEEE")}</div>
+          {occ && occ.total > 0 && (
+            <div className="mt-0.5 text-[9px] font-semibold">{occ.pct}%</div>
+          )}
+        </>
+      ) : (
+        <>
+          <div className="text-xs font-semibold uppercase">{format(day, "EEE")}</div>
+          <div className="text-[11px] opacity-80">{format(day, "MMM d")}</div>
+          {occ && occ.total > 0 && (
+            <div className="mt-1 text-[10px] font-semibold">
+              {occ.pct}% · {occ.occupied}/{occ.total}
+            </div>
+          )}
+        </>
+      )}
     </div>
   );
 }
@@ -332,6 +533,8 @@ function WeeklyGrid({
   suites,
   days,
   cellMap,
+  dayOccupancy,
+  transferStartKeys,
   petName,
   onEmptyClick,
   onOccupiedClick,
@@ -339,6 +542,8 @@ function WeeklyGrid({
   suites: SuiteRow[];
   days: Date[];
   cellMap: Map<string, ResvRow>;
+  dayOccupancy: Map<string, { occupied: number; total: number; pct: number }>;
+  transferStartKeys: Set<string>;
   petName: (r: ResvRow) => string;
   onEmptyClick: (suiteId: string, day: Date) => void;
   onOccupiedClick: (r: ResvRow) => void;
@@ -354,16 +559,12 @@ function WeeklyGrid({
           Suite
         </div>
         {days.map((d) => (
-          <div
+          <DayHeader
             key={d.toISOString()}
-            className={cn(
-              "border-l border-border-subtle px-2 py-3 text-center text-xs",
-              isSameDay(d, today) && "bg-primary-light text-primary",
-            )}
-          >
-            <div className="font-semibold uppercase">{format(d, "EEE")}</div>
-            <div className="text-text-secondary">{format(d, "MMM d")}</div>
-          </div>
+            day={d}
+            occ={dayOccupancy.get(format(d, "yyyy-MM-dd"))}
+            isToday={isSameDay(d, today)}
+          />
         ))}
       </div>
       {suites.map((s) => (
@@ -378,12 +579,13 @@ function WeeklyGrid({
           {days.map((d) => {
             const key = `${s.id}|${format(d, "yyyy-MM-dd")}`;
             const r = cellMap.get(key);
+            const isTransfer = transferStartKeys.has(key);
             return (
               <button
                 key={key}
                 onClick={() => (r ? onOccupiedClick(r) : onEmptyClick(s.id, d))}
                 className={cn(
-                  "min-h-[64px] border-l border-border-subtle px-2 py-2 text-left text-xs transition-colors",
+                  "relative min-h-[64px] border-l border-border-subtle px-2 py-2 text-left text-xs transition-colors",
                   r
                     ? r.status === "checked_in"
                       ? "bg-success-light text-success hover:bg-success-light/80"
@@ -396,6 +598,14 @@ function WeeklyGrid({
                   <span className="line-clamp-2 font-medium">{petName(r)}</span>
                 ) : (
                   <span className="opacity-0 hover:opacity-100">+</span>
+                )}
+                {isTransfer && (
+                  <span
+                    className="absolute -left-2 top-1/2 z-10 -translate-y-1/2 rounded-full bg-accent p-0.5 text-accent-foreground shadow"
+                    title="Transferred from another suite"
+                  >
+                    <ArrowRightLeft className="h-3 w-3" />
+                  </span>
                 )}
               </button>
             );
@@ -410,6 +620,7 @@ function MonthlyGrid({
   suites,
   days,
   cellMap,
+  dayOccupancy,
   reservations,
   petName,
   rangeStart,
@@ -419,6 +630,7 @@ function MonthlyGrid({
   suites: SuiteRow[];
   days: Date[];
   cellMap: Map<string, ResvRow>;
+  dayOccupancy: Map<string, { occupied: number; total: number; pct: number }>;
   reservations: ResvRow[];
   petName: (r: ResvRow) => string;
   rangeStart: Date;
@@ -426,7 +638,7 @@ function MonthlyGrid({
   onCellClick: (suiteId: string, day: Date) => void;
 }) {
   const today = startOfDay(new Date());
-  const colWidth = 36;
+  const colWidth = 44;
   return (
     <div className="min-w-[1000px]">
       <div
@@ -437,16 +649,13 @@ function MonthlyGrid({
           Suite
         </div>
         {days.map((d) => (
-          <div
+          <DayHeader
             key={d.toISOString()}
-            className={cn(
-              "border-l border-border-subtle py-2 text-center text-[10px]",
-              isSameDay(d, today) && "bg-primary-light text-primary",
-            )}
-          >
-            <div className="font-semibold">{format(d, "d")}</div>
-            <div className="text-text-tertiary">{format(d, "EEEEE")}</div>
-          </div>
+            day={d}
+            occ={dayOccupancy.get(format(d, "yyyy-MM-dd"))}
+            compact
+            isToday={isSameDay(d, today)}
+          />
         ))}
       </div>
       {suites.map((s) => {
