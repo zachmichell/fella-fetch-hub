@@ -1724,6 +1724,7 @@ export type Database = {
           source: Database["public"]["Enums"]["reservation_source"]
           start_at: string
           status: Database["public"]["Enums"]["reservation_status"]
+          suite_id: string | null
           updated_at: string
         }
         Insert: {
@@ -1749,6 +1750,7 @@ export type Database = {
           source?: Database["public"]["Enums"]["reservation_source"]
           start_at: string
           status?: Database["public"]["Enums"]["reservation_status"]
+          suite_id?: string | null
           updated_at?: string
         }
         Update: {
@@ -1774,6 +1776,7 @@ export type Database = {
           source?: Database["public"]["Enums"]["reservation_source"]
           start_at?: string
           status?: Database["public"]["Enums"]["reservation_status"]
+          suite_id?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -1810,6 +1813,13 @@ export type Database = {
             columns: ["service_id"]
             isOneToOne: false
             referencedRelation: "services"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reservations_suite_id_fkey"
+            columns: ["suite_id"]
+            isOneToOne: false
+            referencedRelation: "suites"
             referencedColumns: ["id"]
           },
         ]
@@ -2051,6 +2061,63 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "subscriptions_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      suites: {
+        Row: {
+          capacity: number
+          created_at: string
+          daily_rate_cents: number
+          deleted_at: string | null
+          id: string
+          location_id: string | null
+          name: string
+          organization_id: string
+          status: Database["public"]["Enums"]["suite_status_enum"]
+          type: Database["public"]["Enums"]["suite_type_enum"]
+          updated_at: string
+        }
+        Insert: {
+          capacity?: number
+          created_at?: string
+          daily_rate_cents?: number
+          deleted_at?: string | null
+          id?: string
+          location_id?: string | null
+          name: string
+          organization_id: string
+          status?: Database["public"]["Enums"]["suite_status_enum"]
+          type?: Database["public"]["Enums"]["suite_type_enum"]
+          updated_at?: string
+        }
+        Update: {
+          capacity?: number
+          created_at?: string
+          daily_rate_cents?: number
+          deleted_at?: string | null
+          id?: string
+          location_id?: string | null
+          name?: string
+          organization_id?: string
+          status?: Database["public"]["Enums"]["suite_status_enum"]
+          type?: Database["public"]["Enums"]["suite_type_enum"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "suites_location_id_fkey"
+            columns: ["location_id"]
+            isOneToOne: false
+            referencedRelation: "locations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "suites_organization_id_fkey"
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
@@ -2342,6 +2409,8 @@ export type Database = {
         | "past_due"
         | "cancelled"
         | "paused"
+      suite_status_enum: "active" | "inactive"
+      suite_type_enum: "standard" | "deluxe" | "presidential"
       vaccine_type_enum:
         | "rabies"
         | "dapp"
@@ -2523,6 +2592,8 @@ export const Constants = {
         "cancelled",
         "paused",
       ],
+      suite_status_enum: ["active", "inactive"],
+      suite_type_enum: ["standard", "deluxe", "presidential"],
       vaccine_type_enum: [
         "rabies",
         "dapp",
