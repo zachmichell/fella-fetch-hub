@@ -357,6 +357,13 @@ export default function LocationsTab() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <LocationHoursDialog
+        locationId={hoursFor?.id ?? null}
+        locationName={hoursFor?.name}
+        open={!!hoursFor}
+        onOpenChange={(o) => !o && setHoursFor(null)}
+      />
     </div>
   );
 }
