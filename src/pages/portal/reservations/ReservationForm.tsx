@@ -321,6 +321,21 @@ export default function ReservationForm() {
                   className="bg-background"
                 />
               </Field>
+              <Field label="Suite" span={2} hint="Optional — assign an overnight suite for lodging">
+                <Select value={suiteId} onValueChange={setSuiteId}>
+                  <SelectTrigger className="bg-background">
+                    <SelectValue placeholder="No suite" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">No suite</SelectItem>
+                    {suites.map((s) => (
+                      <SelectItem key={s.id} value={s.id}>
+                        {s.name} — {s.type.charAt(0).toUpperCase() + s.type.slice(1)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </Field>
             </Section>
 
             <Section title="Pets">
