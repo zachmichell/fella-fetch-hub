@@ -193,7 +193,7 @@ export default function StandingReservations() {
       <div className="px-8 py-6">
         <PageHeader
           title="Standing Reservations"
-          subtitle="Recurring schedules that auto-generate reservations."
+          description="Recurring schedules that auto-generate reservations."
         />
 
         <Card className="mt-6 overflow-hidden">
