@@ -290,7 +290,7 @@ export async function fetchFutureReservations(orgId: string) {
 export async function fetchStandingReservations(orgId: string) {
   const { data } = await supabase
     .from("recurring_reservation_groups")
-    .select("id, start_date, end_date, days_of_week, status, owner_id, pet_id, owners(first_name, last_name), pets(name)")
+    .select("id, start_date, end_date, days_of_week, status, owner_id, pet_ids, owners(first_name, last_name)")
     .eq("organization_id", orgId)
     .eq("status", "active");
   return (data ?? []) as any[];
@@ -380,10 +380,12 @@ export async function fetchVaccineExpirations(orgId: string) {
   const today = new Date();
   const in90 = new Date();
   in90.setDate(in90.getDate() + 90);
-  const { data } = await (supabase as any)
+  const { data } = await supabase
     .from("vaccinations")
-    .select("id, vaccine_type, expires_on, pet_id, pets(name, organization_id)")
-    .eq("pets.organization_id", orgId)
+    .select("id, vaccine_type, expires_on, pet_id, pets(name)")
+    .eq("organization_id", orgId)
+    .is("deleted_at", null)
+    .not("expires_on", "is", null)
     .gte("expires_on", today.toISOString().slice(0, 10))
     .lte("expires_on", in90.toISOString().slice(0, 10));
   const rows = ((data ?? []) as any[]).map((v: any) => {
