@@ -8,7 +8,6 @@ import { useSubscriptionStatus } from "@/hooks/useSubscriptionStatus";
 import PausedOverlay from "./billing/PausedOverlay";
 import PastDueBanner from "./billing/PastDueBanner";
 import TrialBanner from "./billing/TrialBanner";
-import { LocationProvider } from "@/contexts/LocationContext";
 
 export default function PortalLayout({ children }: { children: React.ReactNode }) {
   const { membership } = useAuth();
