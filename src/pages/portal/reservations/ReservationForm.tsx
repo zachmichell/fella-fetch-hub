@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
+import { useSuites } from "@/hooks/useSuites";
 import { Search } from "lucide-react";
 import PortalLayout from "@/components/portal/PortalLayout";
 import PageHeader from "@/components/portal/PageHeader";
