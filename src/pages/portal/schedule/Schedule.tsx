@@ -83,6 +83,24 @@ export default function Schedule() {
     },
   });
 
+  const { data: classInstances = [] } = useQuery({
+    queryKey: ["schedule-day-classes", ymd(date), locationId],
+    queryFn: async () => {
+      let q = supabase
+        .from("class_instances")
+        .select("id, start_at, end_at, status, class_type:class_type_id(name, category)")
+        .is("deleted_at", null)
+        .eq("status", "scheduled")
+        .gte("start_at", dayStart.toISOString())
+        .lte("start_at", dayEnd.toISOString())
+        .order("start_at");
+      if (locationId) q = q.eq("location_id", locationId);
+      const { data, error } = await q;
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
   const filtered = useMemo(
     () =>
       rows.filter((r) => {
@@ -386,6 +404,32 @@ export default function Schedule() {
                       TZ,
                     )}`}
                   />
+                ))
+              )}
+            </Section>
+
+            <Section title="Group Classes" count={classInstances.length}>
+              {classInstances.length === 0 ? (
+                <EmptyRow text="No classes scheduled today" />
+              ) : (
+                classInstances.map((c: any) => (
+                  <Link
+                    key={c.id}
+                    to="/group-classes"
+                    className="block rounded-lg border border-border bg-card p-3 hover:bg-muted/40 transition-colors"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <div className="font-medium text-foreground">{c.class_type?.name ?? "Class"}</div>
+                        <div className="text-xs text-text-secondary">
+                          {formatTime(c.start_at, TZ)} – {formatTime(c.end_at, TZ)}
+                        </div>
+                      </div>
+                      <span className="rounded-pill bg-muted px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-text-secondary">
+                        Class
+                      </span>
+                    </div>
+                  </Link>
                 ))
               )}
             </Section>
