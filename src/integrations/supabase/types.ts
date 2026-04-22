@@ -2297,6 +2297,109 @@ export type Database = {
         }
         Relationships: []
       }
+      precheck_settings: {
+        Row: {
+          created_at: string
+          enabled: boolean
+          hours_before: number
+          id: string
+          organization_id: string
+          questions: Json
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          enabled?: boolean
+          hours_before?: number
+          id?: string
+          organization_id: string
+          questions?: Json
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          enabled?: boolean
+          hours_before?: number
+          id?: string
+          organization_id?: string
+          questions?: Json
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "precheck_settings_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: true
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      precheck_submissions: {
+        Row: {
+          created_at: string
+          id: string
+          organization_id: string
+          owner_id: string
+          pet_id: string
+          reservation_id: string
+          responses: Json
+          submitted_at: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          organization_id: string
+          owner_id: string
+          pet_id: string
+          reservation_id: string
+          responses?: Json
+          submitted_at?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          organization_id?: string
+          owner_id?: string
+          pet_id?: string
+          reservation_id?: string
+          responses?: Json
+          submitted_at?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "precheck_submissions_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "precheck_submissions_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "owners"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "precheck_submissions_pet_id_fkey"
+            columns: ["pet_id"]
+            isOneToOne: false
+            referencedRelation: "pets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "precheck_submissions_reservation_id_fkey"
+            columns: ["reservation_id"]
+            isOneToOne: false
+            referencedRelation: "reservations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
