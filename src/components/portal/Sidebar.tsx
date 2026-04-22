@@ -62,6 +62,7 @@ const sections: Array<{
     items: [
       { to: "/calendar", icon: CalendarDays, label: "Calendar" },
       { to: "/reservations", icon: ClipboardList, label: "Reservations" },
+      { to: "/standing-reservations", icon: CalendarDays, label: "Standing Reservations" },
       { to: "/dashboard/check-in-out", icon: ClipboardCheck, label: "Check-in/out" },
       { to: "/lodging", icon: BedDouble, label: "Lodging" },
       { to: "/grooming", icon: Scissors, label: "Grooming" },
