@@ -34,22 +34,20 @@ export default function PortalLayout({ children }: { children: React.ReactNode }
   const showTrialBanner = sub?.isTrial && sub.trialDaysRemaining <= 7;
 
   return (
-    <LocationProvider>
-      <div className="flex min-h-screen bg-background">
-        <Sidebar orgName={orgName} />
-        <main className="flex-1 overflow-y-auto">
-          {sub?.isPastDue && <PastDueBanner />}
-          {showTrialBanner && <TrialBanner daysRemaining={sub.trialDaysRemaining} />}
-          <div className="flex items-center justify-between gap-3 border-b border-border-subtle bg-surface px-8 py-2.5">
-            <div className="text-xs text-text-tertiary truncate">
-              {orgName ?? ""}
-            </div>
-            <LocationSwitcher />
+    <div className="flex min-h-screen bg-background">
+      <Sidebar orgName={orgName} />
+      <main className="flex-1 overflow-y-auto">
+        {sub?.isPastDue && <PastDueBanner />}
+        {showTrialBanner && <TrialBanner daysRemaining={sub.trialDaysRemaining} />}
+        <div className="flex items-center justify-between gap-3 border-b border-border-subtle bg-surface px-8 py-2.5">
+          <div className="text-xs text-text-tertiary truncate">
+            {orgName ?? ""}
           </div>
-          {children}
-        </main>
-        {showPausedOverlay && <PausedOverlay />}
-      </div>
-    </LocationProvider>
+          <LocationSwitcher />
+        </div>
+        {children}
+      </main>
+      {showPausedOverlay && <PausedOverlay />}
+    </div>
   );
 }
