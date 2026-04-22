@@ -97,6 +97,7 @@ export default function LocationsTab() {
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<LocationRow | null>(null);
   const [form, setForm] = useState<Partial<LocationRow>>(empty);
+  const [hoursFor, setHoursFor] = useState<LocationRow | null>(null);
 
   function openNew() {
     setEditing(null);
@@ -237,6 +238,14 @@ export default function LocationsTab() {
                     </div>
                   </TableCell>
                   <TableCell className="text-right">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setHoursFor(loc)}
+                      title="Operating hours"
+                    >
+                      <Clock className="h-4 w-4" />
+                    </Button>
                     <Button variant="ghost" size="sm" onClick={() => openEdit(loc)}>
                       <Pencil className="h-4 w-4" />
                     </Button>
