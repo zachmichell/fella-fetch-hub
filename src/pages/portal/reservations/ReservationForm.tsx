@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
+import { useSuites } from "@/hooks/useSuites";
 import { Search } from "lucide-react";
 import PortalLayout from "@/components/portal/PortalLayout";
 import PageHeader from "@/components/portal/PageHeader";
@@ -58,17 +59,23 @@ function Field({
 export default function ReservationForm() {
   const navigate = useNavigate();
   const { membership, user } = useAuth();
+  const [searchParams] = useSearchParams();
+  const presetSuiteId = searchParams.get("suite_id") ?? "";
+  const presetStart = searchParams.get("start") ?? "";
 
   const [ownerSearch, setOwnerSearch] = useState("");
   const [ownerId, setOwnerId] = useState("");
   const [showOwnerResults, setShowOwnerResults] = useState(false);
   const [serviceId, setServiceId] = useState("");
-  const [startAt, setStartAt] = useState("");
+  const [suiteId, setSuiteId] = useState<string>(presetSuiteId || "none");
+  const [startAt, setStartAt] = useState(presetStart);
   const [endAt, setEndAt] = useState("");
   const [petIds, setPetIds] = useState<string[]>([]);
   const [notes, setNotes] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
+
+  const { data: suites = [] } = useSuites({ activeOnly: true });
 
   // Owner search
   const { data: ownerResults } = useQuery({
@@ -182,6 +189,7 @@ export default function ReservationForm() {
         notes: notes || null,
         created_by: user?.id ?? null,
         requested_at: nowIso,
+        suite_id: suiteId && suiteId !== "none" ? suiteId : null,
       } as any)
       .select("id")
       .single();
@@ -312,6 +320,21 @@ export default function ReservationForm() {
                   onChange={(e) => setEndAt(e.target.value)}
                   className="bg-background"
                 />
+              </Field>
+              <Field label="Suite" span={2} hint="Optional — assign an overnight suite for lodging">
+                <Select value={suiteId} onValueChange={setSuiteId}>
+                  <SelectTrigger className="bg-background">
+                    <SelectValue placeholder="No suite" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">No suite</SelectItem>
+                    {suites.map((s) => (
+                      <SelectItem key={s.id} value={s.id}>
+                        {s.name} — {s.type.charAt(0).toUpperCase() + s.type.slice(1)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </Field>
             </Section>
 
