@@ -194,7 +194,7 @@ export async function fetchPackageSales(orgId: string, range: DateRange) {
 export async function fetchReservations(orgId: string, range: DateRange) {
   const { data } = await supabase
     .from("reservations")
-    .select("id, start_at, end_at, status, service_id, owner_id, services(name, kind), owners(first_name, last_name)")
+    .select("id, start_at, end_at, status, service_id, primary_owner_id, services(name, module), owners:primary_owner_id(first_name, last_name)")
     .eq("organization_id", orgId)
     .is("deleted_at", null)
     .gte("start_at", range.from.toISOString())
@@ -217,7 +217,7 @@ export async function fetchOccupancyByDay(orgId: string, range: DateRange) {
 export async function fetchNoShows(orgId: string, range: DateRange) {
   const { data } = await supabase
     .from("reservations")
-    .select("id, start_at, owner_id, owners(first_name, last_name, email)")
+    .select("id, start_at, primary_owner_id, owners:primary_owner_id(first_name, last_name, email)")
     .eq("organization_id", orgId)
     .eq("status", "no_show")
     .is("deleted_at", null)
@@ -225,7 +225,7 @@ export async function fetchNoShows(orgId: string, range: DateRange) {
     .lte("start_at", range.to.toISOString());
   const byOwner = new Map<string, { owner: string; email: string; count: number }>();
   (data ?? []).forEach((r: any) => {
-    const key = r.owner_id;
+    const key = r.primary_owner_id ?? "unknown";
     const cur = byOwner.get(key) ?? {
       owner: r.owners ? `${r.owners.first_name} ${r.owners.last_name}` : "—",
       email: r.owners?.email ?? "",
@@ -240,7 +240,7 @@ export async function fetchNoShows(orgId: string, range: DateRange) {
 export async function fetchCancellations(orgId: string, range: DateRange) {
   const { data } = await supabase
     .from("reservations")
-    .select("id, start_at, cancelled_at, cancellation_reason, owners(first_name, last_name)")
+    .select("id, start_at, cancelled_at, cancelled_reason, owners:primary_owner_id(first_name, last_name)")
     .eq("organization_id", orgId)
     .eq("status", "cancelled")
     .is("deleted_at", null)
@@ -248,7 +248,7 @@ export async function fetchCancellations(orgId: string, range: DateRange) {
     .lte("start_at", range.to.toISOString());
   const reasonMap = new Map<string, number>();
   (data ?? []).forEach((r: any) => {
-    const reason = r.cancellation_reason || "Unspecified";
+    const reason = r.cancelled_reason || "Unspecified";
     reasonMap.set(reason, (reasonMap.get(reason) ?? 0) + 1);
   });
   return { rows: data ?? [], reasons: Array.from(reasonMap.entries()).map(([reason, count]) => ({ reason, count })) };
@@ -289,7 +289,7 @@ export async function fetchFutureReservations(orgId: string) {
 
 export async function fetchStandingReservations(orgId: string) {
   const { data } = await supabase
-    .from("recurring_reservation_groups" as any)
+    .from("recurring_reservation_groups")
     .select("id, start_date, end_date, days_of_week, status, owner_id, pet_id, owners(first_name, last_name), pets(name)")
     .eq("organization_id", orgId)
     .eq("status", "active");
