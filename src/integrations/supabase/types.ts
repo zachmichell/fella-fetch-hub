@@ -1579,6 +1579,166 @@ export type Database = {
           },
         ]
       }
+      loyalty_rewards: {
+        Row: {
+          active: boolean
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+          organization_id: string
+          points_cost: number
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+          organization_id: string
+          points_cost?: number
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+          organization_id?: string
+          points_cost?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "loyalty_rewards_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      loyalty_settings: {
+        Row: {
+          created_at: string
+          enabled: boolean
+          id: string
+          organization_id: string
+          points_per_dollar: number
+          redemption_points: number
+          redemption_value_cents: number
+          referral_bonus_points: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          organization_id: string
+          points_per_dollar?: number
+          redemption_points?: number
+          redemption_value_cents?: number
+          referral_bonus_points?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          organization_id?: string
+          points_per_dollar?: number
+          redemption_points?: number
+          redemption_value_cents?: number
+          referral_bonus_points?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "loyalty_settings_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: true
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      loyalty_transactions: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          invoice_id: string | null
+          organization_id: string
+          owner_id: string
+          points: number
+          reward_id: string | null
+          type: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          invoice_id?: string | null
+          organization_id: string
+          owner_id: string
+          points: number
+          reward_id?: string | null
+          type?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          invoice_id?: string | null
+          organization_id?: string
+          owner_id?: string
+          points?: number
+          reward_id?: string | null
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "loyalty_transactions_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "loyalty_transactions_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "loyalty_transactions_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "loyalty_transactions_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "owners"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "loyalty_transactions_reward_id_fkey"
+            columns: ["reward_id"]
+            isOneToOne: false
+            referencedRelation: "loyalty_rewards"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       memberships: {
         Row: {
           active: boolean
@@ -1826,6 +1986,58 @@ export type Database = {
         }
         Relationships: []
       }
+      owner_tags: {
+        Row: {
+          color: string
+          created_at: string
+          created_by: string | null
+          id: string
+          label: string
+          organization_id: string
+          owner_id: string
+        }
+        Insert: {
+          color?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          label: string
+          organization_id: string
+          owner_id: string
+        }
+        Update: {
+          color?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          label?: string
+          organization_id?: string
+          owner_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "owner_tags_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "owner_tags_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "owner_tags_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "owners"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       owners: {
         Row: {
           city: string | null
@@ -1836,11 +2048,15 @@ export type Database = {
           first_name: string
           id: string
           last_name: string
+          lifetime_points: number
+          loyalty_points: number
           notes: string | null
           organization_id: string
           phone: string | null
           postal_code: string | null
           profile_id: string | null
+          referral_source: string | null
+          referred_by_owner_id: string | null
           state_province: string | null
           store_credit_cents: number
           street_address: string | null
@@ -1855,11 +2071,15 @@ export type Database = {
           first_name: string
           id?: string
           last_name: string
+          lifetime_points?: number
+          loyalty_points?: number
           notes?: string | null
           organization_id: string
           phone?: string | null
           postal_code?: string | null
           profile_id?: string | null
+          referral_source?: string | null
+          referred_by_owner_id?: string | null
           state_province?: string | null
           store_credit_cents?: number
           street_address?: string | null
@@ -1874,11 +2094,15 @@ export type Database = {
           first_name?: string
           id?: string
           last_name?: string
+          lifetime_points?: number
+          loyalty_points?: number
           notes?: string | null
           organization_id?: string
           phone?: string | null
           postal_code?: string | null
           profile_id?: string | null
+          referral_source?: string | null
+          referred_by_owner_id?: string | null
           state_province?: string | null
           store_credit_cents?: number
           street_address?: string | null
@@ -1897,6 +2121,13 @@ export type Database = {
             columns: ["profile_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "owners_referred_by_owner_id_fkey"
+            columns: ["referred_by_owner_id"]
+            isOneToOne: false
+            referencedRelation: "owners"
             referencedColumns: ["id"]
           },
         ]
