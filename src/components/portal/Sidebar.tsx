@@ -40,6 +40,7 @@ import {
   Database,
   GitMerge,
   ScrollText,
+  GraduationCap,
 } from "lucide-react";
 import Logo from "./Logo";
 import { useAuth } from "@/hooks/useAuth";
@@ -63,6 +64,7 @@ const sections: Array<{
       { to: "/calendar", icon: CalendarDays, label: "Calendar" },
       { to: "/reservations", icon: ClipboardList, label: "Reservations" },
       { to: "/standing-reservations", icon: CalendarDays, label: "Standing Reservations" },
+      { to: "/group-classes", icon: GraduationCap, label: "Group Classes" },
       { to: "/dashboard/check-in-out", icon: ClipboardCheck, label: "Check-in/out" },
       { to: "/lodging", icon: BedDouble, label: "Lodging" },
       { to: "/grooming", icon: Scissors, label: "Grooming" },
