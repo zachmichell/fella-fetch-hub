@@ -109,7 +109,7 @@ const sections: Array<{
     label: "Insights",
     items: [
       { to: "/incidents", icon: AlertTriangle, label: "Incidents" },
-      { to: "/dashboard/analytics", icon: BarChart3, label: "Analytics", permission: "analytics.view" },
+      { to: "/reports", icon: BarChart3, label: "Reports", permission: "analytics.view" },
     ],
   },
   {
