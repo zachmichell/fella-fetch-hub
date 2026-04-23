@@ -254,8 +254,13 @@ export async function validateRows(
       }
     }
 
+    // Email format: warning for owners (don't block), error elsewhere
     if (m.email && !EMAIL_RE.test(m.email)) {
-      issues.push({ severity: "error", field: "email", message: "Invalid email format" });
+      issues.push({
+        severity: dataType === "owners" ? "warning" : "error",
+        field: "email",
+        message: "Invalid email format — will be skipped",
+      });
     }
     if (m.owner_email && !EMAIL_RE.test(m.owner_email)) {
       issues.push({ severity: "warning", field: "owner_email", message: "Invalid email format" });
@@ -265,7 +270,8 @@ export async function validateRows(
       mapped.external_id = m.external_id || null;
       mapped.first_name = m.first_name;
       mapped.last_name = m.last_name;
-      mapped.email = m.email?.toLowerCase() || null;
+      const emailValid = m.email && EMAIL_RE.test(m.email);
+      mapped.email = emailValid ? m.email.toLowerCase() : null;
       mapped.phone = m.phone || null;
       mapped.home_phone = m.home_phone || null;
       mapped.street_address = m.street_address || null;
