@@ -2853,6 +2853,7 @@ export type Database = {
           owner_id: string
           pet_id: string
           relationship: Database["public"]["Enums"]["pet_owner_relationship"]
+          role: string
         }
         Insert: {
           created_at?: string
@@ -2861,6 +2862,7 @@ export type Database = {
           owner_id: string
           pet_id: string
           relationship?: Database["public"]["Enums"]["pet_owner_relationship"]
+          role?: string
         }
         Update: {
           created_at?: string
@@ -2869,6 +2871,7 @@ export type Database = {
           owner_id?: string
           pet_id?: string
           relationship?: Database["public"]["Enums"]["pet_owner_relationship"]
+          role?: string
         }
         Relationships: [
           {
