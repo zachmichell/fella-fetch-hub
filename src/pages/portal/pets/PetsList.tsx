@@ -16,6 +16,7 @@ import { downloadCsv, toCsv } from "@/lib/csv";
 import { Download } from "lucide-react";
 import PageSizeSelect, { usePageSize, setStoredPageSize } from "@/components/portal/PageSizeSelect";
 import DuplicateReviewDialog from "@/components/portal/DuplicateReviewDialog";
+import SortableHeader, { type SortState } from "@/components/portal/SortableHeader";
 
 const PAGE_SIZE_KEY = "pets.pageSize";
 
@@ -28,6 +29,7 @@ export default function PetsList() {
   const [page, setPage] = useState(0);
   const [pageSize, setPageSizeState] = useState(() => usePageSize(PAGE_SIZE_KEY, 25));
   const [dupeOpen, setDupeOpen] = useState(false);
+  const [sort, setSort] = useState<SortState>({ column: "name", dir: "asc" });
 
   const setPageSize = (n: number) => {
     setStoredPageSize(PAGE_SIZE_KEY, n);
@@ -36,17 +38,23 @@ export default function PetsList() {
   };
 
   const { data, isLoading } = useQuery({
-    queryKey: ["pets", search, species, page, pageSize],
+    queryKey: ["pets", search, species, page, pageSize, sort],
     queryFn: async () => {
       let q = supabase
         .from("pets")
         .select(
-          "id, name, species, breed, intake_status, created_at, microchip_id, pet_owners(relationship, owner:owners(id, first_name, last_name))",
+          "id, name, species, breed, weight_kg, intake_status, created_at, microchip_id, pet_owners(relationship, owner:owners(id, first_name, last_name))",
           { count: "exact" },
         )
-        .is("deleted_at", null)
-        .order("created_at", { ascending: false })
-        .range(page * pageSize, page * pageSize + pageSize - 1);
+        .is("deleted_at", null);
+
+      if (sort) {
+        q = q.order(sort.column, { ascending: sort.dir === "asc", nullsFirst: false });
+      } else {
+        q = q.order("created_at", { ascending: false });
+      }
+
+      q = q.range(page * pageSize, page * pageSize + pageSize - 1);
 
       if (species !== "all") q = q.eq("species", species as any);
       const term = search.trim();
@@ -139,12 +147,13 @@ export default function PetsList() {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="bg-background text-left">
-                    <th className="px-[18px] py-[14px] label-eyebrow">Name</th>
-                    <th className="px-[18px] py-[14px] label-eyebrow">Species</th>
-                    <th className="px-[18px] py-[14px] label-eyebrow">Breed</th>
+                    <SortableHeader column="name" sort={sort} onSort={(s) => { setPage(0); setSort(s); }}>Name</SortableHeader>
+                    <SortableHeader column="species" sort={sort} onSort={(s) => { setPage(0); setSort(s); }}>Species</SortableHeader>
+                    <SortableHeader column="breed" sort={sort} onSort={(s) => { setPage(0); setSort(s); }}>Breed</SortableHeader>
                     <th className="px-[18px] py-[14px] label-eyebrow">Owners</th>
+                    <SortableHeader column="weight_kg" sort={sort} onSort={(s) => { setPage(0); setSort(s); }}>Weight</SortableHeader>
                     <th className="px-[18px] py-[14px] label-eyebrow">Status</th>
-                    <th className="px-[18px] py-[14px] label-eyebrow">Created</th>
+                    <SortableHeader column="created_at" sort={sort} onSort={(s) => { setPage(0); setSort(s); }}>Created</SortableHeader>
                   </tr>
                 </thead>
                 <tbody>
@@ -178,6 +187,9 @@ export default function PetsList() {
                               </span>
                             ))
                           )}
+                        </td>
+                        <td className="px-[18px] py-[14px] text-text-secondary">
+                          {p.weight_kg != null ? `${p.weight_kg} kg` : "—"}
                         </td>
                         <td className="px-[18px] py-[14px]">
                           <StatusBadge tone={intakeTone(p.intake_status)}>

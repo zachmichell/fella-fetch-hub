@@ -17,12 +17,16 @@ export type RowIssue = {
 
 export type MatchMethod = "exact" | "external_id" | "last_name" | "email" | "none";
 
+export type DuplicateMode = "skip" | "overwrite" | "new";
+
 export type ValidatedRow = {
   index: number; // 0-based row index in original file
   raw: Record<string, string>;
   mapped: Record<string, any>;
   issues: RowIssue[];
   include: boolean;
+  isDuplicate?: boolean;
+  duplicateOfId?: string | null;
   matchMethod?: MatchMethod;
   matchSuggestion?: string | null;
 };

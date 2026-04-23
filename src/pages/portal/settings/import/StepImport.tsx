@@ -5,19 +5,21 @@ import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { CheckCircle2, Download, AlertCircle } from "lucide-react";
 import { executeImport } from "./lib/executors";
-import type { DataType, ImportResult, SourceSystem, ValidatedRow } from "./lib/types";
+import type { DataType, DuplicateMode, ImportResult, SourceSystem, ValidatedRow } from "./lib/types";
 
 export default function StepImport({
   dataType,
   rows,
   organizationId,
   sourceSystem,
+  duplicateMode,
   onReset,
 }: {
   dataType: DataType;
   rows: ValidatedRow[];
   organizationId: string;
   sourceSystem: SourceSystem;
+  duplicateMode: DuplicateMode;
   onReset: () => void;
 }) {
   const navigate = useNavigate();
@@ -27,9 +29,16 @@ export default function StepImport({
 
   useEffect(() => {
     let cancelled = false;
-    executeImport(dataType, rows, organizationId, (done, total) => {
-      if (!cancelled) setProgress({ done, total });
-    }, sourceSystem)
+    executeImport(
+      dataType,
+      rows,
+      organizationId,
+      (done, total) => {
+        if (!cancelled) setProgress({ done, total });
+      },
+      sourceSystem,
+      duplicateMode,
+    )
       .then((r) => !cancelled && setResult(r))
       .finally(() => !cancelled && setRunning(false));
     return () => {

@@ -191,10 +191,12 @@ export async function validateRows(
   mapping: ColumnMapping,
   organizationId: string,
 ): Promise<ValidationResult> {
-  const existingOwnerEmails = new Set<string>();
-  const existingOwnerNames = new Set<string>(); // normalized "first last"
+  const existingOwnerEmails = new Map<string, string>(); // email -> id
+  const existingOwnerNames = new Map<string, string>(); // "first last" -> id
   let ownerMaps: OwnerMaps | null = null;
   const petKeyToId = new Map<string, string>();
+  // For pets: map (norm name + owner_id) -> existing pet id
+  const existingPetByNameOwner = new Map<string, string>();
 
   if (dataType === "owners" || dataType === "pets" || dataType === "vaccinations" || dataType === "reservations") {
     // Page through owners (>1000 row default limit)
@@ -216,15 +218,16 @@ export async function validateRows(
       from += PAGE;
     }
     for (const o of allOwners) {
-      if (o.email) existingOwnerEmails.add(o.email.toLowerCase());
+      if (o.email) existingOwnerEmails.set(o.email.toLowerCase(), o.id);
       const fn = normName(o.first_name ?? "");
       const ln = normName(o.last_name ?? "");
-      if (fn || ln) existingOwnerNames.add(`${fn} ${ln}`.trim());
+      const key = `${fn} ${ln}`.trim();
+      if (key && !existingOwnerNames.has(key)) existingOwnerNames.set(key, o.id);
     }
     ownerMaps = buildOwnerMaps(allOwners);
   }
 
-  if (dataType === "vaccinations" || dataType === "reservations") {
+  if (dataType === "vaccinations" || dataType === "reservations" || dataType === "pets") {
     const { data: pets } = await supabase
       .from("pets")
       .select("id, name, pet_owners(owner_id, owners(email))")
@@ -232,9 +235,14 @@ export async function validateRows(
       .is("deleted_at", null);
     for (const p of pets ?? []) {
       const links = (p.pet_owners as any[]) ?? [];
+      const nameNorm = normName(p.name ?? "");
       for (const link of links) {
         const email = link.owners?.email?.toLowerCase();
-        if (email) petKeyToId.set(`${email}::${p.name.toLowerCase()}`, p.id);
+        if (email) petKeyToId.set(`${email}::${(p.name ?? "").toLowerCase()}`, p.id);
+        if (link.owner_id && nameNorm) {
+          const k = `${nameNorm}::${link.owner_id}`;
+          if (!existingPetByNameOwner.has(k)) existingPetByNameOwner.set(k, p.id);
+        }
       }
     }
   }
@@ -245,8 +253,9 @@ export async function validateRows(
   const stats: MatchStats = { exact: 0, external_id: 0, last_name: 0, email: 0, unlinked: 0 };
 
   // In-batch dedupe state (across rows of THIS file)
-  const seenEmails = new Set<string>();
-  const seenNames = new Set<string>();
+  const seenEmails = new Map<string, number>(); // email -> first row index
+  const seenNames = new Map<string, number>();
+  const seenPetKeys = new Map<string, number>();
 
   const rows = parsed.rows.map((raw, index) => {
     const m = applyMapping(raw, mapping);
@@ -292,29 +301,39 @@ export async function validateRows(
       mapped.notes = noteParts.length ? noteParts.join("\n") : null;
 
       // Duplicate detection: by email if present, otherwise by exact name
+      let dupId: string | null = null;
       if (mapped.email) {
-        if (existingOwnerEmails.has(mapped.email) || seenEmails.has(mapped.email)) {
+        const exId = existingOwnerEmails.get(mapped.email);
+        if (exId) dupId = exId;
+        else if (seenEmails.has(mapped.email)) dupId = "__inbatch__";
+        if (dupId) {
           issues.push({
             severity: "warning",
             field: "email",
             message: "Duplicate — owner with this email already exists",
           });
         }
-        seenEmails.add(mapped.email);
+        seenEmails.set(mapped.email, index);
       } else {
         const fnNorm = normName(mapped.first_name ?? "");
         const lnNorm = normName(mapped.last_name ?? "");
         const nameKey = `${fnNorm} ${lnNorm}`.trim();
         if (nameKey) {
-          if (existingOwnerNames.has(nameKey) || seenNames.has(nameKey)) {
+          const exId = existingOwnerNames.get(nameKey);
+          if (exId) dupId = exId;
+          else if (seenNames.has(nameKey)) dupId = "__inbatch__";
+          if (dupId) {
             issues.push({
               severity: "warning",
               field: "last_name",
               message: "Duplicate — owner with this name already exists (no email to disambiguate)",
             });
           }
-          seenNames.add(nameKey);
+          seenNames.set(nameKey, index);
         }
+      }
+      if (dupId) {
+        mapped._duplicate_of = dupId === "__inbatch__" ? null : dupId;
       }
     }
 
@@ -374,6 +393,28 @@ export async function validateRows(
           }
         }
       }
+
+      // Pet duplicate detection: same normalized name + same matched owner
+      if (mapped._owner_id && mapped.name) {
+        const k = `${normName(mapped.name)}::${mapped._owner_id}`;
+        const exId = existingPetByNameOwner.get(k);
+        if (exId) {
+          mapped._duplicate_of = exId;
+          issues.push({
+            severity: "warning",
+            field: "name",
+            message: "Duplicate — pet with this name already exists for this owner",
+          });
+        } else if (seenPetKeys.has(k)) {
+          mapped._duplicate_of = null;
+          issues.push({
+            severity: "warning",
+            field: "name",
+            message: "Duplicate — same name + owner appears earlier in this file",
+          });
+        }
+        seenPetKeys.set(k, index);
+      }
     }
 
     if (dataType === "vaccinations") {
@@ -425,12 +466,15 @@ export async function validateRows(
       }
     }
 
+    const isDup = mapped._duplicate_of !== undefined;
     return {
       index,
       raw,
       mapped,
       issues,
       include: !issues.some((i) => i.severity === "error"),
+      isDuplicate: isDup,
+      duplicateOfId: isDup ? (mapped._duplicate_of as string | null) : undefined,
       matchMethod,
       matchSuggestion,
     } as ValidatedRow;
