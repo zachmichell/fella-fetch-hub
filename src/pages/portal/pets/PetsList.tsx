@@ -147,12 +147,13 @@ export default function PetsList() {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="bg-background text-left">
-                    <th className="px-[18px] py-[14px] label-eyebrow">Name</th>
-                    <th className="px-[18px] py-[14px] label-eyebrow">Species</th>
-                    <th className="px-[18px] py-[14px] label-eyebrow">Breed</th>
+                    <SortableHeader column="name" sort={sort} onSort={(s) => { setPage(0); setSort(s); }}>Name</SortableHeader>
+                    <SortableHeader column="species" sort={sort} onSort={(s) => { setPage(0); setSort(s); }}>Species</SortableHeader>
+                    <SortableHeader column="breed" sort={sort} onSort={(s) => { setPage(0); setSort(s); }}>Breed</SortableHeader>
                     <th className="px-[18px] py-[14px] label-eyebrow">Owners</th>
+                    <SortableHeader column="weight_kg" sort={sort} onSort={(s) => { setPage(0); setSort(s); }}>Weight</SortableHeader>
                     <th className="px-[18px] py-[14px] label-eyebrow">Status</th>
-                    <th className="px-[18px] py-[14px] label-eyebrow">Created</th>
+                    <SortableHeader column="created_at" sort={sort} onSort={(s) => { setPage(0); setSort(s); }}>Created</SortableHeader>
                   </tr>
                 </thead>
                 <tbody>
@@ -186,6 +187,9 @@ export default function PetsList() {
                               </span>
                             ))
                           )}
+                        </td>
+                        <td className="px-[18px] py-[14px] text-text-secondary">
+                          {p.weight_kg != null ? `${p.weight_kg} kg` : "—"}
                         </td>
                         <td className="px-[18px] py-[14px]">
                           <StatusBadge tone={intakeTone(p.intake_status)}>
