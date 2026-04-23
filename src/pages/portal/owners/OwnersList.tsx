@@ -137,12 +137,12 @@ export default function OwnersList() {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="bg-background text-left">
-                    <th className="px-[18px] py-[14px] label-eyebrow">Name</th>
-                    <th className="px-[18px] py-[14px] label-eyebrow">Email</th>
-                    <th className="px-[18px] py-[14px] label-eyebrow">Phone</th>
+                    <SortableHeader column="first_name" sort={sort} onSort={(s) => { setPage(0); setSort(s); }}>Name</SortableHeader>
+                    <SortableHeader column="email" sort={sort} onSort={(s) => { setPage(0); setSort(s); }}>Email</SortableHeader>
+                    <SortableHeader column="phone" sort={sort} onSort={(s) => { setPage(0); setSort(s); }}>Phone</SortableHeader>
                     <th className="px-[18px] py-[14px] label-eyebrow">Pets</th>
                     <th className="px-[18px] py-[14px] label-eyebrow">Comm.</th>
-                    <th className="px-[18px] py-[14px] label-eyebrow">Created</th>
+                    <SortableHeader column="created_at" sort={sort} onSort={(s) => { setPage(0); setSort(s); }}>Created</SortableHeader>
                   </tr>
                 </thead>
                 <tbody>
