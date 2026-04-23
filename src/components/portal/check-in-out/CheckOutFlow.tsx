@@ -1,12 +1,13 @@
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { ChevronRight, FileHeart, Receipt, AlertTriangle } from "lucide-react";
+import { ChevronRight, Receipt, AlertTriangle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { useCheckOut } from "@/hooks/useCheckInOut";
 import { LOG_TYPE_LABELS, LogType } from "@/lib/care";
 import { formatRelativeShort } from "@/lib/checkin";
+import TipDialog from "@/components/portal/TipDialog";
 
 type Props = {
   reservationId: string;
@@ -20,6 +21,8 @@ type Step = "summary" | "confirm";
 
 export default function CheckOutFlow({ reservationId, petName, checkedInAt, onDone, onCancel }: Props) {
   const [step, setStep] = useState<Step>("summary");
+  const [tipOpen, setTipOpen] = useState(false);
+  const [savingTip, setSavingTip] = useState(false);
   const checkOut = useCheckOut();
 
   const { data: summary } = useQuery({
@@ -58,13 +61,12 @@ export default function CheckOutFlow({ reservationId, petName, checkedInAt, onDo
     .filter(Boolean)
     .join(", ");
 
-  const submit = () => {
+  const finalize = () => {
     checkOut.mutate(
       { reservationId, petName },
       {
         onSuccess: () => {
           if (summary?.card && !summary.card.published) {
-            // Soft prompt — leave a toast cue
             setTimeout(() => {
               const ok = window.confirm("Publish report card now?");
               if (ok && summary.card) {
@@ -80,6 +82,28 @@ export default function CheckOutFlow({ reservationId, petName, checkedInAt, onDo
         },
       },
     );
+  };
+
+  const handleTip = async (tipCents: number | null) => {
+    setSavingTip(true);
+    if (tipCents && tipCents > 0) {
+      const { error } = await supabase
+        .from("reservations")
+        .update({ tip_cents: tipCents })
+        .eq("id", reservationId);
+      if (error) {
+        // Non-fatal — proceed with checkout regardless
+        console.warn("Failed to save tip:", error.message);
+      }
+    }
+    setSavingTip(false);
+    setTipOpen(false);
+    finalize();
+  };
+
+  const submit = () => {
+    // Open tip dialog before completing checkout (skippable).
+    setTipOpen(true);
   };
 
   return (
@@ -164,12 +188,23 @@ export default function CheckOutFlow({ reservationId, petName, checkedInAt, onDo
             <Button variant="outline" size="sm" onClick={() => setStep("summary")}>
               Back
             </Button>
-            <Button size="sm" onClick={submit} disabled={checkOut.isPending}>
+            <Button size="sm" onClick={submit} disabled={checkOut.isPending || savingTip}>
               {checkOut.isPending ? "Checking out…" : "Confirm check-out"}
             </Button>
           </div>
         </div>
       )}
+
+      <TipDialog
+        open={tipOpen}
+        onOpenChange={setTipOpen}
+        onConfirm={handleTip}
+        title="Add a tip?"
+        description={`Optional tip for ${petName ?? "this stay"}. You can skip.`}
+        skippable
+        confirmLabel="Save tip & check out"
+        busy={savingTip || checkOut.isPending}
+      />
     </div>
   );
 }

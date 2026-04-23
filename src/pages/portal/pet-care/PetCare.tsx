@@ -1,5 +1,3 @@
-import PlaceholderPage from "../PlaceholderPage";
-import { HeartPulse } from "lucide-react";
-export default function PetCare() {
-  return <PlaceholderPage title="Pet Care" description="Manage feeding schedules, medications, and care routines. This feature is under development." icon={HeartPulse} />;
-}
+// Pet Care page is the same experience as Care Logs (active visits + quick log + timeline).
+// Re-export so /pet-care and /care-logs both render the same surface.
+export { default } from "../care-logs/CareLogs";

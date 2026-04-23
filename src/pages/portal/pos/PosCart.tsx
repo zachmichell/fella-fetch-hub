@@ -21,6 +21,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useLocationFilter } from "@/contexts/LocationContext";
 import { formatCentsShort, parseDollarsToCents, centsToDollarString } from "@/lib/money";
 import { nextInvoiceNumber } from "@/lib/invoice";
+import { usePaymentMethods } from "@/hooks/usePaymentMethods";
 
 type Item = {
   id: string;
@@ -49,7 +50,7 @@ export default function PosCart() {
   const [promoCode, setPromoCode] = useState("");
   const [appliedPromo, setAppliedPromo] = useState<any>(null);
   const [storeCreditInput, setStoreCreditInput] = useState("0.00");
-  const [paymentMethod, setPaymentMethod] = useState<"cash" | "check" | "other" | "card">("cash");
+  const [paymentMethod, setPaymentMethod] = useState<"cash" | "check" | "other" | "card" | "card_on_file">("cash");
   const [notes, setNotes] = useState("");
   const [tab, setTab] = useState<"services" | "products" | "packages">("products");
 
@@ -100,7 +101,20 @@ export default function PosCart() {
     },
   });
 
-  // Catalog lookups
+  // Saved payment methods for the selected owner
+  const { data: savedCards = [] } = usePaymentMethods(ownerId ?? undefined);
+  const defaultCard = useMemo(() => savedCards.find((c) => c.is_default) ?? savedCards[0] ?? null, [savedCards]);
+
+  // Auto-select card on file when an owner with a default card is chosen
+  useEffect(() => {
+    if (defaultCard && paymentMethod === "cash") {
+      setPaymentMethod("card_on_file");
+    }
+    if (!savedCards.length && paymentMethod === "card_on_file") {
+      setPaymentMethod("cash");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [defaultCard?.id, savedCards.length]);
   const { data: services = [] } = useQuery({
     queryKey: ["pos-services", orgId],
     enabled: !!orgId,
@@ -285,9 +299,10 @@ export default function PosCart() {
       }));
       await supabase.from("invoice_lines").insert(lineRows);
 
-      // Payment row (map UI methods to DB enum: card -> card, cash/check/other -> in_person)
+      // Payment row (map UI methods to DB enum: card / card_on_file -> card, cash/check/other -> in_person)
       if (totals.total > 0) {
-        const dbMethod: "card" | "in_person" = paymentMethod === "card" ? "card" : "in_person";
+        const dbMethod: "card" | "in_person" =
+          paymentMethod === "card" || paymentMethod === "card_on_file" ? "card" : "in_person";
         await supabase.from("payments").insert({
           organization_id: orgId!, invoice_id: inv.id,
           amount_cents: totals.total, currency,
@@ -503,12 +518,22 @@ export default function PosCart() {
               <Select value={paymentMethod} onValueChange={(v) => setPaymentMethod(v as any)}>
                 <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
                 <SelectContent>
+                  {defaultCard && (
+                    <SelectItem value="card_on_file">
+                      Card on file ({defaultCard.card_brand} •••• {defaultCard.card_last_four})
+                    </SelectItem>
+                  )}
                   <SelectItem value="cash">Cash</SelectItem>
                   <SelectItem value="check">Check</SelectItem>
                   <SelectItem value="card">Card (recorded)</SelectItem>
                   <SelectItem value="other">Other</SelectItem>
                 </SelectContent>
               </Select>
+              {paymentMethod === "card_on_file" && (
+                <p className="mt-1 text-[11px] text-text-tertiary">
+                  Will be recorded as paid. Stripe charge will run when integrated.
+                </p>
+              )}
             </div>
 
             {/* Notes */}
