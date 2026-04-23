@@ -15,11 +15,32 @@ import PortalLayout from "@/components/portal/PortalLayout";
 import PageHeader from "@/components/portal/PageHeader";
 import { getDateRange, RangePreset } from "@/lib/analytics";
 import { format } from "date-fns";
+import { useAnalytics } from "@/hooks/useAnalytics";
+import { useAuth } from "@/hooks/useAuth";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { useLocationFilter } from "@/contexts/LocationContext";
 import RevenueTab from "./tabs/RevenueTab";
 import OccupancyTab from "./tabs/OccupancyTab";
 import ClientsTab from "./tabs/ClientsTab";
 import PetsTab from "./tabs/PetsTab";
 import CustomReportsTab from "./tabs/CustomReportsTab";
+
+function useOrgCurrency() {
+  const { membership } = useAuth();
+  return useQuery({
+    enabled: !!membership?.organization_id,
+    queryKey: ["org-currency", membership?.organization_id],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("organizations")
+        .select("currency")
+        .eq("id", membership!.organization_id)
+        .maybeSingle();
+      return (data?.currency as string) ?? "CAD";
+    },
+  });
+}
 
 const PRESETS: { value: RangePreset; label: string }[] = [
   { value: "today", label: "Today" },
@@ -35,6 +56,7 @@ export default function Analytics() {
   const [customFrom, setCustomFrom] = useState<Date | undefined>();
   const [customTo, setCustomTo] = useState<Date | undefined>();
   const [tab, setTab] = useState("revenue");
+  const locationId = useLocationFilter();
 
   const range = useMemo(
     () =>
@@ -46,6 +68,9 @@ export default function Analytics() {
       ),
     [preset, customFrom, customTo],
   );
+
+  const { data: analyticsData } = useAnalytics(range, locationId);
+  const { data: currency = "CAD" } = useOrgCurrency();
 
   return (
     <PortalLayout>
@@ -119,13 +144,13 @@ export default function Analytics() {
           </TabsList>
 
           <TabsContent value="revenue" className="mt-6">
-            <RevenueTab range={range} />
+            <RevenueTab data={analyticsData} range={range} currency={currency} />
           </TabsContent>
           <TabsContent value="occupancy" className="mt-6">
-            <OccupancyTab range={range} />
+            <OccupancyTab data={analyticsData} range={range} />
           </TabsContent>
           <TabsContent value="clients" className="mt-6">
-            <ClientsTab range={range} />
+            <ClientsTab range={range} currency={currency} />
           </TabsContent>
           <TabsContent value="pets" className="mt-6">
             <PetsTab range={range} />
