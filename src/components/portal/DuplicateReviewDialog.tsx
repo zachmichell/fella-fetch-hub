@@ -138,9 +138,15 @@ export default function DuplicateReviewDialog({
             existingPets.add(po.pet_id);
           }
         }
-        // Reassign reservations & invoices (best-effort, ignore errors on tables that don't exist for this org)
-        await supabase.from("reservations").update({ owner_id: primary.id }).in("owner_id", dupIds);
-        await supabase.from("invoices").update({ owner_id: primary.id }).in("owner_id", dupIds);
+        // Reassign reservations & invoices to primary owner
+        await supabase
+          .from("reservations")
+          .update({ primary_owner_id: primary.id })
+          .in("primary_owner_id", dupIds);
+        await supabase
+          .from("invoices")
+          .update({ owner_id: primary.id })
+          .in("owner_id", dupIds);
         // Soft delete duplicates
         const { error } = await supabase
           .from("owners")
@@ -447,7 +453,7 @@ async function fetchAllOwners(orgId: string): Promise<OwnerRecord[]> {
     const { data, error } = await supabase
       .from("owners")
       .select(
-        "id, first_name, last_name, email, phone, street_address, city, created_at, pet_owners(id), reservations(id)",
+        "id, first_name, last_name, email, phone, street_address, city, created_at, pet_owners(id), reservations:reservations!reservations_primary_owner_id_fkey(id)",
       )
       .eq("organization_id", orgId)
       .is("deleted_at", null)
