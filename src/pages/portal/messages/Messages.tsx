@@ -7,6 +7,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { formatRelativeTime, petListLabel, truncatePreview } from "@/lib/messaging";
 import MessageThread from "@/components/messaging/MessageThread";
 import MessageComposer from "@/components/messaging/MessageComposer";
+import PortalLayout from "@/components/portal/PortalLayout";
 
 export default function StaffMessages() {
   const { user } = useAuth();
@@ -37,6 +38,7 @@ export default function StaffMessages() {
   };
 
   return (
+    <PortalLayout>
     <div className="flex h-[calc(100vh-4rem)] flex-col p-6">
       <div className="mb-4">
         <h1 className="font-display text-2xl font-bold text-foreground">Messages</h1>
@@ -135,5 +137,6 @@ export default function StaffMessages() {
         </div>
       </div>
     </div>
+    </PortalLayout>
   );
 }
