@@ -114,7 +114,7 @@ export default function PetOwnersSection({ petId, canEdit = true }: { petId: str
                     >
                       {row.owner!.first_name} {row.owner!.last_name}
                     </Link>
-                    <StatusBadge tone={isPrimary ? "primary" : "neutral"}>
+                    <StatusBadge tone={isPrimary ? "primary" : "muted"}>
                       {isPrimary ? "Primary" : "Co-owner"}
                     </StatusBadge>
                   </div>
