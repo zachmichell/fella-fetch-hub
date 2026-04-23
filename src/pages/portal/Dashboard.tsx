@@ -741,7 +741,7 @@ function GroupedTable({
                   </tr>
                 );
               })}
-            </>
+            </React.Fragment>
           ))}
         </tbody>
       </table>
