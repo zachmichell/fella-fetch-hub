@@ -38,6 +38,7 @@ export default function StaffMessages() {
   };
 
   return (
+    <PortalLayout>
     <div className="flex h-[calc(100vh-4rem)] flex-col p-6">
       <div className="mb-4">
         <h1 className="font-display text-2xl font-bold text-foreground">Messages</h1>
