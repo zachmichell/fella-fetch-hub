@@ -424,7 +424,7 @@ export default function Dashboard() {
             )}
             {drill === "departing" && (
               <GroupedTable
-                rows={goingHome}
+                rows={goingHomeAll}
                 emptyText="No departures for this day"
                 columns={["Pet", "Owner", "Service", "Scheduled Pickup", "Status"]}
                 renderRow={(r) => [
