@@ -279,48 +279,52 @@ export default function Lodging() {
           <StatCard label="Occupancy" value={`${occupancyPct}%`} accent="bg-brand-frost" />
         </div>
 
-        {/* Date nav + filters */}
-        <div className="mb-4 flex flex-wrap items-center justify-between gap-4">
-          <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" onClick={goPrev} aria-label="Previous">
-              <ChevronLeft className="h-4 w-4" />
-            </Button>
-            <Button variant="outline" size="sm" onClick={goToday}>
-              Today
-            </Button>
-            <Button variant="outline" size="sm" onClick={goNext} aria-label="Next">
-              <ChevronRight className="h-4 w-4" />
-            </Button>
-            <div className="ml-3 font-display text-lg text-foreground">{rangeLabel}</div>
+        {/* Date nav + filters (hidden on board view) */}
+        {view !== "board" && (
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-4">
+            <div className="flex items-center gap-2">
+              <Button variant="outline" size="sm" onClick={goPrev} aria-label="Previous">
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              <Button variant="outline" size="sm" onClick={goToday}>
+                Today
+              </Button>
+              <Button variant="outline" size="sm" onClick={goNext} aria-label="Next">
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+              <div className="ml-3 font-display text-lg text-foreground">{rangeLabel}</div>
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+              <Select value={vacancyFilter} onValueChange={(v) => setVacancyFilter(v as VacancyFilter)}>
+                <SelectTrigger className="h-9 w-[170px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All suites</SelectItem>
+                  <SelectItem value="vacant">Show only vacant</SelectItem>
+                  <SelectItem value="occupied">Show only occupied</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select value={serviceFilter} onValueChange={setServiceFilter}>
+                <SelectTrigger className="h-9 w-[180px]">
+                  <SelectValue placeholder="Reservation type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All reservation types</SelectItem>
+                  {services.map((s) => (
+                    <SelectItem key={s.id} value={s.id}>
+                      {s.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
-          <div className="flex flex-wrap items-center gap-2">
-            <Select value={vacancyFilter} onValueChange={(v) => setVacancyFilter(v as VacancyFilter)}>
-              <SelectTrigger className="h-9 w-[170px]">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All suites</SelectItem>
-                <SelectItem value="vacant">Show only vacant</SelectItem>
-                <SelectItem value="occupied">Show only occupied</SelectItem>
-              </SelectContent>
-            </Select>
-            <Select value={serviceFilter} onValueChange={setServiceFilter}>
-              <SelectTrigger className="h-9 w-[180px]">
-                <SelectValue placeholder="Reservation type" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All reservation types</SelectItem>
-                {services.map((s) => (
-                  <SelectItem key={s.id} value={s.id}>
-                    {s.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
+        )}
 
-        {suitesLoading ? (
+        {view === "board" ? (
+          <SuiteBoard />
+        ) : suitesLoading ? (
           <div className="h-64 animate-pulse rounded-lg bg-surface" />
         ) : allSuitesScoped.length === 0 ? (
           <div className="rounded-lg border border-dashed border-border bg-surface p-12 text-center shadow-card">
