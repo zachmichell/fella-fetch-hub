@@ -21,6 +21,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useLocationFilter } from "@/contexts/LocationContext";
 import { formatCentsShort, parseDollarsToCents, centsToDollarString } from "@/lib/money";
 import { nextInvoiceNumber } from "@/lib/invoice";
+import { usePaymentMethods } from "@/hooks/usePaymentMethods";
 
 type Item = {
   id: string;
@@ -49,7 +50,7 @@ export default function PosCart() {
   const [promoCode, setPromoCode] = useState("");
   const [appliedPromo, setAppliedPromo] = useState<any>(null);
   const [storeCreditInput, setStoreCreditInput] = useState("0.00");
-  const [paymentMethod, setPaymentMethod] = useState<"cash" | "check" | "other" | "card">("cash");
+  const [paymentMethod, setPaymentMethod] = useState<"cash" | "check" | "other" | "card" | "card_on_file">("cash");
   const [notes, setNotes] = useState("");
   const [tab, setTab] = useState<"services" | "products" | "packages">("products");
 
