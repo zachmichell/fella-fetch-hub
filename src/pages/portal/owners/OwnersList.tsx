@@ -15,6 +15,7 @@ import { downloadCsv, toCsv } from "@/lib/csv";
 import { Download } from "lucide-react";
 import PageSizeSelect, { usePageSize, setStoredPageSize } from "@/components/portal/PageSizeSelect";
 import DuplicateReviewDialog from "@/components/portal/DuplicateReviewDialog";
+import SortableHeader, { type SortState } from "@/components/portal/SortableHeader";
 
 const PAGE_SIZE_KEY = "owners.pageSize";
 
@@ -26,6 +27,7 @@ export default function OwnersList() {
   const [page, setPage] = useState(0);
   const [pageSize, setPageSizeState] = useState(() => usePageSize(PAGE_SIZE_KEY, 25));
   const [dupeOpen, setDupeOpen] = useState(false);
+  const [sort, setSort] = useState<SortState>({ column: "first_name", dir: "asc" });
 
   const setPageSize = (n: number) => {
     setStoredPageSize(PAGE_SIZE_KEY, n);
@@ -34,16 +36,25 @@ export default function OwnersList() {
   };
 
   const { data, isLoading } = useQuery({
-    queryKey: ["owners", search, page, pageSize],
+    queryKey: ["owners", search, page, pageSize, sort],
     queryFn: async () => {
       let q = supabase
         .from("owners")
         .select("id, first_name, last_name, email, phone, communication_preference, created_at, pet_owners(id)", {
           count: "exact",
         })
-        .is("deleted_at", null)
-        .order("created_at", { ascending: false })
-        .range(page * pageSize, page * pageSize + pageSize - 1);
+        .is("deleted_at", null);
+
+      if (sort) {
+        q = q.order(sort.column, { ascending: sort.dir === "asc", nullsFirst: false });
+        if (sort.column === "first_name") {
+          q = q.order("last_name", { ascending: sort.dir === "asc", nullsFirst: false });
+        }
+      } else {
+        q = q.order("created_at", { ascending: false });
+      }
+
+      q = q.range(page * pageSize, page * pageSize + pageSize - 1);
 
       const term = search.trim();
       if (term) {
