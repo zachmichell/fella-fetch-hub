@@ -1,6 +1,18 @@
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Search, LogIn, LogOut, Check, X, Loader2 } from "lucide-react";
+import {
+  Search,
+  LogIn,
+  LogOut,
+  Check,
+  X,
+  Loader2,
+  ChevronLeft,
+  ChevronRight,
+  CalendarIcon,
+  ChevronDown,
+} from "lucide-react";
+import { format } from "date-fns";
 import { toast } from "sonner";
 import { Link } from "react-router-dom";
 import PortalLayout from "@/components/portal/PortalLayout";
@@ -17,6 +29,9 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
 import { createInvoiceForReservation } from "@/lib/invoice";
 import { formatTime } from "@/lib/money";
 
@@ -32,6 +47,13 @@ function endOfDay(d: Date) {
   x.setHours(23, 59, 59, 999);
   return x;
 }
+function isSameDay(a: Date, b: Date) {
+  return (
+    a.getFullYear() === b.getFullYear() &&
+    a.getMonth() === b.getMonth() &&
+    a.getDate() === b.getDate()
+  );
+}
 
 type Row = {
   id: string;
@@ -45,17 +67,22 @@ type Row = {
   reservation_pets: { pets: { id: string; name: string | null } | null }[];
 };
 
+type DrillKey = "arriving" | "departing" | "overnight" | "onsite" | null;
+
 export default function Dashboard() {
   const { profile, user } = useAuth();
   const qc = useQueryClient();
   const locationId = useLocationFilter();
 
-  const today = new Date();
-  const dayStart = startOfDay(today);
-  const dayEnd = endOfDay(today);
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const [drill, setDrill] = useState<DrillKey>(null);
+  const [datePopoverOpen, setDatePopoverOpen] = useState(false);
+
+  const dayStart = startOfDay(selectedDate);
+  const dayEnd = endOfDay(selectedDate);
 
   const { data: rows = [] } = useQuery({
-    queryKey: ["dashboard-today", locationId, dayStart.toISOString()],
+    queryKey: ["dashboard-day", locationId, dayStart.toISOString()],
     queryFn: async () => {
       let q = supabase
         .from("reservations")
@@ -67,7 +94,7 @@ export default function Dashboard() {
         )
         .is("deleted_at", null)
         .or(
-          `and(start_at.gte.${dayStart.toISOString()},start_at.lte.${dayEnd.toISOString()}),status.eq.checked_in,and(end_at.gte.${dayStart.toISOString()},end_at.lte.${dayEnd.toISOString()})`,
+          `and(start_at.gte.${dayStart.toISOString()},start_at.lte.${dayEnd.toISOString()}),and(checked_in_at.lte.${dayEnd.toISOString()},or(checked_out_at.is.null,checked_out_at.gte.${dayStart.toISOString()})),and(end_at.gte.${dayStart.toISOString()},end_at.lte.${dayEnd.toISOString()})`,
         )
         .order("start_at", { ascending: true });
       if (locationId) q = q.eq("location_id", locationId);
@@ -88,7 +115,16 @@ export default function Dashboard() {
     [rows, dayStart, dayEnd],
   );
 
-  const checkedIn = useMemo(() => rows.filter((r) => r.status === "checked_in"), [rows]);
+  const checkedIn = useMemo(
+    () =>
+      rows.filter(
+        (r) =>
+          r.status === "checked_in" &&
+          (!r.checked_in_at || new Date(r.checked_in_at) <= dayEnd) &&
+          (!r.checked_out_at || new Date(r.checked_out_at) >= dayStart),
+      ),
+    [rows, dayStart, dayEnd],
+  );
 
   const goingHome = useMemo(
     () =>
@@ -115,20 +151,18 @@ export default function Dashboard() {
   // Counters
   const arrivingCount = expected.length;
   const departingCount = goingHome.length;
-  const overnightCount = useMemo(
+  const overnight = useMemo(
     () =>
-      rows.filter(
-        (r) =>
-          r.status === "checked_in" &&
-          r.services?.module === "boarding" &&
-          new Date(r.end_at) > dayEnd,
-      ).length,
-    [rows, dayEnd],
+      checkedIn.filter(
+        (r) => r.services?.module === "boarding" && new Date(r.end_at) > dayEnd,
+      ),
+    [checkedIn, dayEnd],
   );
+  const overnightCount = overnight.length;
   const onSiteCount = checkedIn.length;
 
   const invalidate = () => {
-    qc.invalidateQueries({ queryKey: ["dashboard-today"] });
+    qc.invalidateQueries({ queryKey: ["dashboard-day"] });
     qc.invalidateQueries({ queryKey: ["schedule-day"] });
     qc.invalidateQueries({ queryKey: ["schedule-week"] });
   };
@@ -213,45 +247,206 @@ export default function Dashboard() {
   const [quickOpen, setQuickOpen] = useState(false);
 
   const firstName = profile?.first_name || "there";
-  const todayLabel = today.toLocaleDateString("en-CA", {
+  const dateLabel = selectedDate.toLocaleDateString("en-CA", {
+    weekday: "long",
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+    timeZone: "America/Regina",
+  });
+  const shortDateLabel = selectedDate.toLocaleDateString("en-CA", {
     weekday: "long",
     month: "long",
     day: "numeric",
     timeZone: "America/Regina",
   });
 
-  const kpis = [
-    { label: "Arriving", value: arrivingCount, bar: "bg-success", bg: "bg-brand-mist-bg" },
-    { label: "Departing", value: departingCount, bar: "bg-teal", bg: "bg-brand-frost-bg" },
-    { label: "Overnight", value: overnightCount, bar: "bg-plum", bg: "bg-brand-cotton-bg" },
-    { label: "Total On Site", value: onSiteCount, bar: "bg-primary", bg: "bg-brand-vanilla-bg" },
+  const today = new Date();
+  const isToday = isSameDay(selectedDate, today);
+
+  const shiftDay = (delta: number) => {
+    const d = new Date(selectedDate);
+    d.setDate(d.getDate() + delta);
+    setSelectedDate(d);
+    setDrill(null);
+  };
+
+  const kpis: { key: Exclude<DrillKey, null>; label: string; value: number; bar: string; bg: string }[] = [
+    { key: "arriving", label: "Arriving", value: arrivingCount, bar: "bg-success", bg: "bg-brand-mist-bg" },
+    { key: "departing", label: "Departing", value: departingCount, bar: "bg-teal", bg: "bg-brand-frost-bg" },
+    { key: "overnight", label: "Overnight", value: overnightCount, bar: "bg-plum", bg: "bg-brand-cotton-bg" },
+    { key: "onsite", label: "Total On Site", value: onSiteCount, bar: "bg-primary", bg: "bg-brand-vanilla-bg" },
   ];
+
+  const toggleDrill = (k: Exclude<DrillKey, null>) => setDrill((cur) => (cur === k ? null : k));
 
   return (
     <PortalLayout>
       <div className="px-8 py-6">
-        <header className="mb-6">
+        <header className="mb-5">
           <h1 className="font-display text-2xl text-foreground">
             {greeting()}, {firstName}
           </h1>
           <p className="mt-1 text-sm text-text-secondary">
-            {todayLabel} · {arrivingCount} arriving · {onSiteCount} on site
+            {shortDateLabel} · {arrivingCount} arriving · {onSiteCount} on site
           </p>
         </header>
 
-        {/* Daily Summary */}
-        <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {kpis.map((k) => (
-            <div
-              key={k.label}
-              className={`relative overflow-hidden rounded-lg border border-border ${k.bg} p-5 shadow-card`}
-            >
-              <span className={`absolute left-0 top-0 h-full w-1 ${k.bar}`} />
-              <div className="label-eyebrow">{k.label}</div>
-              <div className="mt-2 font-display text-3xl font-bold text-foreground">{k.value}</div>
-            </div>
-          ))}
+        {/* Date Navigation */}
+        <div className="mb-5 flex flex-wrap items-center gap-2">
+          <Button variant="outline" size="icon" onClick={() => shiftDay(-1)} aria-label="Previous day">
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+          <Button
+            variant={isToday ? "default" : "outline"}
+            size="sm"
+            onClick={() => {
+              setSelectedDate(new Date());
+              setDrill(null);
+            }}
+          >
+            Today
+          </Button>
+          <Button variant="outline" size="icon" onClick={() => shiftDay(1)} aria-label="Next day">
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+          <Popover open={datePopoverOpen} onOpenChange={setDatePopoverOpen}>
+            <PopoverTrigger asChild>
+              <Button variant="outline" className="gap-2 font-normal">
+                <CalendarIcon className="h-4 w-4" />
+                {dateLabel}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <Calendar
+                mode="single"
+                selected={selectedDate}
+                onSelect={(d) => {
+                  if (d) {
+                    setSelectedDate(d);
+                    setDrill(null);
+                    setDatePopoverOpen(false);
+                  }
+                }}
+                initialFocus
+                className={cn("p-3 pointer-events-auto")}
+              />
+            </PopoverContent>
+          </Popover>
         </div>
+
+        {/* Daily Summary */}
+        <div className="mb-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {kpis.map((k) => {
+            const active = drill === k.key;
+            return (
+              <button
+                key={k.key}
+                type="button"
+                onClick={() => toggleDrill(k.key)}
+                className={cn(
+                  "group relative overflow-hidden rounded-lg border p-5 text-left shadow-card transition-all",
+                  k.bg,
+                  active ? "border-primary ring-2 ring-primary/30" : "border-border hover:border-primary/40",
+                )}
+              >
+                <span className={`absolute left-0 top-0 h-full w-1 ${k.bar}`} />
+                <div className="flex items-start justify-between">
+                  <div>
+                    <div className="label-eyebrow">{k.label}</div>
+                    <div className="mt-2 font-display text-3xl font-bold text-foreground">{k.value}</div>
+                  </div>
+                  <ChevronDown
+                    className={cn(
+                      "h-4 w-4 text-text-tertiary transition-transform",
+                      active && "rotate-180 text-primary",
+                    )}
+                  />
+                </div>
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Drill-down panel */}
+        {drill && (
+          <section className="mb-6 animate-fade-in overflow-hidden rounded-lg border border-border bg-surface shadow-card">
+            <div className="flex items-center justify-between border-b border-border-subtle px-5 py-3">
+              <h2 className="font-display text-base font-semibold text-foreground">
+                {drill === "arriving" && "Arriving"}
+                {drill === "departing" && "Departing"}
+                {drill === "overnight" && "Overnight Boarders"}
+                {drill === "onsite" && "Total On Site"}
+              </h2>
+              <Button variant="ghost" size="sm" onClick={() => setDrill(null)} className="gap-1">
+                <X className="h-3.5 w-3.5" />
+                Close
+              </Button>
+            </div>
+            {drill === "arriving" && (
+              <GroupedTable
+                rows={expected}
+                emptyText="No arrivals for this day"
+                columns={["Pet", "Owner", "Service", "Scheduled Time", "Status"]}
+                renderRow={(r) => [
+                  <PetCell r={r} />,
+                  ownerName(r),
+                  r.services?.name ?? "—",
+                  formatTime(r.start_at, TZ),
+                  <StatusPill label={r.status === "confirmed" ? "Confirmed" : "Pending"} tone={r.status === "confirmed" ? "success" : "warning"} />,
+                ]}
+              />
+            )}
+            {drill === "departing" && (
+              <GroupedTable
+                rows={goingHome}
+                emptyText="No departures for this day"
+                columns={["Pet", "Owner", "Service", "Scheduled Pickup", "Status"]}
+                renderRow={(r) => [
+                  <PetCell r={r} />,
+                  ownerName(r),
+                  r.services?.name ?? "—",
+                  formatTime(r.end_at, TZ),
+                  <StatusPill label={r.checked_out_at ? "Checked Out" : "Ready"} tone="teal" />,
+                ]}
+              />
+            )}
+            {drill === "overnight" && (
+              <FlatTable
+                rows={overnight}
+                emptyText="No overnight boarders"
+                columns={["Pet", "Owner", "Check-in", "Scheduled Checkout", "Nights Remaining"]}
+                renderRow={(r) => {
+                  const end = new Date(r.end_at);
+                  const nights = Math.max(
+                    0,
+                    Math.ceil((end.getTime() - dayEnd.getTime()) / (1000 * 60 * 60 * 24)),
+                  );
+                  return [
+                    <PetCell r={r} />,
+                    ownerName(r),
+                    r.checked_in_at ? format(new Date(r.checked_in_at), "MMM d, h:mm a") : "—",
+                    format(end, "MMM d, h:mm a"),
+                    `${nights} night${nights === 1 ? "" : "s"}`,
+                  ];
+                }}
+              />
+            )}
+            {drill === "onsite" && (
+              <GroupedTable
+                rows={checkedIn}
+                emptyText="No pets currently on site"
+                columns={["Pet", "Owner", "Service", "Checked In"]}
+                renderRow={(r) => [
+                  <PetCell r={r} />,
+                  ownerName(r),
+                  r.services?.name ?? "—",
+                  r.checked_in_at ? formatTime(r.checked_in_at, TZ) : "—",
+                ]}
+              />
+            )}
+          </section>
+        )}
 
         {/* Quick Actions */}
         <div className="mb-6 flex flex-wrap items-center gap-3">
@@ -399,6 +594,159 @@ function petNames(r: Row) {
 
 function ownerName(r: Row) {
   return [r.owners?.first_name, r.owners?.last_name].filter(Boolean).join(" ") || "—";
+}
+
+function PetCell({ r }: { r: Row }) {
+  return (
+    <Link to={`/reservations/${r.id}`} className="font-medium text-foreground hover:text-primary">
+      {petNames(r) || "—"}
+    </Link>
+  );
+}
+
+function StatusPill({ label, tone }: { label: string; tone: "success" | "warning" | "teal" }) {
+  const cls =
+    tone === "success"
+      ? "bg-success-bg text-success"
+      : tone === "warning"
+        ? "bg-warning-bg text-warning"
+        : "bg-brand-frost-bg text-teal";
+  return (
+    <span className={cn("inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium", cls)}>
+      {label}
+    </span>
+  );
+}
+
+function moduleLabel(m: string | null | undefined) {
+  switch (m) {
+    case "daycare":
+      return "Daycare";
+    case "boarding":
+      return "Boarding";
+    case "grooming":
+      return "Grooming";
+    case "training":
+      return "Training";
+    default:
+      return "Other";
+  }
+}
+
+function FlatTable({
+  rows,
+  emptyText,
+  columns,
+  renderRow,
+}: {
+  rows: Row[];
+  emptyText: string;
+  columns: string[];
+  renderRow: (r: Row) => React.ReactNode[];
+}) {
+  if (rows.length === 0) {
+    return (
+      <div className="px-5 py-10 text-center font-display text-sm text-text-secondary">{emptyText}</div>
+    );
+  }
+  return (
+    <div className="overflow-x-auto">
+      <table className="w-full text-sm">
+        <thead className="bg-background">
+          <tr className="text-left text-[11px] font-semibold uppercase tracking-wider text-text-secondary">
+            {columns.map((c) => (
+              <th key={c} className="px-5 py-3">
+                {c}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((r) => {
+            const cells = renderRow(r);
+            return (
+              <tr key={r.id} className="border-t border-border-subtle hover:bg-background/60">
+                {cells.map((c, i) => (
+                  <td key={i} className="px-5 py-3 text-text-secondary">
+                    {c}
+                  </td>
+                ))}
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+function GroupedTable({
+  rows,
+  emptyText,
+  columns,
+  renderRow,
+}: {
+  rows: Row[];
+  emptyText: string;
+  columns: string[];
+  renderRow: (r: Row) => React.ReactNode[];
+}) {
+  if (rows.length === 0) {
+    return (
+      <div className="px-5 py-10 text-center font-display text-sm text-text-secondary">{emptyText}</div>
+    );
+  }
+  const groups = new Map<string, Row[]>();
+  for (const r of rows) {
+    const key = moduleLabel(r.services?.module);
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key)!.push(r);
+  }
+  const order = ["Daycare", "Boarding", "Grooming", "Training", "Other"];
+  const sorted = Array.from(groups.entries()).sort(
+    (a, b) => order.indexOf(a[0]) - order.indexOf(b[0]),
+  );
+  return (
+    <div className="overflow-x-auto">
+      <table className="w-full text-sm">
+        <thead className="bg-background">
+          <tr className="text-left text-[11px] font-semibold uppercase tracking-wider text-text-secondary">
+            {columns.map((c) => (
+              <th key={c} className="px-5 py-3">
+                {c}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {sorted.map(([group, list]) => (
+            <>
+              <tr key={`hd-${group}`} className="bg-background/60">
+                <td
+                  colSpan={columns.length}
+                  className="px-5 py-2 text-[11px] font-semibold uppercase tracking-wider text-text-secondary"
+                >
+                  {group} · {list.length}
+                </td>
+              </tr>
+              {list.map((r) => {
+                const cells = renderRow(r);
+                return (
+                  <tr key={r.id} className="border-t border-border-subtle hover:bg-background/60">
+                    {cells.map((c, i) => (
+                      <td key={i} className="px-5 py-3 text-text-secondary">
+                        {c}
+                      </td>
+                    ))}
+                  </tr>
+                );
+              })}
+            </>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
 }
 
 function ResTable({
