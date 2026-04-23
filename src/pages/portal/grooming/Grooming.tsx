@@ -36,6 +36,8 @@ import { format, addDays, startOfWeek, endOfWeek } from "date-fns";
 import { cn } from "@/lib/utils";
 import { useGroomingAppointments, type GroomingAppointment } from "@/hooks/useGroomingAppointments";
 import { useGroomers } from "@/hooks/useGroomers";
+import { usePermissions } from "@/hooks/usePermissions";
+import TipDialog from "@/components/portal/TipDialog";
 import GroomingAppointmentDialog from "./GroomingAppointmentDialog";
 
 type ViewMode = "day" | "week";
