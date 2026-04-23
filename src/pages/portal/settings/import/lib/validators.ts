@@ -191,10 +191,12 @@ export async function validateRows(
   mapping: ColumnMapping,
   organizationId: string,
 ): Promise<ValidationResult> {
-  const existingOwnerEmails = new Set<string>();
-  const existingOwnerNames = new Set<string>(); // normalized "first last"
+  const existingOwnerEmails = new Map<string, string>(); // email -> id
+  const existingOwnerNames = new Map<string, string>(); // "first last" -> id
   let ownerMaps: OwnerMaps | null = null;
   const petKeyToId = new Map<string, string>();
+  // For pets: map (norm name + owner_id) -> existing pet id
+  const existingPetByNameOwner = new Map<string, string>();
 
   if (dataType === "owners" || dataType === "pets" || dataType === "vaccinations" || dataType === "reservations") {
     // Page through owners (>1000 row default limit)
@@ -216,10 +218,11 @@ export async function validateRows(
       from += PAGE;
     }
     for (const o of allOwners) {
-      if (o.email) existingOwnerEmails.add(o.email.toLowerCase());
+      if (o.email) existingOwnerEmails.set(o.email.toLowerCase(), o.id);
       const fn = normName(o.first_name ?? "");
       const ln = normName(o.last_name ?? "");
-      if (fn || ln) existingOwnerNames.add(`${fn} ${ln}`.trim());
+      const key = `${fn} ${ln}`.trim();
+      if (key && !existingOwnerNames.has(key)) existingOwnerNames.set(key, o.id);
     }
     ownerMaps = buildOwnerMaps(allOwners);
   }
