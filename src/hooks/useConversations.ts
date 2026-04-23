@@ -59,7 +59,7 @@ export function useStaffConversations() {
   useEffect(() => {
     if (!orgId) return;
     const channel = supabase
-      .channel(`conversations-org-${orgId}`)
+      .channel(`conversations-org-${orgId}-${Math.random().toString(36).slice(2)}`)
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "conversations", filter: `organization_id=eq.${orgId}` },
