@@ -301,29 +301,39 @@ export async function validateRows(
       mapped.notes = noteParts.length ? noteParts.join("\n") : null;
 
       // Duplicate detection: by email if present, otherwise by exact name
+      let dupId: string | null = null;
       if (mapped.email) {
-        if (existingOwnerEmails.has(mapped.email) || seenEmails.has(mapped.email)) {
+        const exId = existingOwnerEmails.get(mapped.email);
+        if (exId) dupId = exId;
+        else if (seenEmails.has(mapped.email)) dupId = "__inbatch__";
+        if (dupId) {
           issues.push({
             severity: "warning",
             field: "email",
             message: "Duplicate — owner with this email already exists",
           });
         }
-        seenEmails.add(mapped.email);
+        seenEmails.set(mapped.email, index);
       } else {
         const fnNorm = normName(mapped.first_name ?? "");
         const lnNorm = normName(mapped.last_name ?? "");
         const nameKey = `${fnNorm} ${lnNorm}`.trim();
         if (nameKey) {
-          if (existingOwnerNames.has(nameKey) || seenNames.has(nameKey)) {
+          const exId = existingOwnerNames.get(nameKey);
+          if (exId) dupId = exId;
+          else if (seenNames.has(nameKey)) dupId = "__inbatch__";
+          if (dupId) {
             issues.push({
               severity: "warning",
               field: "last_name",
               message: "Duplicate — owner with this name already exists (no email to disambiguate)",
             });
           }
-          seenNames.add(nameKey);
+          seenNames.set(nameKey, index);
         }
+      }
+      if (dupId) {
+        mapped._duplicate_of = dupId === "__inbatch__" ? null : dupId;
       }
     }
 
