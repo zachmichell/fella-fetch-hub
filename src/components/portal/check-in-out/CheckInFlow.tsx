@@ -189,6 +189,26 @@ export default function CheckInFlow({
             <VaxBadge status={worstVax} />
           </div>
 
+          {petLinkedOwners && petLinkedOwners.length > 1 && (
+            <div>
+              <label className="label-eyebrow mb-2 block">Drop-off contact</label>
+              <Select value={dropoffOwnerId} onValueChange={setDropoffOwnerId}>
+                <SelectTrigger className="bg-background">
+                  <SelectValue placeholder="Choose owner…" />
+                </SelectTrigger>
+                <SelectContent>
+                  {petLinkedOwners.map((row: any) => (
+                    <SelectItem key={row.owner.id} value={row.owner.id}>
+                      {row.owner.first_name} {row.owner.last_name}
+                      {row.owner.phone ? ` · ${row.owner.phone}` : ""}
+                      {row.role === "primary" ? " · Primary" : " · Co-owner"}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+
           <div className="grid gap-4 md:grid-cols-2">
             <div>
               <div className="label-eyebrow mb-2">Waivers</div>
