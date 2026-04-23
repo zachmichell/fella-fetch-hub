@@ -2,9 +2,12 @@ import { supabase } from "@/integrations/supabase/client";
 import type {
   ColumnMapping,
   DataType,
+  MatchMethod,
+  MatchStats,
   ParsedFile,
   RowIssue,
   ValidatedRow,
+  ValidationResult,
 } from "./types";
 import { SNOUT_FIELDS } from "./snoutFields";
 
@@ -67,28 +70,119 @@ function applyMapping(
   return out;
 }
 
-// Match owner by full name (case-insensitive). Handles "First Last" and partial fallback.
-function findOwnerByName(
-  ownerName: string,
-  ownersByFullName: Map<string, string>,
-  owners: { id: string; first_name: string | null; last_name: string | null }[],
-): string | null {
-  const norm = ownerName.trim().toLowerCase();
-  if (!norm) return null;
+// Normalize: lowercase, trim, collapse whitespace, strip non-alphanumeric (keep spaces)
+function normName(s: string): string {
+  return (s || "")
+    .toLowerCase()
+    .replace(/[^a-z0-9\s]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
 
-  // Exact full-name match
-  const exact = ownersByFullName.get(norm);
-  if (exact) return exact;
+type OwnerLite = {
+  id: string;
+  first_name: string | null;
+  last_name: string | null;
+  email: string | null;
+  external_id: string | null;
+  external_source: string | null;
+};
 
-  // Partial: o_name contains last_name AND starts with first_name
-  const firstWord = norm.split(/\s+/)[0];
+type OwnerMaps = {
+  exact: Map<string, string>; // "first last" -> id
+  lastName: Map<string, string[]>; // "last" -> [ids]
+  externalId: Map<string, string>; // ext_id -> id
+  email: Map<string, string>;
+  owners: OwnerLite[];
+  fullNames: { id: string; full: string; last: string }[]; // for suggestions
+};
+
+function buildOwnerMaps(owners: OwnerLite[]): OwnerMaps {
+  const exact = new Map<string, string>();
+  const lastName = new Map<string, string[]>();
+  const externalId = new Map<string, string>();
+  const email = new Map<string, string>();
+  const fullNames: { id: string; full: string; last: string }[] = [];
+
   for (const o of owners) {
-    const fn = (o.first_name ?? "").toLowerCase().trim();
-    const ln = (o.last_name ?? "").toLowerCase().trim();
-    if (!ln) continue;
-    if (norm.includes(ln) && fn && firstWord === fn) return o.id;
+    const fn = normName(o.first_name ?? "");
+    const ln = normName(o.last_name ?? "");
+    const full = `${fn} ${ln}`.trim();
+    if (full) {
+      // first writer wins; if duplicate exact names exist we still resolve to one
+      if (!exact.has(full)) exact.set(full, o.id);
+      fullNames.push({ id: o.id, full, last: ln });
+    }
+    if (ln) {
+      const arr = lastName.get(ln) ?? [];
+      arr.push(o.id);
+      lastName.set(ln, arr);
+    }
+    if (o.external_id) {
+      externalId.set(o.external_id, o.id);
+    }
+    if (o.email) {
+      email.set(o.email.toLowerCase(), o.id);
+    }
   }
-  return null;
+  return { exact, lastName, externalId, email, owners, fullNames };
+}
+
+type MatchResult = { ownerId: string | null; method: MatchMethod; suggestion: string | null };
+
+function matchOwner(
+  oName: string,
+  oExternalId: string | null,
+  oEmail: string | null,
+  maps: OwnerMaps,
+): MatchResult {
+  // 1. Email
+  if (oEmail) {
+    const id = maps.email.get(oEmail.toLowerCase());
+    if (id) return { ownerId: id, method: "email", suggestion: null };
+  }
+  // 2. External ID cross-reference
+  if (oExternalId) {
+    const id = maps.externalId.get(oExternalId);
+    if (id) return { ownerId: id, method: "external_id", suggestion: null };
+  }
+
+  const norm = normName(oName);
+  if (!norm) return { ownerId: null, method: "none", suggestion: null };
+
+  // 3. Exact full-name
+  const exactId = maps.exact.get(norm);
+  if (exactId) return { ownerId: exactId, method: "exact", suggestion: null };
+
+  // 4. Last-name uniqueness — last token of o_name
+  const tokens = norm.split(" ");
+  const lastTok = tokens[tokens.length - 1];
+  if (lastTok) {
+    const candidates = maps.lastName.get(lastTok);
+    if (candidates && candidates.length === 1) {
+      return { ownerId: candidates[0], method: "last_name", suggestion: null };
+    }
+  }
+
+  // 5. Find suggestion (closest by shared last-name or substring)
+  let suggestion: string | null = null;
+  if (lastTok) {
+    const candidates = maps.lastName.get(lastTok);
+    if (candidates && candidates.length > 1) {
+      const names = maps.fullNames
+        .filter((n) => candidates.includes(n.id))
+        .slice(0, 3)
+        .map((n) => n.full);
+      suggestion = `Multiple owners with last name "${lastTok}": ${names.join(", ")}`;
+    }
+  }
+  if (!suggestion) {
+    // substring fallback for suggestion
+    const hit = maps.fullNames.find((n) => n.full.includes(norm) || norm.includes(n.full));
+    if (hit) suggestion = hit.full;
+  }
+
+  return { ownerId: null, method: "none", suggestion };
 }
 
 export async function validateRows(
@@ -96,40 +190,35 @@ export async function validateRows(
   dataType: DataType,
   mapping: ColumnMapping,
   organizationId: string,
-): Promise<ValidatedRow[]> {
+): Promise<ValidationResult> {
   const existingOwnerEmails = new Set<string>();
-  const ownerEmailToId = new Map<string, string>();
-  const ownersByFullName = new Map<string, string>();
-  const ownerExternalToId = new Map<string, string>();
-  let allOwners: { id: string; first_name: string | null; last_name: string | null }[] = [];
+  let ownerMaps: OwnerMaps | null = null;
   const petKeyToId = new Map<string, string>();
 
   if (dataType === "owners" || dataType === "pets" || dataType === "vaccinations" || dataType === "reservations") {
-    const { data: owners } = await supabase
-      .from("owners")
-      .select("id, email, first_name, last_name, external_id, external_source")
-      .eq("organization_id", organizationId)
-      .is("deleted_at", null);
-    allOwners = (owners ?? []).map((o) => ({
-      id: o.id,
-      first_name: o.first_name,
-      last_name: o.last_name,
-    }));
-    for (const o of owners ?? []) {
-      if (o.email) {
-        const e = o.email.toLowerCase();
-        existingOwnerEmails.add(e);
-        ownerEmailToId.set(e, o.id);
-      }
-      const fn = (o.first_name ?? "").trim();
-      const ln = (o.last_name ?? "").trim();
-      if (fn || ln) {
-        ownersByFullName.set(`${fn} ${ln}`.trim().toLowerCase(), o.id);
-      }
-      if (o.external_id && o.external_source) {
-        ownerExternalToId.set(`${o.external_source}::${o.external_id}`, o.id);
-      }
+    // Page through owners (>1000 row default limit)
+    const PAGE = 1000;
+    let from = 0;
+    const allOwners: OwnerLite[] = [];
+    // Loop until empty page
+    // eslint-disable-next-line no-constant-condition
+    while (true) {
+      const { data, error } = await supabase
+        .from("owners")
+        .select("id, email, first_name, last_name, external_id, external_source")
+        .eq("organization_id", organizationId)
+        .is("deleted_at", null)
+        .range(from, from + PAGE - 1);
+      if (error) break;
+      const batch = (data ?? []) as OwnerLite[];
+      allOwners.push(...batch);
+      if (batch.length < PAGE) break;
+      from += PAGE;
     }
+    for (const o of allOwners) {
+      if (o.email) existingOwnerEmails.add(o.email.toLowerCase());
+    }
+    ownerMaps = buildOwnerMaps(allOwners);
   }
 
   if (dataType === "vaccinations" || dataType === "reservations") {
@@ -150,10 +239,14 @@ export async function validateRows(
   const fields = SNOUT_FIELDS[dataType];
   const required = fields.filter((f) => f.required).map((f) => f.key);
 
-  return parsed.rows.map((raw, index) => {
+  const stats: MatchStats = { exact: 0, external_id: 0, last_name: 0, email: 0, unlinked: 0 };
+
+  const rows = parsed.rows.map((raw, index) => {
     const m = applyMapping(raw, mapping);
     const issues: RowIssue[] = [];
     const mapped: Record<string, any> = {};
+    let matchMethod: MatchMethod | undefined;
+    let matchSuggestion: string | null | undefined;
 
     for (const r of required) {
       if (!m[r] || m[r] === "") {
@@ -224,23 +317,31 @@ export async function validateRows(
         mapped.behavioral_notes = `Veterinarian: ${m.veterinarian}`;
       }
 
-      // Owner linking: try email → external_id → name
-      let ownerId: string | null = null;
-      const oe = m.owner_email?.toLowerCase();
-      if (oe && ownerEmailToId.has(oe)) {
-        ownerId = ownerEmailToId.get(oe) ?? null;
-      }
-      if (!ownerId && m.owner_name) {
-        ownerId = findOwnerByName(m.owner_name, ownersByFullName, allOwners);
-      }
-      if (ownerId) {
-        mapped._owner_id = ownerId;
-      } else if (m.owner_name || oe) {
-        issues.push({
-          severity: "warning",
-          field: "owner_name",
-          message: `Owner not found ("${m.owner_name || oe}") — pet will be imported unlinked`,
-        });
+      // Owner linking — multi-tier, fast lookups
+      if (ownerMaps) {
+        const result = matchOwner(
+          m.owner_name || "",
+          m.owner_external_id || null,
+          m.owner_email || null,
+          ownerMaps,
+        );
+        matchMethod = result.method;
+        matchSuggestion = result.suggestion;
+        if (result.ownerId) {
+          mapped._owner_id = result.ownerId;
+          stats[result.method]++;
+        } else {
+          stats.unlinked++;
+          if (m.owner_name || m.owner_email) {
+            const tried = m.owner_name || m.owner_email;
+            const sug = result.suggestion ? ` — closest: ${result.suggestion}` : "";
+            issues.push({
+              severity: "warning",
+              field: "owner_name",
+              message: `Owner not found ("${tried}")${sug} — pet will be imported unlinked`,
+            });
+          }
+        }
       }
     }
 
@@ -278,7 +379,7 @@ export async function validateRows(
       if (m.end_at && !mapped.end_at) {
         issues.push({ severity: "error", field: "end_at", message: "Invalid end date" });
       }
-      const ownerId = ownerEmailToId.get(mapped.owner_email);
+      const ownerId = ownerMaps?.email.get(mapped.owner_email);
       if (!ownerId) {
         issues.push({ severity: "error", field: "owner_email", message: "Owner not found" });
       } else {
@@ -299,6 +400,10 @@ export async function validateRows(
       mapped,
       issues,
       include: !issues.some((i) => i.severity === "error"),
-    };
+      matchMethod,
+      matchSuggestion,
+    } as ValidatedRow;
   });
+
+  return { rows, matchStats: dataType === "pets" ? stats : undefined };
 }
