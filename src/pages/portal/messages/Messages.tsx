@@ -137,5 +137,6 @@ export default function StaffMessages() {
         </div>
       </div>
     </div>
+    </PortalLayout>
   );
 }
