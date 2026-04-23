@@ -192,6 +192,7 @@ export async function validateRows(
   organizationId: string,
 ): Promise<ValidationResult> {
   const existingOwnerEmails = new Set<string>();
+  const existingOwnerNames = new Set<string>(); // normalized "first last"
   let ownerMaps: OwnerMaps | null = null;
   const petKeyToId = new Map<string, string>();
 
@@ -200,7 +201,6 @@ export async function validateRows(
     const PAGE = 1000;
     let from = 0;
     const allOwners: OwnerLite[] = [];
-    // Loop until empty page
     // eslint-disable-next-line no-constant-condition
     while (true) {
       const { data, error } = await supabase
@@ -217,6 +217,9 @@ export async function validateRows(
     }
     for (const o of allOwners) {
       if (o.email) existingOwnerEmails.add(o.email.toLowerCase());
+      const fn = normName(o.first_name ?? "");
+      const ln = normName(o.last_name ?? "");
+      if (fn || ln) existingOwnerNames.add(`${fn} ${ln}`.trim());
     }
     ownerMaps = buildOwnerMaps(allOwners);
   }
@@ -241,6 +244,10 @@ export async function validateRows(
 
   const stats: MatchStats = { exact: 0, external_id: 0, last_name: 0, email: 0, unlinked: 0 };
 
+  // In-batch dedupe state (across rows of THIS file)
+  const seenEmails = new Set<string>();
+  const seenNames = new Set<string>();
+
   const rows = parsed.rows.map((raw, index) => {
     const m = applyMapping(raw, mapping);
     const issues: RowIssue[] = [];
@@ -254,8 +261,13 @@ export async function validateRows(
       }
     }
 
+    // Email format: warning for owners (don't block), error elsewhere
     if (m.email && !EMAIL_RE.test(m.email)) {
-      issues.push({ severity: "error", field: "email", message: "Invalid email format" });
+      issues.push({
+        severity: dataType === "owners" ? "warning" : "error",
+        field: "email",
+        message: "Invalid email format — will be skipped",
+      });
     }
     if (m.owner_email && !EMAIL_RE.test(m.owner_email)) {
       issues.push({ severity: "warning", field: "owner_email", message: "Invalid email format" });
@@ -263,9 +275,10 @@ export async function validateRows(
 
     if (dataType === "owners") {
       mapped.external_id = m.external_id || null;
-      mapped.first_name = m.first_name;
-      mapped.last_name = m.last_name;
-      mapped.email = m.email?.toLowerCase() || null;
+      mapped.first_name = m.first_name || null;
+      mapped.last_name = m.last_name || null;
+      const emailValid = m.email && EMAIL_RE.test(m.email);
+      mapped.email = emailValid ? m.email.toLowerCase() : null;
       mapped.phone = m.phone || null;
       mapped.home_phone = m.home_phone || null;
       mapped.street_address = m.street_address || null;
@@ -278,12 +291,30 @@ export async function validateRows(
       if (m.home_phone && !mapped.phone) noteParts.push(`Home phone: ${m.home_phone}`);
       mapped.notes = noteParts.length ? noteParts.join("\n") : null;
 
-      if (mapped.email && existingOwnerEmails.has(mapped.email)) {
-        issues.push({
-          severity: "warning",
-          field: "email",
-          message: "Owner with this email already exists",
-        });
+      // Duplicate detection: by email if present, otherwise by exact name
+      if (mapped.email) {
+        if (existingOwnerEmails.has(mapped.email) || seenEmails.has(mapped.email)) {
+          issues.push({
+            severity: "warning",
+            field: "email",
+            message: "Duplicate — owner with this email already exists",
+          });
+        }
+        seenEmails.add(mapped.email);
+      } else {
+        const fnNorm = normName(mapped.first_name ?? "");
+        const lnNorm = normName(mapped.last_name ?? "");
+        const nameKey = `${fnNorm} ${lnNorm}`.trim();
+        if (nameKey) {
+          if (existingOwnerNames.has(nameKey) || seenNames.has(nameKey)) {
+            issues.push({
+              severity: "warning",
+              field: "last_name",
+              message: "Duplicate — owner with this name already exists (no email to disambiguate)",
+            });
+          }
+          seenNames.add(nameKey);
+        }
       }
     }
 
