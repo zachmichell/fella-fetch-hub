@@ -7,6 +7,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { formatRelativeTime, petListLabel, truncatePreview } from "@/lib/messaging";
 import MessageThread from "@/components/messaging/MessageThread";
 import MessageComposer from "@/components/messaging/MessageComposer";
+import PortalLayout from "@/components/portal/PortalLayout";
 
 export default function StaffMessages() {
   const { user } = useAuth();
