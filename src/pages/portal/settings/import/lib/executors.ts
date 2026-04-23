@@ -1,5 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
-import type { DataType, ImportResult, ValidatedRow } from "./types";
+import type { DataType, ImportResult, SourceSystem, ValidatedRow } from "./types";
 
 type Progress = (done: number, total: number) => void;
 
@@ -8,6 +8,7 @@ export async function executeImport(
   rows: ValidatedRow[],
   organizationId: string,
   onProgress: Progress,
+  sourceSystem: SourceSystem = "other",
 ): Promise<ImportResult> {
   const result: ImportResult = { imported: 0, skipped: 0, errored: 0, errorRows: [] };
   const toImport = rows.filter((r) => r.include);
