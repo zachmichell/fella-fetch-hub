@@ -36,6 +36,8 @@ import { format, addDays, startOfWeek, endOfWeek } from "date-fns";
 import { cn } from "@/lib/utils";
 import { useGroomingAppointments, type GroomingAppointment } from "@/hooks/useGroomingAppointments";
 import { useGroomers } from "@/hooks/useGroomers";
+import { usePermissions } from "@/hooks/usePermissions";
+import TipDialog from "@/components/portal/TipDialog";
 import GroomingAppointmentDialog from "./GroomingAppointmentDialog";
 
 type ViewMode = "day" | "week";
@@ -70,10 +72,13 @@ export default function Grooming() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [tab, setTab] = useState("schedule");
   const [requestsOpen, setRequestsOpen] = useState(true);
+  const [tipFor, setTipFor] = useState<GroomingAppointment | null>(null);
 
   const { membership } = useAuth();
   const orgId = membership?.organization_id;
   const qc = useQueryClient();
+  const { can } = usePermissions();
+  const canViewRevenue = can("revenue.view");
 
   const { data: appts = [], isLoading } = useGroomingAppointments(dateStr);
   const { data: groomers = [] } = useGroomers({ activeOnly: true });
@@ -130,14 +135,26 @@ export default function Grooming() {
     const revenue = appts
       .filter((a) => a.status === "completed")
       .reduce((sum, a) => sum + (a.price_cents ?? 0), 0);
-    return { scheduled, inProgress, completed, revenue };
+    const tips = appts
+      .filter((a) => a.status === "completed")
+      .reduce((sum, a: any) => sum + (a.tip_cents ?? 0), 0);
+    return { scheduled, inProgress, completed, revenue, tips };
   }, [appts]);
 
   const transition = useMutation({
-    mutationFn: async ({ id, status }: { id: string; status: string }) => {
+    mutationFn: async ({
+      id,
+      status,
+      tip_cents,
+    }: {
+      id: string;
+      status: string;
+      tip_cents?: number | null;
+    }) => {
       const updates: any = { status };
       if (status === "in_progress") updates.check_in_time = new Date().toISOString();
       if (status === "completed") updates.completed_time = new Date().toISOString();
+      if (tip_cents !== undefined) updates.tip_cents = tip_cents;
       const { error } = await supabase.from("grooming_appointments").update(updates).eq("id", id);
       if (error) throw error;
     },
@@ -221,9 +238,16 @@ export default function Grooming() {
     }
     if (a.status === "in_progress") {
       return (
-        <Button size="sm" onClick={() => transition.mutate({ id: a.id, status: "completed" })}>
+        <Button size="sm" onClick={() => setTipFor(a)}>
           <CheckCircle2 className="h-3 w-3" /> Complete
         </Button>
+      );
+    }
+    if (a.status === "completed" && (a as any).tip_cents) {
+      return (
+        <span className="inline-flex items-center gap-1 text-xs text-success">
+          Tip ${((a as any).tip_cents / 100).toFixed(2)}
+        </span>
       );
     }
     return <span className="text-xs text-text-tertiary">—</span>;
@@ -356,7 +380,7 @@ export default function Grooming() {
         {view === "day" ? (
           <>
             {/* KPIs */}
-            <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <div className={cn("mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2", canViewRevenue ? "lg:grid-cols-4" : "lg:grid-cols-3")}>
               <Card className="p-4 border-l-4" style={{ borderLeftColor: "hsl(var(--brand-cotton))" }}>
                 <div className="label-eyebrow">Scheduled Today</div>
                 <div className="mt-1 font-display text-2xl text-foreground">{stats.scheduled}</div>
@@ -369,10 +393,19 @@ export default function Grooming() {
                 <div className="label-eyebrow">Completed</div>
                 <div className="mt-1 font-display text-2xl text-foreground">{stats.completed}</div>
               </Card>
-              <Card className="p-4 border-l-4" style={{ borderLeftColor: "hsl(var(--brand-frost))" }}>
-                <div className="label-eyebrow">Revenue Today</div>
-                <div className="mt-1 font-display text-2xl text-foreground">${(stats.revenue / 100).toFixed(2)}</div>
-              </Card>
+              {canViewRevenue && (
+                <Card className="p-4 border-l-4" style={{ borderLeftColor: "hsl(var(--brand-frost))" }}>
+                  <div className="label-eyebrow">Revenue Today</div>
+                  <div className="mt-1 font-display text-2xl text-foreground">
+                    ${(stats.revenue / 100).toFixed(2)}
+                  </div>
+                  {stats.tips > 0 && (
+                    <div className="mt-1 text-xs text-text-secondary">
+                      + ${(stats.tips / 100).toFixed(2)} tips
+                    </div>
+                  )}
+                </Card>
+              )}
             </div>
 
             <Tabs value={tab} onValueChange={setTab}>
@@ -566,6 +599,25 @@ export default function Grooming() {
       </div>
 
       <GroomingAppointmentDialog open={dialogOpen} onOpenChange={setDialogOpen} defaultDate={dateStr} />
+
+      <TipDialog
+        open={!!tipFor}
+        onOpenChange={(o) => !o && setTipFor(null)}
+        title="Add Tip"
+        description={tipFor?.pet?.name ? `For ${tipFor.pet.name}'s grooming` : undefined}
+        busy={transition.isPending}
+        confirmLabel="Save & Complete"
+        onConfirm={async (cents) => {
+          if (!tipFor) return;
+          await new Promise<void>((resolve, reject) => {
+            transition.mutate(
+              { id: tipFor.id, status: "completed", tip_cents: cents },
+              { onSuccess: () => resolve(), onError: (e) => reject(e) },
+            );
+          });
+          setTipFor(null);
+        }}
+      />
     </PortalLayout>
   );
 }

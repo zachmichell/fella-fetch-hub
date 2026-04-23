@@ -6,6 +6,7 @@ import PortalLayout from "@/components/portal/PortalLayout";
 import PageHeader from "@/components/portal/PageHeader";
 import StatusBadge, { commPrefTone, relationshipTone } from "@/components/portal/StatusBadge";
 import PetOwnerLinkDialog from "@/components/portal/PetOwnerLinkDialog";
+import PaymentMethodsSection from "@/components/portal/PaymentMethodsSection";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -162,13 +163,13 @@ export default function OwnerDetail() {
 
         <Tabs defaultValue="details">
           <TabsList className="bg-transparent border-b border-border-subtle rounded-none h-auto p-0 w-full justify-start gap-6">
-            {["details", "pets", "contacts"].map((v, i) => (
+            {["details", "pets", "contacts", "payment"].map((v, i) => (
               <TabsTrigger
                 key={v}
                 value={v}
                 className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none px-1 pb-3"
               >
-                {["Details", "Pets", "Emergency Contacts"][i]}
+                {["Details", "Pets", "Emergency Contacts", "Payment Methods"][i]}
               </TabsTrigger>
             ))}
           </TabsList>
@@ -251,6 +252,10 @@ export default function OwnerDetail() {
               contacts={contacts ?? []}
               onChange={() => qc.invalidateQueries({ queryKey: ["owner-contacts", id] })}
             />
+          </TabsContent>
+
+          <TabsContent value="payment" className="mt-6">
+            <PaymentMethodsSection ownerId={id!} />
           </TabsContent>
         </Tabs>
       </div>
