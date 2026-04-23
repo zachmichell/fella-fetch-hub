@@ -73,8 +73,32 @@ export default function ReservationsList() {
   const totalPages = useMemo(() => Math.max(1, Math.ceil((data?.count ?? 0) / PAGE_SIZE)), [data?.count]);
 
   return (
-    <PortalLayout>
-      <div className="px-8 py-6">
+    <ReservationsListBody
+      data={data}
+      isLoading={isLoading}
+      startDate={startDate}
+      endDate={endDate}
+      status={status}
+      page={page}
+      totalPages={totalPages}
+      setStartDate={setStartDate}
+      setEndDate={setEndDate}
+      setStatus={setStatus}
+      setPage={setPage}
+      can={can}
+      canCreate={canCreate}
+      navigate={navigate}
+      withLayout
+    />
+  );
+}
+
+function ReservationsListBody({
+  data, isLoading, startDate, endDate, status, page, totalPages,
+  setStartDate, setEndDate, setStatus, setPage, can, canCreate, navigate, withLayout,
+}: any) {
+  const inner = (
+    <div className="px-8 py-6">
         <PageHeader
           title="Reservations"
           actions={
