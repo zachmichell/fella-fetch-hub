@@ -631,6 +631,10 @@ function WeeklyGrid({
       </div>
       {suites.map((s) => {
         const isHover = hoverSuite === s.id;
+        // Track which reservations have already been "anchored" (made draggable)
+        // on an earlier visible day in this row, so multi-day stays only render
+        // one draggable handle per row.
+        const anchored = new Set<string>();
         return (
           <div
             key={s.id}
@@ -647,7 +651,6 @@ function WeeklyGrid({
               }
             }}
             onDragLeave={(e) => {
-              // Only clear if leaving the row entirely
               const rt = e.relatedTarget as Node | null;
               if (!rt || !(e.currentTarget as Node).contains(rt)) {
                 setHoverSuite((prev) => (prev === s.id ? null : prev));
@@ -667,7 +670,10 @@ function WeeklyGrid({
               const key = `${s.id}|${format(d, "yyyy-MM-dd")}`;
               const r = cellMap.get(key);
               const isTransfer = transferStartKeys.has(key);
-              const isStartDay = r && format(startOfDay(new Date(r.start_at)), "yyyy-MM-dd") === format(d, "yyyy-MM-dd");
+              // Make the FIRST visible cell of a stay draggable (handles stays
+              // that started before the visible week).
+              const isDragHandle = !!r && !anchored.has(r.id);
+              if (r && isDragHandle) anchored.add(r.id);
               return (
                 <div
                   key={key}
@@ -683,9 +689,9 @@ function WeeklyGrid({
                   {r ? (
                     <button
                       type="button"
-                      draggable={isStartDay}
+                      draggable={isDragHandle}
                       onDragStart={(e) => {
-                        if (!isStartDay) {
+                        if (!isDragHandle) {
                           e.preventDefault();
                           return;
                         }
@@ -695,13 +701,18 @@ function WeeklyGrid({
                           startKey: format(startOfDay(new Date(r.start_at)), "yyyy-MM-dd"),
                           endKey: format(startOfDay(new Date(r.end_at)), "yyyy-MM-dd"),
                         });
+                        // Slight ghost effect on the source
+                        (e.currentTarget as HTMLElement).style.opacity = "0.4";
+                      }}
+                      onDragEnd={(e) => {
+                        (e.currentTarget as HTMLElement).style.opacity = "";
                       }}
                       onClick={() => onOccupiedClick(r)}
                       className={cn(
                         "block w-full truncate text-left font-medium",
-                        isStartDay ? "cursor-grab active:cursor-grabbing" : "cursor-pointer",
+                        isDragHandle ? "cursor-grab active:cursor-grabbing" : "cursor-pointer",
                       )}
-                      title={`${petName(r)} — drag to move suites`}
+                      title={`${petName(r)}${isDragHandle ? " — drag to move suites" : ""}`}
                     >
                       {petName(r)}
                     </button>
