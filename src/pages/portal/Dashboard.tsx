@@ -106,62 +106,85 @@ export default function Dashboard() {
     },
   });
 
-  const expected = useMemo(
+  // Apply module filter to all rows first
+  const filteredRows = useMemo(() => {
+    if (moduleFilter === "all") return rows;
+    return rows.filter((r) => r.services?.module === moduleFilter);
+  }, [rows, moduleFilter]);
+
+  // Apply search term across pet + owner names
+  const searchFilter = (list: Row[]) => {
+    const term = searchTerm.trim().toLowerCase();
+    if (!term) return list;
+    return list.filter((r) => {
+      const pets = petNames(r).toLowerCase();
+      const owner = ownerName(r).toLowerCase();
+      return pets.includes(term) || owner.includes(term);
+    });
+  };
+
+  const expectedAll = useMemo(
     () =>
-      rows.filter(
+      filteredRows.filter(
         (r) =>
           r.status === "confirmed" &&
           new Date(r.start_at) >= dayStart &&
           new Date(r.start_at) <= dayEnd,
       ),
-    [rows, dayStart, dayEnd],
+    [filteredRows, dayStart, dayEnd],
   );
 
-  const checkedIn = useMemo(
+  const checkedInAll = useMemo(
     () =>
-      rows.filter(
+      filteredRows.filter(
         (r) =>
           r.status === "checked_in" &&
           (!r.checked_in_at || new Date(r.checked_in_at) <= dayEnd) &&
           (!r.checked_out_at || new Date(r.checked_out_at) >= dayStart),
       ),
-    [rows, dayStart, dayEnd],
+    [filteredRows, dayStart, dayEnd],
   );
 
-  const goingHome = useMemo(
+  const goingHomeAll = useMemo(
     () =>
-      rows.filter(
+      filteredRows.filter(
         (r) =>
           r.status === "checked_in" &&
           new Date(r.end_at) >= dayStart &&
           new Date(r.end_at) <= dayEnd,
       ),
-    [rows, dayStart, dayEnd],
+    [filteredRows, dayStart, dayEnd],
   );
 
-  const requested = useMemo(
+  const requestedAll = useMemo(
     () =>
-      rows.filter(
+      filteredRows.filter(
         (r) =>
           r.status === "requested" &&
           new Date(r.start_at) >= dayStart &&
           new Date(r.start_at) <= dayEnd,
       ),
-    [rows, dayStart, dayEnd],
+    [filteredRows, dayStart, dayEnd],
   );
 
-  // Counters
-  const arrivingCount = expected.length;
-  const departingCount = goingHome.length;
+  // Search-filtered versions for the tabs (counts in tab labels reflect search)
+  const expected = useMemo(() => searchFilter(expectedAll), [expectedAll, searchTerm]);
+  const checkedIn = useMemo(() => searchFilter(checkedInAll), [checkedInAll, searchTerm]);
+  const goingHome = useMemo(() => searchFilter(goingHomeAll), [goingHomeAll, searchTerm]);
+  const requested = useMemo(() => searchFilter(requestedAll), [requestedAll, searchTerm]);
+
+  // Counters use the (unsearched) filtered totals so KPIs reflect day+module
+  const arrivingCount = expectedAll.length;
+  const departingCount = goingHomeAll.length;
   const overnight = useMemo(
     () =>
-      checkedIn.filter(
+      checkedInAll.filter(
         (r) => r.services?.module === "boarding" && new Date(r.end_at) > dayEnd,
       ),
-    [checkedIn, dayEnd],
+    [checkedInAll, dayEnd],
   );
   const overnightCount = overnight.length;
-  const onSiteCount = checkedIn.length;
+  const onSiteCount = checkedInAll.length;
 
   const invalidate = () => {
     qc.invalidateQueries({ queryKey: ["dashboard-day"] });
