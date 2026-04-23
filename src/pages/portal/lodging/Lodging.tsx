@@ -27,15 +27,15 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { ChevronLeft, ChevronRight, BedDouble, ArrowRightLeft } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useSuites, type SuiteRow } from "@/hooks/useSuites";
 import { cn } from "@/lib/utils";
 import { useLocationFilter } from "@/contexts/LocationContext";
-import SuiteBoard from "@/components/portal/lodging/SuiteBoard";
+import { toast } from "sonner";
 
-type ViewMode = "weekly" | "monthly" | "board";
+type ViewMode = "weekly" | "monthly";
 type VacancyFilter = "all" | "vacant" | "occupied";
 
 type ResvRow = {
@@ -46,6 +46,13 @@ type ResvRow = {
   suite_id: string | null;
   service_id: string | null;
   reservation_pets: { pets: { id: string; name: string } | null }[];
+};
+
+type DragPayload = {
+  reservationId: string;
+  fromSuiteId: string;
+  startKey: string; // yyyy-MM-dd
+  endKey: string;   // yyyy-MM-dd
 };
 
 const TYPE_TONES: Record<SuiteRow["type"], "muted" | "primary" | "plum"> = {
@@ -65,6 +72,7 @@ export default function Lodging() {
   const { membership } = useAuth();
   const orgId = membership?.organization_id;
   const locationId = useLocationFilter();
+  const qc = useQueryClient();
 
   const [view, setView] = useState<ViewMode>("weekly");
   const [anchor, setAnchor] = useState<Date>(startOfDay(new Date()));
@@ -180,12 +188,9 @@ export default function Lodging() {
     });
   }, [allSuitesScoped, vacancyFilter, days, cellMap]);
 
-  // Pet transfers: pet_id -> ordered list of (suite_id, dayKey)
-  // Used to mark a cell as the FIRST day in a new suite when the same pet
-  // was in a different suite on the prior day within range.
+  // Pet transfers
   const transferStartKeys = useMemo(() => {
-    const set = new Set<string>(); // `${suiteId}|${dayKey}`
-    // Build per-pet map: dayKey -> suite_id (using filtered reservations)
+    const set = new Set<string>();
     const byPet = new Map<string, Map<string, string>>();
     for (const r of filteredReservations) {
       if (!r.suite_id) continue;
@@ -249,6 +254,47 @@ export default function Lodging() {
     navigate(`/reservations/new?suite_id=${suiteId}&start=${encodeURIComponent(dateStr)}`);
   };
 
+  // Drag & drop: move reservation to a new suite
+  const handleDropOnSuite = async (
+    payload: DragPayload,
+    targetSuite: SuiteRow,
+  ) => {
+    if (payload.fromSuiteId === targetSuite.id) return;
+
+    // Capacity check across the stay's days
+    const stayDays: string[] = [];
+    let d = startOfDay(new Date(payload.startKey));
+    const end = startOfDay(new Date(payload.endKey));
+    for (; d <= end; d = addDays(d, 1)) stayDays.push(format(d, "yyyy-MM-dd"));
+
+    // Count any other reservation already on those days in target suite
+    const conflict = stayDays.some((k) => {
+      const existing = cellMap.get(`${targetSuite.id}|${k}`);
+      return existing && existing.id !== payload.reservationId;
+    });
+    if (conflict && targetSuite.capacity <= 1) {
+      toast.error(`${targetSuite.name} is unavailable for those dates`);
+      return;
+    }
+
+    const fromSuite = allSuitesScoped.find((s) => s.id === payload.fromSuiteId);
+    const { error } = await supabase
+      .from("reservations")
+      .update({ suite_id: targetSuite.id })
+      .eq("id", payload.reservationId);
+
+    if (error) {
+      toast.error(`Move failed: ${error.message}`);
+      return;
+    }
+
+    const movedPet = filteredReservations.find((r) => r.id === payload.reservationId);
+    toast.success(
+      `Moved ${movedPet ? petName(movedPet) : "pet"} from ${fromSuite?.name ?? "suite"} to ${targetSuite.name}`,
+    );
+    qc.invalidateQueries({ queryKey: ["lodging-reservations"] });
+  };
+
   const rangeLabel =
     view === "weekly"
       ? `${format(rangeStart, "MMM d")} – ${format(rangeEnd, "MMM d, yyyy")}`
@@ -263,7 +309,6 @@ export default function Lodging() {
           actions={
             <Tabs value={view} onValueChange={(v) => setView(v as ViewMode)}>
               <TabsList>
-                <TabsTrigger value="board">Board</TabsTrigger>
                 <TabsTrigger value="weekly">Weekly</TabsTrigger>
                 <TabsTrigger value="monthly">Monthly</TabsTrigger>
               </TabsList>
@@ -279,52 +324,48 @@ export default function Lodging() {
           <StatCard label="Occupancy" value={`${occupancyPct}%`} accent="bg-brand-frost" />
         </div>
 
-        {/* Date nav + filters (hidden on board view) */}
-        {view !== "board" && (
-          <div className="mb-4 flex flex-wrap items-center justify-between gap-4">
-            <div className="flex items-center gap-2">
-              <Button variant="outline" size="sm" onClick={goPrev} aria-label="Previous">
-                <ChevronLeft className="h-4 w-4" />
-              </Button>
-              <Button variant="outline" size="sm" onClick={goToday}>
-                Today
-              </Button>
-              <Button variant="outline" size="sm" onClick={goNext} aria-label="Next">
-                <ChevronRight className="h-4 w-4" />
-              </Button>
-              <div className="ml-3 font-display text-lg text-foreground">{rangeLabel}</div>
-            </div>
-            <div className="flex flex-wrap items-center gap-2">
-              <Select value={vacancyFilter} onValueChange={(v) => setVacancyFilter(v as VacancyFilter)}>
-                <SelectTrigger className="h-9 w-[170px]">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All suites</SelectItem>
-                  <SelectItem value="vacant">Show only vacant</SelectItem>
-                  <SelectItem value="occupied">Show only occupied</SelectItem>
-                </SelectContent>
-              </Select>
-              <Select value={serviceFilter} onValueChange={setServiceFilter}>
-                <SelectTrigger className="h-9 w-[180px]">
-                  <SelectValue placeholder="Reservation type" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All reservation types</SelectItem>
-                  {services.map((s) => (
-                    <SelectItem key={s.id} value={s.id}>
-                      {s.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+        {/* Date nav + filters */}
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-4">
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" onClick={goPrev} aria-label="Previous">
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+            <Button variant="outline" size="sm" onClick={goToday}>
+              Today
+            </Button>
+            <Button variant="outline" size="sm" onClick={goNext} aria-label="Next">
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+            <div className="ml-3 font-display text-lg text-foreground">{rangeLabel}</div>
           </div>
-        )}
+          <div className="flex flex-wrap items-center gap-2">
+            <Select value={vacancyFilter} onValueChange={(v) => setVacancyFilter(v as VacancyFilter)}>
+              <SelectTrigger className="h-9 w-[170px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All suites</SelectItem>
+                <SelectItem value="vacant">Show only vacant</SelectItem>
+                <SelectItem value="occupied">Show only occupied</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select value={serviceFilter} onValueChange={setServiceFilter}>
+              <SelectTrigger className="h-9 w-[180px]">
+                <SelectValue placeholder="Reservation type" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All reservation types</SelectItem>
+                {services.map((s) => (
+                  <SelectItem key={s.id} value={s.id}>
+                    {s.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
 
-        {view === "board" ? (
-          <SuiteBoard />
-        ) : suitesLoading ? (
+        {suitesLoading ? (
           <div className="h-64 animate-pulse rounded-lg bg-surface" />
         ) : allSuitesScoped.length === 0 ? (
           <div className="rounded-lg border border-dashed border-border bg-surface p-12 text-center shadow-card">
@@ -356,6 +397,7 @@ export default function Lodging() {
                   petName={petName}
                   onEmptyClick={handleEmptyCell}
                   onOccupiedClick={(r) => navigate(`/reservations/${r.id}`)}
+                  onDropOnSuite={handleDropOnSuite}
                 />
               ) : (
                 <MonthlyGrid
@@ -372,6 +414,7 @@ export default function Lodging() {
                     if (r) navigate(`/reservations/${r.id}`);
                     else handleEmptyCell(suiteId, day);
                   }}
+                  onDropOnSuite={handleDropOnSuite}
                 />
               )}
             </Card>
@@ -429,17 +472,7 @@ export default function Lodging() {
           <span className="inline-flex items-center gap-1.5">
             <ArrowRightLeft className="h-3 w-3" /> Transfer between suites
           </span>
-          <span className="inline-flex items-center gap-1.5">
-            <span className="rounded px-1.5 py-0.5 text-[10px] font-medium bg-success-light text-success">
-              &lt;70%
-            </span>
-            <span className="rounded px-1.5 py-0.5 text-[10px] font-medium bg-warning-light text-warning">
-              70–90%
-            </span>
-            <span className="rounded px-1.5 py-0.5 text-[10px] font-medium bg-danger-light text-danger">
-              &gt;90%
-            </span>
-          </span>
+          <span className="text-text-tertiary">· Drag a pet between suite rows to reassign</span>
         </div>
       </div>
     </PortalLayout>
@@ -535,6 +568,25 @@ function DayHeader({
   );
 }
 
+const DRAG_MIME = "application/x-snout-resv";
+
+function readDragPayload(e: React.DragEvent): DragPayload | null {
+  try {
+    const raw = e.dataTransfer.getData(DRAG_MIME) || e.dataTransfer.getData("text/plain");
+    if (!raw) return null;
+    return JSON.parse(raw) as DragPayload;
+  } catch {
+    return null;
+  }
+}
+
+function writeDragPayload(e: React.DragEvent, payload: DragPayload) {
+  const json = JSON.stringify(payload);
+  e.dataTransfer.setData(DRAG_MIME, json);
+  e.dataTransfer.setData("text/plain", json);
+  e.dataTransfer.effectAllowed = "move";
+}
+
 function WeeklyGrid({
   suites,
   days,
@@ -544,6 +596,7 @@ function WeeklyGrid({
   petName,
   onEmptyClick,
   onOccupiedClick,
+  onDropOnSuite,
 }: {
   suites: SuiteRow[];
   days: Date[];
@@ -553,8 +606,11 @@ function WeeklyGrid({
   petName: (r: ResvRow) => string;
   onEmptyClick: (suiteId: string, day: Date) => void;
   onOccupiedClick: (r: ResvRow) => void;
+  onDropOnSuite: (payload: DragPayload, targetSuite: SuiteRow) => void;
 }) {
   const today = startOfDay(new Date());
+  const [hoverSuite, setHoverSuite] = useState<string | null>(null);
+
   return (
     <div className="min-w-[800px]">
       <div
@@ -573,51 +629,105 @@ function WeeklyGrid({
           />
         ))}
       </div>
-      {suites.map((s) => (
-        <div
-          key={s.id}
-          className="grid border-b border-border-subtle last:border-b-0"
-          style={{ gridTemplateColumns: `220px repeat(${days.length}, minmax(80px, 1fr))` }}
-        >
-          <div className="border-r border-border-subtle px-4 py-3">
-            <SuiteRowHeader s={s} />
+      {suites.map((s) => {
+        const isHover = hoverSuite === s.id;
+        return (
+          <div
+            key={s.id}
+            className={cn(
+              "grid border-b border-border-subtle last:border-b-0 transition-colors",
+              isHover && "bg-accent-light/40 ring-2 ring-inset ring-accent",
+            )}
+            style={{ gridTemplateColumns: `220px repeat(${days.length}, minmax(80px, 1fr))` }}
+            onDragOver={(e) => {
+              if (e.dataTransfer.types.includes(DRAG_MIME) || e.dataTransfer.types.includes("text/plain")) {
+                e.preventDefault();
+                e.dataTransfer.dropEffect = "move";
+                if (hoverSuite !== s.id) setHoverSuite(s.id);
+              }
+            }}
+            onDragLeave={(e) => {
+              // Only clear if leaving the row entirely
+              const rt = e.relatedTarget as Node | null;
+              if (!rt || !(e.currentTarget as Node).contains(rt)) {
+                setHoverSuite((prev) => (prev === s.id ? null : prev));
+              }
+            }}
+            onDrop={(e) => {
+              e.preventDefault();
+              setHoverSuite(null);
+              const payload = readDragPayload(e);
+              if (payload) onDropOnSuite(payload, s);
+            }}
+          >
+            <div className="border-r border-border-subtle px-4 py-3">
+              <SuiteRowHeader s={s} />
+            </div>
+            {days.map((d) => {
+              const key = `${s.id}|${format(d, "yyyy-MM-dd")}`;
+              const r = cellMap.get(key);
+              const isTransfer = transferStartKeys.has(key);
+              const isStartDay = r && format(startOfDay(new Date(r.start_at)), "yyyy-MM-dd") === format(d, "yyyy-MM-dd");
+              return (
+                <div
+                  key={key}
+                  className={cn(
+                    "relative min-h-[64px] border-l border-border-subtle px-2 py-2 text-left text-xs transition-colors",
+                    r
+                      ? r.status === "checked_in"
+                        ? "bg-success-light text-success"
+                        : "bg-primary-light text-primary"
+                      : "bg-card text-text-tertiary",
+                  )}
+                >
+                  {r ? (
+                    <button
+                      type="button"
+                      draggable={isStartDay}
+                      onDragStart={(e) => {
+                        if (!isStartDay) {
+                          e.preventDefault();
+                          return;
+                        }
+                        writeDragPayload(e, {
+                          reservationId: r.id,
+                          fromSuiteId: s.id,
+                          startKey: format(startOfDay(new Date(r.start_at)), "yyyy-MM-dd"),
+                          endKey: format(startOfDay(new Date(r.end_at)), "yyyy-MM-dd"),
+                        });
+                      }}
+                      onClick={() => onOccupiedClick(r)}
+                      className={cn(
+                        "block w-full truncate text-left font-medium",
+                        isStartDay ? "cursor-grab active:cursor-grabbing" : "cursor-pointer",
+                      )}
+                      title={`${petName(r)} — drag to move suites`}
+                    >
+                      {petName(r)}
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => onEmptyClick(s.id, d)}
+                      className="h-full w-full text-left opacity-0 hover:opacity-100"
+                    >
+                      +
+                    </button>
+                  )}
+                  {isTransfer && (
+                    <span
+                      className="absolute -left-2 top-1/2 z-10 -translate-y-1/2 rounded-full bg-accent p-0.5 text-accent-foreground shadow"
+                      title="Transferred from another suite"
+                    >
+                      <ArrowRightLeft className="h-3 w-3" />
+                    </span>
+                  )}
+                </div>
+              );
+            })}
           </div>
-          {days.map((d) => {
-            const key = `${s.id}|${format(d, "yyyy-MM-dd")}`;
-            const r = cellMap.get(key);
-            const isTransfer = transferStartKeys.has(key);
-            return (
-              <button
-                key={key}
-                onClick={() => (r ? onOccupiedClick(r) : onEmptyClick(s.id, d))}
-                className={cn(
-                  "relative min-h-[64px] border-l border-border-subtle px-2 py-2 text-left text-xs transition-colors",
-                  r
-                    ? r.status === "checked_in"
-                      ? "bg-success-light text-success hover:bg-success-light/80"
-                      : "bg-primary-light text-primary hover:bg-primary-light/80"
-                    : "bg-card hover:bg-surface text-text-tertiary",
-                )}
-                aria-label={r ? `${petName(r)} in ${s.name} on ${format(d, "MMM d")}` : `Available — ${s.name} on ${format(d, "MMM d")}`}
-              >
-                {r ? (
-                  <span className="line-clamp-2 font-medium">{petName(r)}</span>
-                ) : (
-                  <span className="opacity-0 hover:opacity-100">+</span>
-                )}
-                {isTransfer && (
-                  <span
-                    className="absolute -left-2 top-1/2 z-10 -translate-y-1/2 rounded-full bg-accent p-0.5 text-accent-foreground shadow"
-                    title="Transferred from another suite"
-                  >
-                    <ArrowRightLeft className="h-3 w-3" />
-                  </span>
-                )}
-              </button>
-            );
-          })}
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 }
@@ -632,6 +742,7 @@ function MonthlyGrid({
   rangeStart,
   rangeEnd,
   onCellClick,
+  onDropOnSuite,
 }: {
   suites: SuiteRow[];
   days: Date[];
@@ -642,9 +753,12 @@ function MonthlyGrid({
   rangeStart: Date;
   rangeEnd: Date;
   onCellClick: (suiteId: string, day: Date) => void;
+  onDropOnSuite: (payload: DragPayload, targetSuite: SuiteRow) => void;
 }) {
   const today = startOfDay(new Date());
   const colWidth = 44;
+  const [hoverSuite, setHoverSuite] = useState<string | null>(null);
+
   return (
     <div className="min-w-[1000px]">
       <div
@@ -666,11 +780,34 @@ function MonthlyGrid({
       </div>
       {suites.map((s) => {
         const suiteResvs = reservations.filter((r) => r.suite_id === s.id);
+        const isHover = hoverSuite === s.id;
         return (
           <div
             key={s.id}
-            className="relative grid border-b border-border-subtle last:border-b-0"
+            className={cn(
+              "relative grid border-b border-border-subtle last:border-b-0 transition-colors",
+              isHover && "bg-accent-light/40 ring-2 ring-inset ring-accent",
+            )}
             style={{ gridTemplateColumns: `200px repeat(${days.length}, ${colWidth}px)` }}
+            onDragOver={(e) => {
+              if (e.dataTransfer.types.includes(DRAG_MIME) || e.dataTransfer.types.includes("text/plain")) {
+                e.preventDefault();
+                e.dataTransfer.dropEffect = "move";
+                if (hoverSuite !== s.id) setHoverSuite(s.id);
+              }
+            }}
+            onDragLeave={(e) => {
+              const rt = e.relatedTarget as Node | null;
+              if (!rt || !(e.currentTarget as Node).contains(rt)) {
+                setHoverSuite((prev) => (prev === s.id ? null : prev));
+              }
+            }}
+            onDrop={(e) => {
+              e.preventDefault();
+              setHoverSuite(null);
+              const payload = readDragPayload(e);
+              if (payload) onDropOnSuite(payload, s);
+            }}
           >
             <div className="border-r border-border-subtle px-4 py-3">
               <SuiteRowHeader s={s} />
@@ -709,15 +846,24 @@ function MonthlyGrid({
               return (
                 <button
                   key={r.id}
+                  draggable
+                  onDragStart={(e) => {
+                    writeDragPayload(e, {
+                      reservationId: r.id,
+                      fromSuiteId: s.id,
+                      startKey: format(start, "yyyy-MM-dd"),
+                      endKey: format(end, "yyyy-MM-dd"),
+                    });
+                  }}
                   onClick={() => onCellClick(s.id, clampedStart)}
                   className={cn(
-                    "pointer-events-auto absolute top-3 flex h-6 items-center truncate rounded-md px-2 text-[11px] font-medium shadow-sm transition-opacity hover:opacity-90",
+                    "pointer-events-auto absolute top-3 flex h-6 cursor-grab items-center truncate rounded-md px-2 text-[11px] font-medium shadow-sm transition-opacity hover:opacity-90 active:cursor-grabbing",
                     r.status === "checked_in"
                       ? "bg-success text-white"
                       : "bg-primary text-primary-foreground",
                   )}
                   style={{ left, width }}
-                  title={`${petName(r)} — ${format(start, "MMM d")} to ${format(end, "MMM d")}`}
+                  title={`${petName(r)} — ${format(start, "MMM d")} to ${format(end, "MMM d")} · drag to move suites`}
                 >
                   {petName(r)}
                 </button>
