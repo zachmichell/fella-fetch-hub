@@ -5,17 +5,19 @@ import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { CheckCircle2, Download, AlertCircle } from "lucide-react";
 import { executeImport } from "./lib/executors";
-import type { DataType, ImportResult, ValidatedRow } from "./lib/types";
+import type { DataType, ImportResult, SourceSystem, ValidatedRow } from "./lib/types";
 
 export default function StepImport({
   dataType,
   rows,
   organizationId,
+  sourceSystem,
   onReset,
 }: {
   dataType: DataType;
   rows: ValidatedRow[];
   organizationId: string;
+  sourceSystem: SourceSystem;
   onReset: () => void;
 }) {
   const navigate = useNavigate();
@@ -27,7 +29,7 @@ export default function StepImport({
     let cancelled = false;
     executeImport(dataType, rows, organizationId, (done, total) => {
       if (!cancelled) setProgress({ done, total });
-    })
+    }, sourceSystem)
       .then((r) => !cancelled && setResult(r))
       .finally(() => !cancelled && setRunning(false));
     return () => {
