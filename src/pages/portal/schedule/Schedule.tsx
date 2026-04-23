@@ -1,220 +1,134 @@
 import { useMemo, useState } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ChevronLeft, ChevronRight, ChevronDown, ChevronUp } from "lucide-react";
-import { toast } from "sonner";
+import { useNavigate } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import PortalLayout from "@/components/portal/PortalLayout";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/hooks/useAuth";
-import { useOrgModules } from "@/hooks/useOrgModules";
-import StatCard from "@/components/portal/schedule/StatCard";
-import ReservationCard, { ScheduleReservation } from "@/components/portal/schedule/ReservationCard";
-import WeekView from "@/components/portal/schedule/WeekView";
-import { formatTime } from "@/lib/money";
-import { createInvoiceForReservation } from "@/lib/invoice";
-import { Link } from "react-router-dom";
 import { useLocationFilter } from "@/contexts/LocationContext";
 
-const TZ = "America/Edmonton";
-
-function ymd(d: Date) {
-  const pad = (n: number) => String(n).padStart(2, "0");
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
-}
+type ViewMode = "week" | "month";
 
 function startOfDay(d: Date) {
   const x = new Date(d);
   x.setHours(0, 0, 0, 0);
   return x;
 }
-
-function endOfDay(d: Date) {
-  const x = new Date(d);
-  x.setHours(23, 59, 59, 999);
+function ymd(d: Date) {
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+}
+function startOfWeek(d: Date) {
+  const x = startOfDay(d);
+  const day = x.getDay(); // 0=Sun
+  const diff = (day + 6) % 7; // Monday=0
+  x.setDate(x.getDate() - diff);
   return x;
 }
-
-function nightsBetween(start: Date, end: Date) {
-  const s = startOfDay(start).getTime();
-  const e = startOfDay(end).getTime();
-  return Math.max(1, Math.round((e - s) / 86400000));
+function startOfMonth(d: Date) {
+  return new Date(d.getFullYear(), d.getMonth(), 1);
+}
+function endOfMonth(d: Date) {
+  return new Date(d.getFullYear(), d.getMonth() + 1, 0, 23, 59, 59, 999);
 }
 
-type ModuleFilter = "all" | "daycare" | "boarding";
+type ResRow = {
+  start_at: string;
+  services: { module: string | null } | null;
+};
 
 export default function Schedule() {
-  const qc = useQueryClient();
-  const { user } = useAuth();
-  const { data: enabledModules } = useOrgModules();
+  const navigate = useNavigate();
   const locationId = useLocationFilter();
-  const [view, setView] = useState<"day" | "week">("day");
-  const [date, setDate] = useState<Date>(() => startOfDay(new Date()));
-  const [moduleFilter, setModuleFilter] = useState<ModuleFilter>("all");
-  const [completedOpen, setCompletedOpen] = useState(false);
+  const [view, setView] = useState<ViewMode>("week");
+  const [anchor, setAnchor] = useState<Date>(() => startOfDay(new Date()));
 
-  const dayStart = startOfDay(date);
-  const dayEnd = endOfDay(date);
+  const range = useMemo(() => {
+    if (view === "week") {
+      const start = startOfWeek(anchor);
+      const end = new Date(start);
+      end.setDate(end.getDate() + 7);
+      return { start, end };
+    }
+    // Month view: include leading/trailing days to fill 6-row grid
+    const monthStart = startOfMonth(anchor);
+    const start = startOfWeek(monthStart);
+    const end = new Date(start);
+    end.setDate(end.getDate() + 42);
+    return { start, end };
+  }, [view, anchor]);
 
-  const { data: rows = [], isLoading } = useQuery({
-    queryKey: ["schedule-day", ymd(date), locationId],
+  const { data: rows = [] } = useQuery({
+    queryKey: ["calendar-range", view, ymd(range.start), ymd(range.end), locationId],
     queryFn: async () => {
-      // Fetch reservations whose start_at falls on the selected day
-      // OR are still checked_in (multi-day boarders)
-      // OR were checked out today
       let q = supabase
         .from("reservations")
-        .select(
-          `id, start_at, end_at, status, notes,
-           checked_in_at, checked_out_at,
-           services:service_id(name, module),
-           owners:primary_owner_id(last_name),
-           reservation_pets(pets(name, breed))`,
-        )
+        .select("start_at, services!inner(module)")
         .is("deleted_at", null)
-        .or(
-          `and(start_at.gte.${dayStart.toISOString()},start_at.lte.${dayEnd.toISOString()}),status.eq.checked_in,and(status.eq.checked_out,checked_out_at.gte.${dayStart.toISOString()},checked_out_at.lte.${dayEnd.toISOString()})`,
-        )
-        .order("start_at", { ascending: true });
+        .neq("status", "cancelled")
+        .gte("start_at", range.start.toISOString())
+        .lt("start_at", range.end.toISOString());
       if (locationId) q = q.eq("location_id", locationId);
       const { data, error } = await q;
       if (error) throw error;
-      return (data ?? []) as unknown as ScheduleReservation[];
+      return (data ?? []) as unknown as ResRow[];
     },
   });
 
-  const { data: classInstances = [] } = useQuery({
-    queryKey: ["schedule-day-classes", ymd(date), locationId],
-    queryFn: async () => {
-      let q = supabase
-        .from("class_instances")
-        .select("id, start_at, end_at, status, class_type:class_type_id(name, category)")
-        .is("deleted_at", null)
-        .eq("status", "scheduled")
-        .gte("start_at", dayStart.toISOString())
-        .lte("start_at", dayEnd.toISOString())
-        .order("start_at");
-      if (locationId) q = q.eq("location_id", locationId);
-      const { data, error } = await q;
-      if (error) throw error;
-      return data ?? [];
-    },
-  });
-
-  const filtered = useMemo(
-    () =>
-      rows.filter((r) => {
-        if (moduleFilter === "all") return true;
-        return r.services?.module === moduleFilter;
-      }),
-    [rows, moduleFilter],
-  );
-
-  const expected = filtered.filter(
-    (r) =>
-      r.status === "confirmed" &&
-      new Date(r.start_at) >= dayStart &&
-      new Date(r.start_at) <= dayEnd,
-  );
-
-  const checkedIn = filtered.filter(
-    (r) => r.status === "checked_in" && !(r.services?.module === "boarding" && new Date(r.end_at) > dayEnd),
-  );
-
-  const boardingOvernight = filtered.filter(
-    (r) =>
-      r.status === "checked_in" &&
-      r.services?.module === "boarding" &&
-      new Date(r.end_at) > dayEnd,
-  );
-
-  const completed = filtered.filter(
-    (r) =>
-      r.status === "checked_out" &&
-      r.checked_out_at &&
-      new Date(r.checked_out_at as any) >= dayStart &&
-      new Date(r.checked_out_at as any) <= dayEnd,
-  );
-
-  const checkInMut = useMutation({
-    mutationFn: async ({ id }: { id: string }) => {
-      const { error } = await supabase
-        .from("reservations")
-        .update({
-          status: "checked_in",
-          checked_in_at: new Date().toISOString(),
-          checked_in_by_user_id: user?.id ?? null,
-        })
-        .eq("id", id);
-      if (error) throw error;
-    },
-    onSuccess: (_d, vars) => {
-      const r = rows.find((x) => x.id === vars.id);
-      const petName = r?.reservation_pets?.[0]?.pets?.name ?? "Pet";
-      toast.success(`${petName} checked in`);
-      qc.invalidateQueries({ queryKey: ["schedule-day"] });
-      qc.invalidateQueries({ queryKey: ["schedule-week"] });
-    },
-    onError: (e: any) => toast.error(e.message ?? "Check-in failed"),
-  });
-
-  const checkOutMut = useMutation({
-    mutationFn: async ({ id }: { id: string }) => {
-      const { error } = await supabase
-        .from("reservations")
-        .update({
-          status: "checked_out",
-          checked_out_at: new Date().toISOString(),
-          checked_out_by_user_id: user?.id ?? null,
-        })
-        .eq("id", id);
-      if (error) throw error;
-    },
-    onSuccess: async (_d, vars) => {
-      const r = rows.find((x) => x.id === vars.id);
-      const petName = r?.reservation_pets?.[0]?.pets?.name ?? "Pet";
-      toast.success(`${petName} checked out`);
-      qc.invalidateQueries({ queryKey: ["schedule-day"] });
-      try {
-        const inv = await createInvoiceForReservation(vars.id);
-        if (!inv.alreadyExisted) {
-          toast.success(`Invoice ${inv.invoice_number ?? ""} created`, {
-            action: {
-              label: "View",
-              onClick: () => window.location.assign(`/invoices/${inv.id}`),
-            },
-          });
-        }
-        qc.invalidateQueries({ queryKey: ["invoices-list"] });
-      } catch (e: any) {
-        toast.error(`Invoice creation failed: ${e.message ?? "unknown"}`);
-      }
-    },
-    onError: (e: any) => toast.error(e.message ?? "Check-out failed"),
-  });
+  // Bucket counts per day
+  const buckets = useMemo(() => {
+    const map = new Map<string, { total: number; daycare: number; boarding: number; grooming: number }>();
+    for (const r of rows) {
+      const k = ymd(new Date(r.start_at));
+      const cur = map.get(k) ?? { total: 0, daycare: 0, boarding: 0, grooming: 0 };
+      cur.total++;
+      const m = r.services?.module;
+      if (m === "daycare") cur.daycare++;
+      else if (m === "boarding") cur.boarding++;
+      else if (m === "grooming") cur.grooming++;
+      map.set(k, cur);
+    }
+    return map;
+  }, [rows]);
 
   const goPrev = () => {
-    const d = new Date(date);
-    d.setDate(d.getDate() - 1);
-    setDate(startOfDay(d));
+    const d = new Date(anchor);
+    if (view === "week") d.setDate(d.getDate() - 7);
+    else d.setMonth(d.getMonth() - 1);
+    setAnchor(startOfDay(d));
   };
   const goNext = () => {
-    const d = new Date(date);
-    d.setDate(d.getDate() + 1);
-    setDate(startOfDay(d));
+    const d = new Date(anchor);
+    if (view === "week") d.setDate(d.getDate() + 7);
+    else d.setMonth(d.getMonth() + 1);
+    setAnchor(startOfDay(d));
   };
-  const goToday = () => setDate(startOfDay(new Date()));
+  const goToday = () => setAnchor(startOfDay(new Date()));
 
-  const longDate = date.toLocaleDateString(undefined, {
-    weekday: "long",
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-    timeZone: TZ,
-  });
+  const headerLabel = useMemo(() => {
+    if (view === "week") {
+      const start = startOfWeek(anchor);
+      const end = new Date(start);
+      end.setDate(end.getDate() + 6);
+      const sameMonth = start.getMonth() === end.getMonth();
+      const startStr = start.toLocaleDateString(undefined, {
+        month: "short",
+        day: "numeric",
+      });
+      const endStr = end.toLocaleDateString(undefined, {
+        month: sameMonth ? undefined : "short",
+        day: "numeric",
+        year: "numeric",
+      });
+      return `${startStr} – ${endStr}`;
+    }
+    return anchor.toLocaleDateString(undefined, { month: "long", year: "numeric" });
+  }, [view, anchor]);
 
-  const showDaycare = !enabledModules || enabledModules.has("daycare");
-  const showBoarding = !enabledModules || enabledModules.has("boarding");
+  const onPickDay = (d: Date) => {
+    // Navigate to dashboard. (Dashboard is today-focused; ?date= reserved for future.)
+    navigate(`/dashboard?date=${ymd(d)}`);
+  };
 
   return (
     <PortalLayout>
@@ -223,267 +137,211 @@ export default function Schedule() {
         <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
           <div>
             <div className="flex items-center gap-2">
-              <Button variant="outline" size="icon" onClick={goPrev} aria-label="Previous day">
+              <Button variant="outline" size="icon" onClick={goPrev} aria-label="Previous">
                 <ChevronLeft className="h-4 w-4" />
               </Button>
-              <Button variant="outline" size="icon" onClick={goNext} aria-label="Next day">
+              <Button variant="outline" size="icon" onClick={goNext} aria-label="Next">
                 <ChevronRight className="h-4 w-4" />
               </Button>
               <Button variant="outline" size="sm" onClick={goToday}>
                 Today
               </Button>
-              <Input
-                type="date"
-                value={ymd(date)}
-                onChange={(e) => {
-                  if (e.target.value) {
-                    const [y, m, d] = e.target.value.split("-").map(Number);
-                    setDate(startOfDay(new Date(y, m - 1, d)));
-                  }
-                }}
-                className="w-[170px] bg-background"
-              />
             </div>
-            <h1 className="mt-3 font-display text-2xl text-foreground">{longDate}</h1>
+            <h1 className="mt-3 font-display text-2xl text-foreground">{headerLabel}</h1>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2">
-            <div className="inline-flex rounded-md border border-border bg-card p-0.5">
-              <button
-                onClick={() => setView("day")}
-                className={`rounded-sm px-3 py-1.5 text-xs font-semibold transition ${
-                  view === "day" ? "bg-primary text-primary-foreground" : "text-text-secondary"
-                }`}
-              >
-                Day
-              </button>
-              <button
-                onClick={() => setView("week")}
-                className={`rounded-sm px-3 py-1.5 text-xs font-semibold transition ${
-                  view === "week" ? "bg-primary text-primary-foreground" : "text-text-secondary"
-                }`}
-              >
-                Week
-              </button>
-            </div>
-
-            <div className="inline-flex rounded-pill border border-border bg-card p-0.5">
-              {(
-                [
-                  { k: "all", label: "All" },
-                  ...(showDaycare ? [{ k: "daycare", label: "Daycare" }] : []),
-                  ...(showBoarding ? [{ k: "boarding", label: "Boarding" }] : []),
-                ] as { k: ModuleFilter; label: string }[]
-              ).map((p) => (
-                <button
-                  key={p.k}
-                  onClick={() => setModuleFilter(p.k)}
-                  className={`rounded-pill px-3 py-1 text-xs font-semibold transition ${
-                    moduleFilter === p.k ? "bg-primary text-primary-foreground" : "text-text-secondary"
-                  }`}
-                >
-                  {p.label}
-                </button>
-              ))}
-            </div>
+          <div className="inline-flex rounded-md border border-border bg-card p-0.5">
+            <button
+              onClick={() => setView("week")}
+              className={`rounded-sm px-3 py-1.5 text-xs font-semibold transition ${
+                view === "week" ? "bg-primary text-primary-foreground" : "text-text-secondary"
+              }`}
+            >
+              Week
+            </button>
+            <button
+              onClick={() => setView("month")}
+              className={`rounded-sm px-3 py-1.5 text-xs font-semibold transition ${
+                view === "month" ? "bg-primary text-primary-foreground" : "text-text-secondary"
+              }`}
+            >
+              Month
+            </button>
           </div>
         </div>
 
-        {/* Stats */}
-        <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <StatCard label="Expected" value={expected.length} variant="cotton" />
-          <StatCard label="On Site" value={checkedIn.length + boardingOvernight.length} variant="vanilla" />
-          <StatCard label="Boarding" value={boardingOvernight.length} variant="frost" />
-          <StatCard label="Completed" value={completed.length} variant="mist" />
+        {/* Legend */}
+        <div className="mb-4 flex flex-wrap items-center gap-4 text-xs text-text-secondary">
+          <span className="inline-flex items-center gap-1.5">
+            <span className="h-2.5 w-2.5 rounded-full bg-success" /> Daycare
+          </span>
+          <span className="inline-flex items-center gap-1.5">
+            <span className="h-2.5 w-2.5 rounded-full bg-teal" /> Boarding
+          </span>
+          <span className="inline-flex items-center gap-1.5">
+            <span className="h-2.5 w-2.5 rounded-full bg-brand-cotton" /> Grooming
+          </span>
         </div>
 
         {view === "week" ? (
-          <WeekView
-            selectedDate={date}
-            moduleFilter={moduleFilter}
-            onPickDay={(d) => {
-              setDate(startOfDay(d));
-              setView("day");
-            }}
-          />
-        ) : isLoading ? (
-          <div className="rounded-lg border border-border bg-card p-12 text-center text-sm text-text-secondary">
-            Loading…
-          </div>
+          <WeekGrid start={startOfWeek(anchor)} buckets={buckets} onPickDay={onPickDay} />
         ) : (
-          <div className="space-y-6">
-            <Section title="Expected" count={expected.length}>
-              {expected.length === 0 ? (
-                <EmptyRow text="No expected reservations" />
-              ) : (
-                expected.map((r) => (
-                  <ReservationCard
-                    key={r.id}
-                    reservation={r}
-                    timezone={TZ}
-                    action={{
-                      label: "Check In",
-                      onClick: () => checkInMut.mutate({ id: r.id }),
-                      loading: checkInMut.isPending && checkInMut.variables?.id === r.id,
-                    }}
-                  />
-                ))
-              )}
-            </Section>
-
-            <Section title="Checked In" count={checkedIn.length}>
-              {checkedIn.length === 0 ? (
-                <EmptyRow text="No pets currently on site" />
-              ) : (
-                checkedIn.map((r) => {
-                  const overdue = new Date() > new Date(r.end_at);
-                  return (
-                    <ReservationCard
-                      key={r.id}
-                      reservation={r}
-                      timezone={TZ}
-                      overdue={overdue}
-                      meta={`In ${formatTime(r.checked_in_at as any, TZ)} · Out by ${formatTime(r.end_at, TZ)}`}
-                      action={{
-                        label: "Check Out",
-                        variant: "outline",
-                        onClick: () => checkOutMut.mutate({ id: r.id }),
-                        loading: checkOutMut.isPending && checkOutMut.variables?.id === r.id,
-                      }}
-                    />
-                  );
-                })
-              )}
-            </Section>
-
-            <Section title="Boarding Overnight" count={boardingOvernight.length}>
-              {boardingOvernight.length === 0 ? (
-                <EmptyRow text="No overnight boarders" />
-              ) : (
-                boardingOvernight.map((r) => {
-                  const start = new Date(r.start_at);
-                  const end = new Date(r.end_at);
-                  const totalNights = nightsBetween(start, end);
-                  const elapsed = Math.max(
-                    1,
-                    Math.min(totalNights, nightsBetween(start, date) + 1),
-                  );
-                  return (
-                    <ReservationCard
-                      key={r.id}
-                      reservation={r}
-                      timezone={TZ}
-                      meta={`Night ${elapsed} of ${totalNights} · Out ${end.toLocaleDateString(undefined, {
-                        month: "short",
-                        day: "numeric",
-                        timeZone: TZ,
-                      })}`}
-                    />
-                  );
-                })
-              )}
-            </Section>
-
-            <Section
-              title="Completed Today"
-              count={completed.length}
-              collapsible
-              open={completedOpen}
-              onToggle={() => setCompletedOpen((o) => !o)}
-            >
-              {completed.length === 0 ? (
-                <EmptyRow text="No checkouts today" />
-              ) : (
-                completed.map((r) => (
-                  <ReservationCard
-                    key={r.id}
-                    reservation={r}
-                    timezone={TZ}
-                    meta={`${formatTime(r.checked_in_at as any, TZ)} → ${formatTime(
-                      r.checked_out_at as any,
-                      TZ,
-                    )}`}
-                  />
-                ))
-              )}
-            </Section>
-
-            <Section title="Group Classes" count={classInstances.length}>
-              {classInstances.length === 0 ? (
-                <EmptyRow text="No classes scheduled today" />
-              ) : (
-                classInstances.map((c: any) => (
-                  <Link
-                    key={c.id}
-                    to="/group-classes"
-                    className="block rounded-lg border border-border bg-card p-3 hover:bg-muted/40 transition-colors"
-                  >
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <div className="font-medium text-foreground">{c.class_type?.name ?? "Class"}</div>
-                        <div className="text-xs text-text-secondary">
-                          {formatTime(c.start_at, TZ)} – {formatTime(c.end_at, TZ)}
-                        </div>
-                      </div>
-                      <span className="rounded-pill bg-muted px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-text-secondary">
-                        Class
-                      </span>
-                    </div>
-                  </Link>
-                ))
-              )}
-            </Section>
-          </div>
+          <MonthGrid anchor={anchor} buckets={buckets} onPickDay={onPickDay} />
         )}
       </div>
     </PortalLayout>
   );
 }
 
-function Section({
-  title,
-  count,
-  children,
-  collapsible,
-  open,
-  onToggle,
+const WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+
+function WeekGrid({
+  start,
+  buckets,
+  onPickDay,
 }: {
-  title: string;
-  count: number;
-  children: React.ReactNode;
-  collapsible?: boolean;
-  open?: boolean;
-  onToggle?: () => void;
+  start: Date;
+  buckets: Map<string, { total: number; daycare: number; boarding: number; grooming: number }>;
+  onPickDay: (d: Date) => void;
 }) {
-  const isOpen = collapsible ? !!open : true;
+  const days = Array.from({ length: 7 }, (_, i) => {
+    const d = new Date(start);
+    d.setDate(d.getDate() + i);
+    return d;
+  });
+  const todayKey = ymd(new Date());
+
   return (
-    <section>
-      <header className="mb-3 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <h2 className="font-display text-lg font-semibold text-foreground">{title}</h2>
-          <span className="rounded-pill bg-card px-2 py-0.5 text-xs font-semibold text-text-secondary">
-            {count}
-          </span>
-        </div>
-        {collapsible && (
+    <div className="grid grid-cols-7 gap-3">
+      {days.map((d) => {
+        const k = ymd(d);
+        const b = buckets.get(k);
+        const isToday = k === todayKey;
+        return (
           <button
-            onClick={onToggle}
-            className="inline-flex items-center gap-1 text-xs font-semibold text-text-secondary hover:text-foreground"
+            key={k}
+            onClick={() => onPickDay(d)}
+            className={`flex min-h-[140px] flex-col items-stretch gap-3 rounded-lg border p-4 text-left shadow-card transition hover:bg-background ${
+              isToday ? "border-primary bg-primary-light" : "border-border bg-card"
+            }`}
           >
-            {isOpen ? "Hide" : "Show"}
-            {isOpen ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
+            <div className="flex items-center justify-between">
+              <span className="label-eyebrow">{WEEKDAYS[(d.getDay() + 6) % 7]}</span>
+              <span
+                className={`font-display text-2xl font-bold ${
+                  isToday ? "text-primary" : "text-foreground"
+                }`}
+              >
+                {d.getDate()}
+              </span>
+            </div>
+            <div className="mt-auto space-y-2">
+              <div className="font-display text-xl font-bold text-foreground">{b?.total ?? 0}</div>
+              <div className="flex items-center gap-2 text-xs text-text-secondary">
+                {b?.daycare ? (
+                  <span className="inline-flex items-center gap-1">
+                    <span className="h-2 w-2 rounded-full bg-success" />
+                    {b.daycare}
+                  </span>
+                ) : null}
+                {b?.boarding ? (
+                  <span className="inline-flex items-center gap-1">
+                    <span className="h-2 w-2 rounded-full bg-teal" />
+                    {b.boarding}
+                  </span>
+                ) : null}
+                {b?.grooming ? (
+                  <span className="inline-flex items-center gap-1">
+                    <span className="h-2 w-2 rounded-full bg-brand-cotton" />
+                    {b.grooming}
+                  </span>
+                ) : null}
+                {!b?.total && <span className="text-text-tertiary">—</span>}
+              </div>
+            </div>
           </button>
-        )}
-      </header>
-      {isOpen && <div className="space-y-2">{children}</div>}
-    </section>
+        );
+      })}
+    </div>
   );
 }
 
-function EmptyRow({ text }: { text: string }) {
+function MonthGrid({
+  anchor,
+  buckets,
+  onPickDay,
+}: {
+  anchor: Date;
+  buckets: Map<string, { total: number; daycare: number; boarding: number; grooming: number }>;
+  onPickDay: (d: Date) => void;
+}) {
+  const monthStart = startOfMonth(anchor);
+  const monthEnd = endOfMonth(anchor);
+  const gridStart = startOfWeek(monthStart);
+  const days = Array.from({ length: 42 }, (_, i) => {
+    const d = new Date(gridStart);
+    d.setDate(d.getDate() + i);
+    return d;
+  });
+  const todayKey = ymd(new Date());
+
+  // Determine max for color intensity scaling
+  const max = Math.max(1, ...Array.from(buckets.values()).map((b) => b.total));
+
+  const intensity = (n: number) => {
+    if (n <= 0) return "bg-card";
+    const ratio = n / max;
+    if (ratio < 0.25) return "bg-brand-vanilla-bg";
+    if (ratio < 0.5) return "bg-brand-cotton-bg";
+    if (ratio < 0.75) return "bg-brand-mist-bg";
+    return "bg-primary-light";
+  };
+
   return (
-    <div className="rounded-lg border border-dashed border-border bg-card/40 px-4 py-5 text-center text-xs text-text-tertiary">
-      {text}
+    <div className="overflow-hidden rounded-lg border border-border bg-card shadow-card">
+      <div className="grid grid-cols-7 border-b border-border-subtle bg-background">
+        {WEEKDAYS.map((w) => (
+          <div
+            key={w}
+            className="px-2 py-2 text-center text-[10px] font-semibold uppercase tracking-wider text-text-secondary"
+          >
+            {w}
+          </div>
+        ))}
+      </div>
+      <div className="grid grid-cols-7">
+        {days.map((d, i) => {
+          const k = ymd(d);
+          const b = buckets.get(k);
+          const inMonth = d >= monthStart && d <= monthEnd;
+          const isToday = k === todayKey;
+          const total = b?.total ?? 0;
+          return (
+            <button
+              key={k + i}
+              onClick={() => onPickDay(d)}
+              className={`flex min-h-[88px] flex-col items-start gap-1 border-b border-r border-border-subtle p-2 text-left transition hover:bg-background ${intensity(total)} ${
+                inMonth ? "" : "opacity-40"
+              }`}
+            >
+              <div className="flex w-full items-center justify-between">
+                <span
+                  className={`text-xs font-semibold ${
+                    isToday
+                      ? "rounded-full bg-primary px-1.5 py-0.5 text-primary-foreground"
+                      : "text-foreground"
+                  }`}
+                >
+                  {d.getDate()}
+                </span>
+              </div>
+              {total > 0 && (
+                <div className="mt-auto font-display text-lg font-bold text-foreground">{total}</div>
+              )}
+            </button>
+          );
+        })}
+      </div>
     </div>
   );
 }
