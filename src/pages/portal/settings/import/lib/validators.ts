@@ -192,6 +192,7 @@ export async function validateRows(
   organizationId: string,
 ): Promise<ValidationResult> {
   const existingOwnerEmails = new Set<string>();
+  const existingOwnerNames = new Set<string>(); // normalized "first last"
   let ownerMaps: OwnerMaps | null = null;
   const petKeyToId = new Map<string, string>();
 
@@ -200,7 +201,6 @@ export async function validateRows(
     const PAGE = 1000;
     let from = 0;
     const allOwners: OwnerLite[] = [];
-    // Loop until empty page
     // eslint-disable-next-line no-constant-condition
     while (true) {
       const { data, error } = await supabase
@@ -217,6 +217,9 @@ export async function validateRows(
     }
     for (const o of allOwners) {
       if (o.email) existingOwnerEmails.add(o.email.toLowerCase());
+      const fn = normName(o.first_name ?? "");
+      const ln = normName(o.last_name ?? "");
+      if (fn || ln) existingOwnerNames.add(`${fn} ${ln}`.trim());
     }
     ownerMaps = buildOwnerMaps(allOwners);
   }
