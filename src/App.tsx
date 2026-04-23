@@ -70,7 +70,7 @@ import ReportCardsList from "./pages/portal/pet-care/ReportCardsList";
 import Traits from "./pages/portal/pet-care/Traits";
 import PetCare from "./pages/portal/pet-care/PetCare";
 import UserManagement from "./pages/portal/management/UserManagement";
-import StaffCodes from "./pages/portal/management/StaffCodes";
+
 import ServiceTypes from "./pages/portal/management/ServiceTypes";
 import Subscriptions from "./pages/portal/settings/Subscriptions";
 import Marketing from "./pages/portal/settings/Marketing";
@@ -147,7 +147,7 @@ const App = () => (
             <Route path="/traits" element={staff(<Traits />)} />
             <Route path="/pet-care" element={staff(<PetCare />)} />
             <Route path="/user-management" element={staff(<UserManagement />)} />
-            <Route path="/staff-codes" element={staff(<StaffCodes />)} />
+            <Route path="/staff-codes" element={<Navigate to="/settings?tab=staff-codes" replace />} />
             <Route path="/service-types" element={staff(<ServiceTypes />)} />
             <Route path="/subscriptions" element={staff(<Subscriptions />)} />
             <Route path="/marketing" element={staff(<Marketing />)} />
