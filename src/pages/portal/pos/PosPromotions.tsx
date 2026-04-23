@@ -43,7 +43,7 @@ function formatDiscount(p: Promo) {
   return formatCentsShort(p.discount_value);
 }
 
-export default function PosPromotions() {
+export function PosPromotionsSection({ showHeader = true }: { showHeader?: boolean } = {}) {
   const { membership } = useAuth();
   const orgId = membership?.organization_id;
   const qc = useQueryClient();
@@ -130,11 +130,12 @@ export default function PosPromotions() {
   });
 
   return (
-    <PortalLayout>
-      <div className="px-8 py-6">
+    <>
+      {showHeader && (
         <PageHeader title="Promotions" description="Discount codes for the POS"
           actions={<Button onClick={openCreate}><Plus className="h-4 w-4" /> New Code</Button>}
         />
+      )}
         <div className="rounded-lg border border-border bg-surface shadow-card">
           {isLoading ? (
             <div className="p-12 text-center text-sm text-text-secondary">Loading…</div>

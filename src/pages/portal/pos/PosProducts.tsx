@@ -47,7 +47,7 @@ function emptyForm() {
   };
 }
 
-export default function PosProducts() {
+export function PosProductsSection({ showHeader = true }: { showHeader?: boolean } = {}) {
   const { membership } = useAuth();
   const orgId = membership?.organization_id;
   const qc = useQueryClient();
@@ -125,13 +125,14 @@ export default function PosProducts() {
   });
 
   return (
-    <PortalLayout>
-      <div className="px-8 py-6">
+    <>
+      {showHeader && (
         <PageHeader
           title="Retail Products"
           description="Manage products available in the store"
           actions={<Button onClick={openCreate}><Plus className="h-4 w-4" /> New Product</Button>}
         />
+      )}
 
         <div className="rounded-lg border border-border bg-surface shadow-card">
           {isLoading ? (
