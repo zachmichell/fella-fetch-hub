@@ -299,14 +299,18 @@ export default function PosCart() {
       }));
       await supabase.from("invoice_lines").insert(lineRows);
 
-      // Payment row (map UI methods to DB enum: card -> card, cash/check/other -> in_person)
+      // Payment row (map UI methods to DB enum: card / card_on_file -> card, cash/check/other -> in_person)
       if (totals.total > 0) {
-        const dbMethod: "card" | "in_person" = paymentMethod === "card" ? "card" : "in_person";
+        const dbMethod: "card" | "in_person" =
+          paymentMethod === "card" || paymentMethod === "card_on_file" ? "card" : "in_person";
         await supabase.from("payments").insert({
           organization_id: orgId!, invoice_id: inv.id,
           amount_cents: totals.total, currency,
           method: dbMethod,
           status: "succeeded", processed_at: now,
+          notes: paymentMethod === "card_on_file" && defaultCard
+            ? `Charged card on file: ${defaultCard.card_brand} •••• ${defaultCard.card_last_four}`
+            : null,
         });
       }
 
@@ -517,12 +521,22 @@ export default function PosCart() {
               <Select value={paymentMethod} onValueChange={(v) => setPaymentMethod(v as any)}>
                 <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
                 <SelectContent>
+                  {defaultCard && (
+                    <SelectItem value="card_on_file">
+                      Card on file ({defaultCard.card_brand} •••• {defaultCard.card_last_four})
+                    </SelectItem>
+                  )}
                   <SelectItem value="cash">Cash</SelectItem>
                   <SelectItem value="check">Check</SelectItem>
                   <SelectItem value="card">Card (recorded)</SelectItem>
                   <SelectItem value="other">Other</SelectItem>
                 </SelectContent>
               </Select>
+              {paymentMethod === "card_on_file" && (
+                <p className="mt-1 text-[11px] text-text-tertiary">
+                  Will be recorded as paid. Stripe charge will run when integrated.
+                </p>
+              )}
             </div>
 
             {/* Notes */}
