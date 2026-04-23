@@ -348,6 +348,15 @@ export function StandingReservationsSection({ showHeader = true }: { showHeader?
             </TableBody>
           </Table>
         </Card>
+    </>
+  );
+}
+
+export default function StandingReservations() {
+  return (
+    <PortalLayout>
+      <div className="px-8 py-6">
+        <StandingReservationsSection />
       </div>
     </PortalLayout>
   );
