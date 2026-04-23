@@ -5,7 +5,7 @@ import { Plus, Pencil, Archive, FileText, Check } from "lucide-react";
 import PortalLayout from "@/components/portal/PortalLayout";
 import PageHeader from "@/components/portal/PageHeader";
 import StatusBadge, { intakeTone, relationshipTone } from "@/components/portal/StatusBadge";
-import PetOwnerLinkDialog from "@/components/portal/PetOwnerLinkDialog";
+import PetOwnersSection from "@/components/portal/PetOwnersSection";
 import VaccinationFormDialog from "./VaccinationFormDialog";
 import MedicationsTab from "@/components/portal/pet-care/MedicationsTab";
 import FeedingTab from "@/components/portal/pet-care/FeedingTab";
@@ -215,42 +215,7 @@ export default function PetDetail() {
           </TabsContent>
 
           <TabsContent value="owners" className="mt-6">
-            <div className="rounded-lg border border-border bg-surface shadow-card">
-              <div className="flex items-center justify-between border-b border-border-subtle p-4">
-                <div className="font-display text-base">Linked Owners</div>
-                <Button size="sm" onClick={() => setLinkOpen(true)}>
-                  <Plus className="h-4 w-4" /> Link Owner
-                </Button>
-              </div>
-              {!owners || owners.length === 0 ? (
-                <div className="p-8 text-center text-sm text-text-secondary">No owners linked yet.</div>
-              ) : (
-                <ul className="divide-y divide-border-subtle">
-                  {owners.map((row: any) => (
-                    <li key={row.id} className="flex items-center justify-between gap-4 p-4">
-                      <div>
-                        <Link to={`/owners/${row.owner.id}`} className="font-medium text-foreground hover:text-primary">
-                          {row.owner.first_name} {row.owner.last_name}
-                        </Link>
-                        <div className="text-xs text-text-secondary">
-                          {row.owner.email}
-                          {row.owner.phone && ` · ${row.owner.phone}`}
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <StatusBadge tone={relationshipTone(row.relationship)}>{row.relationship}</StatusBadge>
-                        <button
-                          onClick={() => setUnlinkId(row.id)}
-                          className="text-xs font-semibold text-destructive hover:underline"
-                        >
-                          Unlink
-                        </button>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
+            <PetOwnersSection petId={id!} canEdit={canEdit} />
           </TabsContent>
 
           <TabsContent value="vax" className="mt-6">
