@@ -47,7 +47,7 @@ const TYPE_TONES: Record<SuiteRow["type"], "muted" | "primary" | "plum"> = {
 type SortKey = "name" | "type" | "status";
 type FilterKey = "all" | "active" | "inactive";
 
-export default function SuiteManagement() {
+export function SuiteManagementSection() {
   const { membership } = useAuth();
   const orgId = membership?.organization_id;
   const qc = useQueryClient();
@@ -132,8 +132,7 @@ export default function SuiteManagement() {
   });
 
   return (
-    <PortalLayout>
-      <div className="px-8 py-6">
+    <div className="px-8 py-6">
         <PageHeader
           title="Suite Management"
           description="Manage your overnight boarding suites"
@@ -285,6 +284,14 @@ export default function SuiteManagement() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+    </div>
+  );
+}
+
+export default function SuiteManagement() {
+  return (
+    <PortalLayout>
+      <SuiteManagementSection />
     </PortalLayout>
   );
 }
