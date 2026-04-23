@@ -106,7 +106,7 @@ export function useOwnerConversation(ownerId?: string) {
   useEffect(() => {
     if (!orgId || !ownerId) return;
     const channel = supabase
-      .channel(`conversation-owner-${ownerId}`)
+      .channel(`conversation-owner-${ownerId}-${Math.random().toString(36).slice(2)}`)
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "conversations", filter: `owner_id=eq.${ownerId}` },
