@@ -98,7 +98,7 @@ export default function CustomReportsTab({ range }: { range: DateRange }) {
       return;
     }
     const csv = toCsv(rows, tableHeaders);
-    downloadCsv(csv, `report-${format(new Date(), "yyyy-MM-dd-HHmm")}.csv`);
+    downloadCsv(`report-${format(new Date(), "yyyy-MM-dd-HHmm")}.csv`, csv);
   };
 
   const loadTemplate = (id: string) => {
