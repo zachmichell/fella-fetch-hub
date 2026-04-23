@@ -855,6 +855,51 @@ export type Database = {
         }
         Relationships: []
       }
+      dismissed_duplicates: {
+        Row: {
+          dismissed_at: string
+          dismissed_by: string | null
+          entity_type: string
+          id: string
+          organization_id: string
+          record_id_1: string
+          record_id_2: string
+        }
+        Insert: {
+          dismissed_at?: string
+          dismissed_by?: string | null
+          entity_type: string
+          id?: string
+          organization_id: string
+          record_id_1: string
+          record_id_2: string
+        }
+        Update: {
+          dismissed_at?: string
+          dismissed_by?: string | null
+          entity_type?: string
+          id?: string
+          organization_id?: string
+          record_id_1?: string
+          record_id_2?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dismissed_duplicates_dismissed_by_fkey"
+            columns: ["dismissed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dismissed_duplicates_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       documents: {
         Row: {
           created_at: string
