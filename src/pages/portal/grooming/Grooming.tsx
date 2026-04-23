@@ -599,6 +599,25 @@ export default function Grooming() {
       </div>
 
       <GroomingAppointmentDialog open={dialogOpen} onOpenChange={setDialogOpen} defaultDate={dateStr} />
+
+      <TipDialog
+        open={!!tipFor}
+        onOpenChange={(o) => !o && setTipFor(null)}
+        title="Add Tip"
+        description={tipFor?.pet?.name ? `For ${tipFor.pet.name}'s grooming` : undefined}
+        busy={transition.isPending}
+        confirmLabel="Save & Complete"
+        onConfirm={async (cents) => {
+          if (!tipFor) return;
+          await new Promise<void>((resolve, reject) => {
+            transition.mutate(
+              { id: tipFor.id, status: "completed", tip_cents: cents },
+              { onSuccess: () => resolve(), onError: (e) => reject(e) },
+            );
+          });
+          setTipFor(null);
+        }}
+      />
     </PortalLayout>
   );
 }
