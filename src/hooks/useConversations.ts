@@ -28,17 +28,30 @@ export function useStaffConversations() {
     queryKey: ["staff-conversations", orgId],
     enabled: !!orgId,
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data: convs, error } = await supabase
         .from("conversations")
         .select(
-          `id, organization_id, owner_id, last_message_at, last_message_preview, unread_staff, unread_owner,
-           owner:owners!conversations_owner_id_fkey ( id, first_name, last_name,
-             pet_owners ( pets ( id, name ) ) )`,
+          `id, organization_id, owner_id, last_message_at, last_message_preview, unread_staff, unread_owner`,
         )
         .eq("organization_id", orgId!)
         .order("last_message_at", { ascending: false, nullsFirst: false });
       if (error) throw error;
-      return (data ?? []) as unknown as ConversationRow[];
+      const ownerIds = Array.from(new Set((convs ?? []).map((c) => c.owner_id)));
+      let ownersById: Record<string, ConversationRow["owner"]> = {};
+      if (ownerIds.length) {
+        const { data: owners, error: oErr } = await supabase
+          .from("owners")
+          .select("id, first_name, last_name, pet_owners ( pets ( id, name ) )")
+          .in("id", ownerIds);
+        if (oErr) throw oErr;
+        ownersById = Object.fromEntries(
+          (owners ?? []).map((o) => [o.id, o as unknown as ConversationRow["owner"]]),
+        );
+      }
+      return (convs ?? []).map((c) => ({
+        ...c,
+        owner: ownersById[c.owner_id] ?? null,
+      })) as ConversationRow[];
     },
   });
 
