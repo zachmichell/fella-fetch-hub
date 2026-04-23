@@ -459,7 +459,7 @@ export default function Dashboard() {
             )}
             {drill === "onsite" && (
               <GroupedTable
-                rows={checkedIn}
+                rows={checkedInAll}
                 emptyText="No pets currently on site"
                 columns={["Pet", "Owner", "Service", "Checked In"]}
                 renderRow={(r) => [
