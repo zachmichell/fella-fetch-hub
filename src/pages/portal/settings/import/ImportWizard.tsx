@@ -6,7 +6,7 @@ import StepSelectSource from "./StepSelectSource";
 import StepUploadMap from "./StepUploadMap";
 import StepValidate from "./StepValidate";
 import StepImport from "./StepImport";
-import type { ColumnMapping, DataType, ParsedFile, SourceSystem, ValidatedRow } from "./lib/types";
+import type { ColumnMapping, DataType, DuplicateMode, ParsedFile, SourceSystem, ValidatedRow } from "./lib/types";
 
 const STEPS = ["Select", "Upload", "Validate", "Import"];
 
@@ -18,6 +18,7 @@ export default function ImportWizard() {
   const [parsed, setParsed] = useState<ParsedFile | null>(null);
   const [mapping, setMapping] = useState<ColumnMapping>({});
   const [validated, setValidated] = useState<ValidatedRow[]>([]);
+  const [duplicateMode, setDuplicateMode] = useState<DuplicateMode>("skip");
 
   const orgId = membership?.organization_id;
 
@@ -28,6 +29,7 @@ export default function ImportWizard() {
     setParsed(null);
     setMapping({});
     setValidated([]);
+    setDuplicateMode("skip");
   }
 
   if (!orgId) {
@@ -96,6 +98,8 @@ export default function ImportWizard() {
             organizationId={orgId}
             rows={validated}
             onRowsChange={setValidated}
+            duplicateMode={duplicateMode}
+            onDuplicateModeChange={setDuplicateMode}
             onBack={() => setStep(1)}
             onNext={() => setStep(3)}
           />
@@ -106,6 +110,7 @@ export default function ImportWizard() {
             rows={validated}
             organizationId={orgId}
             sourceSystem={source ?? "other"}
+            duplicateMode={duplicateMode}
             onReset={reset}
           />
         )}
