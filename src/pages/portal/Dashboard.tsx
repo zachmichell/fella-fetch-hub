@@ -720,8 +720,8 @@ function GroupedTable({
         </thead>
         <tbody>
           {sorted.map(([group, list]) => (
-            <>
-              <tr key={`hd-${group}`} className="bg-background/60">
+            <React.Fragment key={`grp-${group}`}>
+              <tr className="bg-background/60">
                 <td
                   colSpan={columns.length}
                   className="px-5 py-2 text-[11px] font-semibold uppercase tracking-wider text-text-secondary"
