@@ -372,7 +372,6 @@ function PlaygroupsInner() {
             </Card>
           </div>
         )}
-      </div>
 
       <PlaygroupFormDialog
         open={dialogOpen}
