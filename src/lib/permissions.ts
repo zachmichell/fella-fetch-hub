@@ -47,6 +47,7 @@ const ALL: Permission[] = [
   "settings.email",
   "settings.subscription",
   "analytics.view",
+  "revenue.view",
   "reservations.create",
   "reservations.edit",
   "reservations.cancel",
