@@ -9,6 +9,7 @@ import RoleRoute from "@/components/auth/RoleRoute";
 import RequirePermission from "@/components/auth/RequirePermission";
 import OwnerPortalLayout from "@/components/portal-owner/OwnerPortalLayout";
 import { LocationProvider } from "@/contexts/LocationContext";
+import { StaffCodeProvider } from "@/contexts/StaffCodeContext";
 import type { Permission } from "@/lib/permissions";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
@@ -69,7 +70,7 @@ import ReportCardsList from "./pages/portal/pet-care/ReportCardsList";
 import Traits from "./pages/portal/pet-care/Traits";
 import PetCare from "./pages/portal/pet-care/PetCare";
 import UserManagement from "./pages/portal/management/UserManagement";
-import StaffCodes from "./pages/portal/management/StaffCodes";
+
 import ServiceTypes from "./pages/portal/management/ServiceTypes";
 import Subscriptions from "./pages/portal/settings/Subscriptions";
 import Marketing from "./pages/portal/settings/Marketing";
@@ -98,7 +99,9 @@ const staff = (el: React.ReactNode, permission?: Permission) => (
   <ProtectedRoute>
     <RoleRoute allow="staff">
       <LocationProvider>
-        {permission ? <RequirePermission permission={permission}>{el}</RequirePermission> : el}
+        <StaffCodeProvider>
+          {permission ? <RequirePermission permission={permission}>{el}</RequirePermission> : el}
+        </StaffCodeProvider>
       </LocationProvider>
     </RoleRoute>
   </ProtectedRoute>
@@ -144,7 +147,7 @@ const App = () => (
             <Route path="/traits" element={staff(<Traits />)} />
             <Route path="/pet-care" element={staff(<PetCare />)} />
             <Route path="/user-management" element={staff(<UserManagement />)} />
-            <Route path="/staff-codes" element={staff(<StaffCodes />)} />
+            <Route path="/staff-codes" element={<Navigate to="/settings?tab=staff-codes" replace />} />
             <Route path="/service-types" element={staff(<ServiceTypes />)} />
             <Route path="/subscriptions" element={staff(<Subscriptions />)} />
             <Route path="/marketing" element={staff(<Marketing />)} />
@@ -171,7 +174,8 @@ const App = () => (
             <Route path="/invoices/list" element={staff(<InvoicesList />, "invoices.view")} />
             <Route path="/invoices/:id" element={staff(<InvoiceDetail />, "invoices.view")} />
             <Route path="/dashboard/check-in-out" element={<Navigate to="/dashboard" replace />} />
-            <Route path="/dashboard/analytics" element={staff(<Analytics />, "analytics.view")} />
+            <Route path="/dashboard/analytics" element={<Navigate to="/analytics" replace />} />
+            <Route path="/analytics" element={staff(<Analytics />, "revenue.view")} />
             <Route path="/reports" element={staff(<Reports />, "analytics.view")} />
             <Route path="/care-logs" element={staff(<CareLogs />, "carelogs.create")} />
             <Route path="/messages" element={staff(<StaffMessages />, "messaging.send")} />

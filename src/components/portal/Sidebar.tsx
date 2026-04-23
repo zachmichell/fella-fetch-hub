@@ -18,6 +18,7 @@ import {
   Receipt,
   Package,
   GraduationCap,
+  BarChart3,
 } from "lucide-react";
 import Logo from "./Logo";
 import { useAuth } from "@/hooks/useAuth";
@@ -51,8 +52,14 @@ const sections: Array<{
     label: "Billing",
     items: [
       { to: "/pos/cart", icon: ShoppingCart, label: "POS" },
-      { to: "/invoices", icon: Receipt, label: "Invoices" },
+      { to: "/invoices", icon: Receipt, label: "Invoices", permission: "invoices.view" as Permission },
       { to: "/products", icon: Package, label: "Products" },
+    ],
+  },
+  {
+    label: "Insights",
+    items: [
+      { to: "/analytics", icon: BarChart3, label: "Analytics", permission: "revenue.view" as Permission },
     ],
   },
   {

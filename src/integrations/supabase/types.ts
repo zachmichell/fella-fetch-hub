@@ -4431,6 +4431,60 @@ export type Database = {
           },
         ]
       }
+      staff_codes: {
+        Row: {
+          created_at: string
+          display_name: string
+          id: string
+          is_active: boolean
+          last_used_at: string | null
+          organization_id: string
+          pin_code: string
+          profile_id: string | null
+          role: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          display_name: string
+          id?: string
+          is_active?: boolean
+          last_used_at?: string | null
+          organization_id: string
+          pin_code: string
+          profile_id?: string | null
+          role?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          display_name?: string
+          id?: string
+          is_active?: boolean
+          last_used_at?: string | null
+          organization_id?: string
+          pin_code?: string
+          profile_id?: string | null
+          role?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "staff_codes_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "staff_codes_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       staff_notices: {
         Row: {
           body: string | null

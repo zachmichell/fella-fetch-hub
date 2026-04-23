@@ -678,12 +678,8 @@ function WeeklyGrid({
                 <div
                   key={key}
                   className={cn(
-                    "relative min-h-[64px] border-l border-border-subtle px-2 py-2 text-left text-xs transition-colors",
-                    r
-                      ? r.status === "checked_in"
-                        ? "bg-success-light text-success"
-                        : "bg-primary-light text-primary"
-                      : "bg-card text-text-tertiary",
+                    "relative min-h-[64px] border-l border-border-subtle px-1.5 py-2 text-left text-xs transition-colors",
+                    "bg-card",
                   )}
                 >
                   {r ? (
@@ -701,7 +697,6 @@ function WeeklyGrid({
                           startKey: format(startOfDay(new Date(r.start_at)), "yyyy-MM-dd"),
                           endKey: format(startOfDay(new Date(r.end_at)), "yyyy-MM-dd"),
                         });
-                        // Slight ghost effect on the source
                         (e.currentTarget as HTMLElement).style.opacity = "0.4";
                       }}
                       onDragEnd={(e) => {
@@ -709,18 +704,21 @@ function WeeklyGrid({
                       }}
                       onClick={() => onOccupiedClick(r)}
                       className={cn(
-                        "block w-full truncate text-left font-medium",
+                        "inline-flex max-w-full items-center truncate rounded-full px-2.5 py-1 text-[11px] font-medium shadow-sm transition-opacity hover:opacity-90",
+                        r.status === "checked_in"
+                          ? "bg-success text-white"
+                          : "bg-primary text-primary-foreground",
                         isDragHandle ? "cursor-grab active:cursor-grabbing" : "cursor-pointer",
                       )}
                       title={`${petName(r)}${isDragHandle ? " — drag to move suites" : ""}`}
                     >
-                      {petName(r)}
+                      <span className="truncate">{petName(r)}</span>
                     </button>
                   ) : (
                     <button
                       type="button"
                       onClick={() => onEmptyClick(s.id, d)}
-                      className="h-full w-full text-left opacity-0 hover:opacity-100"
+                      className="h-full w-full text-left text-text-tertiary opacity-0 hover:opacity-100"
                     >
                       +
                     </button>

@@ -8,6 +8,7 @@ import { useSubscriptionStatus } from "@/hooks/useSubscriptionStatus";
 import PausedOverlay from "./billing/PausedOverlay";
 import PastDueBanner from "./billing/PastDueBanner";
 import TrialBanner from "./billing/TrialBanner";
+import StaffCodeSwitcher from "./StaffCodeSwitcher";
 
 export default function PortalLayout({ children }: { children: React.ReactNode }) {
   const { membership } = useAuth();
@@ -43,7 +44,10 @@ export default function PortalLayout({ children }: { children: React.ReactNode }
           <div className="text-xs text-text-tertiary truncate">
             {orgName ?? ""}
           </div>
-          <LocationSwitcher />
+          <div className="flex items-center gap-3">
+            <StaffCodeSwitcher />
+            <LocationSwitcher />
+          </div>
         </div>
         {children}
       </main>
