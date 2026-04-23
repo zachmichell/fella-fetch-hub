@@ -32,7 +32,7 @@ import ReservationDetail from "./pages/portal/reservations/ReservationDetail";
 import ReservationEdit from "./pages/portal/reservations/ReservationEdit";
 import StandingReservations from "./pages/portal/reservations/StandingReservations";
 import Schedule from "./pages/portal/schedule/Schedule";
-import CheckInOut from "./pages/portal/check-in-out/CheckInOut";
+
 import Analytics from "./pages/portal/analytics/Analytics";
 import Reports from "./pages/portal/reports/Reports";
 import Invoices from "./pages/portal/invoices/Invoices";
@@ -170,7 +170,7 @@ const App = () => (
             <Route path="/invoices" element={staff(<Invoices />, "invoices.view")} />
             <Route path="/invoices/list" element={staff(<InvoicesList />, "invoices.view")} />
             <Route path="/invoices/:id" element={staff(<InvoiceDetail />, "invoices.view")} />
-            <Route path="/dashboard/check-in-out" element={staff(<CheckInOut />, "checkinout.perform")} />
+            <Route path="/dashboard/check-in-out" element={<Navigate to="/dashboard" replace />} />
             <Route path="/dashboard/analytics" element={staff(<Analytics />, "analytics.view")} />
             <Route path="/reports" element={staff(<Reports />, "analytics.view")} />
             <Route path="/care-logs" element={staff(<CareLogs />, "carelogs.create")} />
