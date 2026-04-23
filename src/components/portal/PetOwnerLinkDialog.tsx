@@ -92,11 +92,13 @@ export default function PetOwnerLinkDialog({
   const handleLink = async () => {
     if (!selectedId || !membership) return;
     setSaving(true);
+    const role = relationship === "primary" ? "primary" : "co-owner";
     const payload = {
       organization_id: membership.organization_id,
       owner_id: mode === "owner-to-pet" ? ownerId! : selectedId,
       pet_id: mode === "owner-to-pet" ? selectedId : petId!,
       relationship,
+      role,
     };
     const { error } = await supabase.from("pet_owners").insert(payload);
     setSaving(false);

@@ -43,7 +43,7 @@ export default function PetsList() {
       let q = supabase
         .from("pets")
         .select(
-          "id, name, species, breed, weight_kg, intake_status, created_at, microchip_id, pet_owners(relationship, owner:owners(id, first_name, last_name))",
+          "id, name, species, breed, weight_kg, intake_status, created_at, microchip_id, pet_owners(role, relationship, owner:owners(id, first_name, last_name))",
           { count: "exact" },
         )
         .is("deleted_at", null);
@@ -158,7 +158,9 @@ export default function PetsList() {
                 </thead>
                 <tbody>
                   {data!.rows.map((p: any) => {
-                    const owners = (p.pet_owners ?? []).filter((po: any) => po.owner);
+                    const linked = (p.pet_owners ?? []).filter((po: any) => po.owner);
+                    const primary = linked.find((po: any) => po.role === "primary") ?? linked[0];
+                    const coOwners = linked.filter((po: any) => po !== primary);
                     return (
                       <tr key={p.id} className="border-t border-border-subtle hover:bg-background">
                         <td className="px-[18px] py-[14px]">
@@ -172,20 +174,27 @@ export default function PetsList() {
                         </td>
                         <td className="px-[18px] py-[14px] text-text-secondary">{p.breed ?? "—"}</td>
                         <td className="px-[18px] py-[14px] text-text-secondary">
-                          {owners.length === 0 ? (
+                          {!primary ? (
                             <span className="text-text-tertiary">Unlinked</span>
                           ) : (
-                            owners.map((po: any, i: number) => (
-                              <span key={po.owner.id}>
-                                <Link
-                                  to={`/owners/${po.owner.id}`}
-                                  className={`hover:text-primary ${po.relationship === "primary" ? "font-semibold text-foreground" : ""}`}
+                            <span className="inline-flex items-center gap-1.5">
+                              <Link
+                                to={`/owners/${primary.owner.id}`}
+                                className="font-medium text-foreground hover:text-primary"
+                              >
+                                {primary.owner.first_name} {primary.owner.last_name}
+                              </Link>
+                              {coOwners.length > 0 && (
+                                <span
+                                  title={coOwners
+                                    .map((co: any) => `${co.owner.first_name} ${co.owner.last_name}`)
+                                    .join(", ")}
+                                  className="rounded-pill border border-border bg-background px-1.5 py-0.5 text-[10px] font-semibold text-text-secondary"
                                 >
-                                  {po.owner.first_name} {po.owner.last_name}
-                                </Link>
-                                {i < owners.length - 1 && ", "}
-                              </span>
-                            ))
+                                  +{coOwners.length}
+                                </span>
+                              )}
+                            </span>
                           )}
                         </td>
                         <td className="px-[18px] py-[14px] text-text-secondary">
