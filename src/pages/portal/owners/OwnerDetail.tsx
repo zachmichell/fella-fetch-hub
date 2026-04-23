@@ -51,7 +51,7 @@ export default function OwnerDetail() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("pet_owners")
-        .select("id, relationship, pet:pets(id, name, species, breed, deleted_at)")
+        .select("id, role, relationship, pet:pets(id, name, species, breed, deleted_at)")
         .eq("owner_id", id!);
       if (error) throw error;
       return (data ?? []).filter((r: any) => r.pet && !r.pet.deleted_at);
@@ -224,7 +224,9 @@ export default function OwnerDetail() {
                         </div>
                       </div>
                       <div className="flex items-center gap-3">
-                        <StatusBadge tone={relationshipTone(row.relationship)}>{row.relationship}</StatusBadge>
+                        <StatusBadge tone={row.role === "primary" ? "primary" : "muted"}>
+                          {row.role === "primary" ? "Primary" : "Co-owner"}
+                        </StatusBadge>
                         <Link to={`/pets/${row.pet.id}`} className="text-xs font-semibold text-primary hover:underline">
                           View
                         </Link>
