@@ -17,7 +17,7 @@ const DAY_DOTS = [
   { full: "Sunday", short: "S" },
 ];
 
-export default function GroomerManagement() {
+export function GroomerManagementSection() {
   const { data: groomers = [], isLoading } = useGroomers();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<Groomer | null>(null);
@@ -26,8 +26,8 @@ export default function GroomerManagement() {
   const openEdit = (g: Groomer) => { setEditing(g); setDialogOpen(true); };
 
   return (
-    <PortalLayout>
-      <div className="px-8 py-6">
+    <>
+    <div className="px-8 py-6">
         <header className="mb-6 flex items-start justify-between">
           <div>
             <h1 className="font-display text-2xl text-foreground">Groomer Management</h1>
@@ -128,6 +128,14 @@ export default function GroomerManagement() {
       </div>
 
       <GroomerFormDialog open={dialogOpen} onOpenChange={setDialogOpen} groomer={editing} />
+    </>
+  );
+}
+
+export default function GroomerManagement() {
+  return (
+    <PortalLayout>
+      <GroomerManagementSection />
     </PortalLayout>
   );
 }

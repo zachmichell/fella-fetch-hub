@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import PortalLayout from "@/components/portal/PortalLayout";
 import PageHeader from "@/components/portal/PageHeader";
+// PlaygroupsSection: body-only (no PortalLayout) for embedding inside Settings tabs.
 import ModuleGate from "@/components/portal/facility/ModuleGate";
 import LocationFilter from "@/components/portal/facility/LocationFilter";
 import StatusBadge from "@/components/portal/StatusBadge";
@@ -198,8 +199,7 @@ function PlaygroupsInner() {
   const activePlaygroups = playgroups.filter((p) => p.active);
 
   return (
-    <PortalLayout>
-      <div className="px-8 py-6">
+    <div className="px-8 py-6">
         <PageHeader
           title="Playgroups"
           description="Manage your daycare play areas"
@@ -372,7 +372,6 @@ function PlaygroupsInner() {
             </Card>
           </div>
         )}
-      </div>
 
       <PlaygroupFormDialog
         open={dialogOpen}
@@ -380,11 +379,11 @@ function PlaygroupsInner() {
         playgroup={editing}
         defaultLocationId={locationFilter !== "all" ? locationFilter : null}
       />
-    </PortalLayout>
+    </div>
   );
 }
 
-export default function Playgroups() {
+export function PlaygroupsSection() {
   return (
     <ModuleGate
       module="daycare"
@@ -393,5 +392,13 @@ export default function Playgroups() {
     >
       <PlaygroupsInner />
     </ModuleGate>
+  );
+}
+
+export default function Playgroups() {
+  return (
+    <PortalLayout>
+      <PlaygroupsSection />
+    </PortalLayout>
   );
 }

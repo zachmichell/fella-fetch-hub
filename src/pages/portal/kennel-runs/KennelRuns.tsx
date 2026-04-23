@@ -215,8 +215,8 @@ function KennelRunsInner() {
   const vacantActiveRuns = runs.filter((r) => r.active && !occupiedRunIds.has(r.id));
 
   return (
-    <PortalLayout>
-      <div className="px-8 py-6">
+    <>
+    <div className="px-8 py-6">
         <PageHeader
           title="Kennel Runs"
           description="Manage your boarding kennels and suites"
@@ -391,11 +391,11 @@ function KennelRunsInner() {
         run={editing}
         defaultLocationId={locationFilter !== "all" ? locationFilter : null}
       />
-    </PortalLayout>
+    </>
   );
 }
 
-export default function KennelRuns() {
+export function KennelRunsSection() {
   return (
     <ModuleGate
       module="boarding"
@@ -404,5 +404,13 @@ export default function KennelRuns() {
     >
       <KennelRunsInner />
     </ModuleGate>
+  );
+}
+
+export default function KennelRuns() {
+  return (
+    <PortalLayout>
+      <KennelRunsSection />
+    </PortalLayout>
   );
 }

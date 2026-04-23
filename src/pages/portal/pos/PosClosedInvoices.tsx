@@ -11,7 +11,7 @@ import { formatCentsShort } from "@/lib/money";
 import { formatDate } from "@/lib/format";
 import InvoiceStatusBadge from "@/components/portal/InvoiceStatusBadge";
 
-export default function PosClosedInvoices() {
+export function PosClosedInvoicesSection({ showHeader = true }: { showHeader?: boolean } = {}) {
   const { membership } = useAuth();
   const orgId = membership?.organization_id;
 
@@ -44,47 +44,55 @@ export default function PosClosedInvoices() {
   });
 
   return (
+    <>
+      {showHeader && <PageHeader title="Closed Invoices" description="Paid invoices from POS sales" />}
+      <div className="rounded-lg border border-border bg-surface shadow-card">
+        {isLoading ? (
+          <div className="p-12 text-center text-sm text-text-secondary">Loading…</div>
+        ) : invoices.length === 0 ? (
+          <div className="p-6"><EmptyState icon={FileCheck} title="No closed invoices" description="Paid invoices will appear here." /></div>
+        ) : (
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="bg-background text-left">
+                <th className="px-[18px] py-[14px] label-eyebrow">Invoice #</th>
+                <th className="px-[18px] py-[14px] label-eyebrow">Owner</th>
+                <th className="px-[18px] py-[14px] label-eyebrow">Date</th>
+                <th className="px-[18px] py-[14px] label-eyebrow">Total</th>
+                <th className="px-[18px] py-[14px] label-eyebrow">Method</th>
+                <th className="px-[18px] py-[14px] label-eyebrow">Status</th>
+                <th className="px-[18px] py-[14px] text-right"></th>
+              </tr>
+            </thead>
+            <tbody>
+              {invoices.map((i: any) => (
+                <tr key={i.id} className="border-t border-border-subtle hover:bg-background">
+                  <td className="px-[18px] py-[14px] font-mono text-foreground">{i.invoice_number ?? "—"}</td>
+                  <td className="px-[18px] py-[14px] text-foreground">
+                    {i.owner ? `${i.owner.first_name} ${i.owner.last_name}` : "—"}
+                  </td>
+                  <td className="px-[18px] py-[14px] text-text-secondary">{i.paid_at ? formatDate(i.paid_at) : "—"}</td>
+                  <td className="px-[18px] py-[14px] text-foreground">{formatCentsShort(i.total_cents)}</td>
+                  <td className="px-[18px] py-[14px] text-text-secondary capitalize">{i.payment?.method ?? "—"}</td>
+                  <td className="px-[18px] py-[14px]"><InvoiceStatusBadge status={i.status} /></td>
+                  <td className="px-[18px] py-[14px] text-right">
+                    <Button asChild variant="ghost" size="sm"><Link to={`/invoices/${i.id}`}>View</Link></Button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </div>
+    </>
+  );
+}
+
+export default function PosClosedInvoices() {
+  return (
     <PortalLayout>
       <div className="px-8 py-6">
-        <PageHeader title="Closed Invoices" description="Paid invoices from POS sales" />
-        <div className="rounded-lg border border-border bg-surface shadow-card">
-          {isLoading ? (
-            <div className="p-12 text-center text-sm text-text-secondary">Loading…</div>
-          ) : invoices.length === 0 ? (
-            <div className="p-6"><EmptyState icon={FileCheck} title="No closed invoices" description="Paid invoices will appear here." /></div>
-          ) : (
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="bg-background text-left">
-                  <th className="px-[18px] py-[14px] label-eyebrow">Invoice #</th>
-                  <th className="px-[18px] py-[14px] label-eyebrow">Owner</th>
-                  <th className="px-[18px] py-[14px] label-eyebrow">Date</th>
-                  <th className="px-[18px] py-[14px] label-eyebrow">Total</th>
-                  <th className="px-[18px] py-[14px] label-eyebrow">Method</th>
-                  <th className="px-[18px] py-[14px] label-eyebrow">Status</th>
-                  <th className="px-[18px] py-[14px] text-right"></th>
-                </tr>
-              </thead>
-              <tbody>
-                {invoices.map((i: any) => (
-                  <tr key={i.id} className="border-t border-border-subtle hover:bg-background">
-                    <td className="px-[18px] py-[14px] font-mono text-foreground">{i.invoice_number ?? "—"}</td>
-                    <td className="px-[18px] py-[14px] text-foreground">
-                      {i.owner ? `${i.owner.first_name} ${i.owner.last_name}` : "—"}
-                    </td>
-                    <td className="px-[18px] py-[14px] text-text-secondary">{i.paid_at ? formatDate(i.paid_at) : "—"}</td>
-                    <td className="px-[18px] py-[14px] text-foreground">{formatCentsShort(i.total_cents)}</td>
-                    <td className="px-[18px] py-[14px] text-text-secondary capitalize">{i.payment?.method ?? "—"}</td>
-                    <td className="px-[18px] py-[14px]"><InvoiceStatusBadge status={i.status} /></td>
-                    <td className="px-[18px] py-[14px] text-right">
-                      <Button asChild variant="ghost" size="sm"><Link to={`/invoices/${i.id}`}>View</Link></Button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
-        </div>
+        <PosClosedInvoicesSection />
       </div>
     </PortalLayout>
   );
