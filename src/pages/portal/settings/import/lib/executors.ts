@@ -3,6 +3,8 @@ import type { DataType, ImportResult, SourceSystem, ValidatedRow } from "./types
 
 type Progress = (done: number, total: number) => void;
 
+const OWNER_BATCH_SIZE = 200;
+
 export async function executeImport(
   dataType: DataType,
   rows: ValidatedRow[],
@@ -12,11 +14,11 @@ export async function executeImport(
 ): Promise<ImportResult> {
   const result: ImportResult = { imported: 0, skipped: 0, errored: 0, errorRows: [] };
   const toImport = rows.filter((r) => r.include);
-  const skipped = rows.length - toImport.length;
-  result.skipped = skipped;
+  result.skipped = rows.length - toImport.length;
+  const total = toImport.length;
 
   // Pre-load services for reservations
-  let serviceMap = new Map<string, string>();
+  const serviceMap = new Map<string, string>();
   if (dataType === "reservations") {
     const { data: services } = await supabase
       .from("services")
@@ -26,42 +28,86 @@ export async function executeImport(
     for (const s of services ?? []) serviceMap.set(s.name.toLowerCase(), s.id);
   }
 
-  const total = toImport.length;
+  // ===== OWNERS: batched inserts =====
+  if (dataType === "owners") {
+    for (let start = 0; start < toImport.length; start += OWNER_BATCH_SIZE) {
+      const batch = toImport.slice(start, start + OWNER_BATCH_SIZE);
+      const payload = batch.map((row) => ({
+        organization_id: organizationId,
+        first_name: row.mapped.first_name || null,
+        last_name: row.mapped.last_name || null,
+        email: row.mapped.email || null,
+        phone: row.mapped.phone || null,
+        street_address: row.mapped.street_address || null,
+        city: row.mapped.city || null,
+        state_province: row.mapped.state_province || null,
+        postal_code: row.mapped.postal_code || null,
+        notes: row.mapped.notes || null,
+        external_id: row.mapped.external_id || null,
+        external_source: row.mapped.external_id ? sourceSystem : null,
+      }));
+
+      const { error, count } = await supabase
+        .from("owners")
+        .insert(payload, { count: "exact" });
+
+      if (error) {
+        // Batch failed — fall back to per-row to identify which rows are bad
+        for (const row of batch) {
+          try {
+            const { error: rowErr } = await supabase.from("owners").insert({
+              organization_id: organizationId,
+              first_name: row.mapped.first_name || null,
+              last_name: row.mapped.last_name || null,
+              email: row.mapped.email || null,
+              phone: row.mapped.phone || null,
+              street_address: row.mapped.street_address || null,
+              city: row.mapped.city || null,
+              state_province: row.mapped.state_province || null,
+              postal_code: row.mapped.postal_code || null,
+              notes: row.mapped.notes || null,
+              external_id: row.mapped.external_id || null,
+              external_source: row.mapped.external_id ? sourceSystem : null,
+            });
+            if (rowErr) throw rowErr;
+            result.imported++;
+          } catch (err: any) {
+            result.errored++;
+            result.errorRows.push({
+              row: row.index + 2,
+              reason: err.message ?? String(err),
+              data: row.raw,
+            });
+          }
+        }
+      } else {
+        result.imported += count ?? batch.length;
+      }
+      onProgress(Math.min(start + batch.length, total), total);
+    }
+    return result;
+  }
+
+  // ===== Other types: per-row (relational links require returned IDs) =====
   for (let i = 0; i < toImport.length; i++) {
     const row = toImport[i];
     try {
-      if (dataType === "owners") {
-        const { error } = await supabase.from("owners").insert({
-          organization_id: organizationId,
-          first_name: row.mapped.first_name,
-          last_name: row.mapped.last_name,
-          email: row.mapped.email,
-          phone: row.mapped.phone,
-          street_address: row.mapped.street_address,
-          city: row.mapped.city,
-          state_province: row.mapped.state_province,
-          postal_code: row.mapped.postal_code,
-          notes: row.mapped.notes,
-          external_id: row.mapped.external_id ?? null,
-          external_source: row.mapped.external_id ? sourceSystem : null,
-        });
-        if (error) throw error;
-      } else if (dataType === "pets") {
+      if (dataType === "pets") {
         const { data: pet, error } = await supabase
           .from("pets")
           .insert({
             organization_id: organizationId,
             name: row.mapped.name,
             species: row.mapped.species,
-            breed: row.mapped.breed,
+            breed: row.mapped.breed || null,
             sex: row.mapped.sex,
-            date_of_birth: row.mapped.date_of_birth,
-            weight_kg: row.mapped.weight_kg,
-            color: row.mapped.color,
-            microchip_id: row.mapped.microchip_id,
+            date_of_birth: row.mapped.date_of_birth || null,
+            weight_kg: row.mapped.weight_kg ?? null,
+            color: row.mapped.color || null,
+            microchip_id: row.mapped.microchip_id || null,
             spayed_neutered: row.mapped.spayed_neutered ?? null,
-            behavioral_notes: row.mapped.behavioral_notes ?? null,
-            external_id: row.mapped.external_id ?? null,
+            behavioral_notes: row.mapped.behavioral_notes || null,
+            external_id: row.mapped.external_id || null,
             external_source: row.mapped.external_id ? sourceSystem : null,
           })
           .select("id")
@@ -120,7 +166,7 @@ export async function executeImport(
     } catch (err: any) {
       result.errored++;
       result.errorRows.push({
-        row: row.index + 2, // +1 for header, +1 for 1-indexed
+        row: row.index + 2,
         reason: err.message ?? String(err),
         data: row.raw,
       });
