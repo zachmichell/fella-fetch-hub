@@ -181,7 +181,6 @@ export function PosPromotionsSection({ showHeader = true }: { showHeader?: boole
             </table>
           )}
         </div>
-      </div>
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="max-w-md">
@@ -228,6 +227,16 @@ export function PosPromotionsSection({ showHeader = true }: { showHeader?: boole
           </DialogFooter>
         </DialogContent>
       </Dialog>
+    </>
+  );
+}
+
+export default function PosPromotions() {
+  return (
+    <PortalLayout>
+      <div className="px-8 py-6">
+        <PosPromotionsSection />
+      </div>
     </PortalLayout>
   );
 }

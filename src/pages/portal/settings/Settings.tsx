@@ -11,6 +11,10 @@ import PaymentsTab from "./PaymentsTab";
 import BillingTab from "./BillingTab";
 import EmailTab from "./EmailTab";
 import DepositsTab from "./DepositsTab";
+import { PlaygroupsSection } from "../playgroups/Playgroups";
+import { KennelRunsSection } from "../kennel-runs/KennelRuns";
+import { SuiteManagementSection } from "../facility/SuiteManagement";
+import { GroomerManagementSection } from "../facility/GroomerManagement";
 import { usePermissions } from "@/hooks/usePermissions";
 import type { Permission } from "@/lib/permissions";
 
@@ -23,6 +27,10 @@ const TAB_CONFIG: Array<{ key: string; label: string; permission: Permission }> 
   { key: "billing", label: "Billing", permission: "settings.billing" },
   { key: "email", label: "Email", permission: "settings.email" },
   { key: "subscription", label: "Subscription", permission: "settings.subscription" },
+  { key: "playgroups", label: "Playgroups", permission: "playgroups.manage" },
+  { key: "kennel-runs", label: "Kennel Runs", permission: "kennels.manage" },
+  { key: "suites", label: "Suites", permission: "settings.organization" },
+  { key: "groomers", label: "Groomers", permission: "settings.organization" },
 ];
 
 export default function Settings() {
@@ -62,7 +70,7 @@ export default function Settings() {
     <PortalLayout>
       <PageHeader title="Settings" description="Manage your organization" />
       <Tabs value={active} onValueChange={setTab}>
-        <TabsList>
+        <TabsList className="flex-wrap h-auto">
           {visible.map((t) => (
             <TabsTrigger key={t.key} value={t.key}>
               {t.label}
@@ -107,6 +115,26 @@ export default function Settings() {
         {can("settings.subscription") && (
           <TabsContent value="subscription" className="mt-6">
             <SubscriptionTab />
+          </TabsContent>
+        )}
+        {can("playgroups.manage") && (
+          <TabsContent value="playgroups" className="mt-6">
+            <PlaygroupsSection />
+          </TabsContent>
+        )}
+        {can("kennels.manage") && (
+          <TabsContent value="kennel-runs" className="mt-6">
+            <KennelRunsSection />
+          </TabsContent>
+        )}
+        {can("settings.organization") && (
+          <TabsContent value="suites" className="mt-6">
+            <SuiteManagementSection />
+          </TabsContent>
+        )}
+        {can("settings.organization") && (
+          <TabsContent value="groomers" className="mt-6">
+            <GroomerManagementSection />
           </TabsContent>
         )}
       </Tabs>

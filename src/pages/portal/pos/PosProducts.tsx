@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { Plus, Pencil, Power, Boxes, AlertTriangle } from "lucide-react";
 import PortalLayout from "@/components/portal/PortalLayout";
 import PageHeader from "@/components/portal/PageHeader";
+// PosProductsSection is body-only (no PortalLayout) for embedding in tabs.
 import EmptyState from "@/components/portal/EmptyState";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -190,7 +191,6 @@ export function PosProductsSection({ showHeader = true }: { showHeader?: boolean
             </table>
           )}
         </div>
-      </div>
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="max-w-lg">
@@ -244,6 +244,16 @@ export function PosProductsSection({ showHeader = true }: { showHeader?: boolean
           </DialogFooter>
         </DialogContent>
       </Dialog>
+    </>
+  );
+}
+
+export default function PosProducts() {
+  return (
+    <PortalLayout>
+      <div className="px-8 py-6">
+        <PosProductsSection />
+      </div>
     </PortalLayout>
   );
 }

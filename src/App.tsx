@@ -26,6 +26,7 @@ import ServicesList from "./pages/portal/services/ServicesList";
 import ServiceForm from "./pages/portal/services/ServiceForm";
 import ServiceDetail from "./pages/portal/services/ServiceDetail";
 import ReservationsList from "./pages/portal/reservations/ReservationsList";
+import Reservations from "./pages/portal/reservations/Reservations";
 import ReservationForm from "./pages/portal/reservations/ReservationForm";
 import ReservationDetail from "./pages/portal/reservations/ReservationDetail";
 import ReservationEdit from "./pages/portal/reservations/ReservationEdit";
@@ -34,6 +35,7 @@ import Schedule from "./pages/portal/schedule/Schedule";
 import CheckInOut from "./pages/portal/check-in-out/CheckInOut";
 import Analytics from "./pages/portal/analytics/Analytics";
 import Reports from "./pages/portal/reports/Reports";
+import Invoices from "./pages/portal/invoices/Invoices";
 import InvoicesList from "./pages/portal/invoices/InvoicesList";
 import InvoiceDetail from "./pages/portal/invoices/InvoiceDetail";
 import Settings from "./pages/portal/settings/Settings";
@@ -79,6 +81,7 @@ import PosPackages from "./pages/portal/pos/PosPackages";
 import PosPromotions from "./pages/portal/pos/PosPromotions";
 import PosOpenInvoices from "./pages/portal/pos/PosOpenInvoices";
 import PosClosedInvoices from "./pages/portal/pos/PosClosedInvoices";
+import Products from "./pages/portal/products/Products";
 import DataImport from "./pages/portal/settings/DataImport";
 import DataMerge from "./pages/portal/settings/DataMerge";
 import AuditLog from "./pages/portal/settings/AuditLog";
@@ -135,8 +138,8 @@ const App = () => (
             <Route path="/schedule" element={<Navigate to="/calendar" replace />} />
             <Route path="/lodging" element={staff(<Lodging />)} />
             <Route path="/grooming" element={staff(<Grooming />)} />
-            <Route path="/suite-management" element={staff(<SuiteManagement />)} />
-            <Route path="/groomer-management" element={staff(<GroomerManagement />)} />
+            <Route path="/suite-management" element={<Navigate to="/settings?tab=suites" replace />} />
+            <Route path="/groomer-management" element={<Navigate to="/settings?tab=groomers" replace />} />
             <Route path="/report-cards" element={staff(<ReportCardsPlaceholder />)} />
             <Route path="/traits" element={staff(<Traits />)} />
             <Route path="/pet-care" element={staff(<PetCare />)} />
@@ -158,13 +161,14 @@ const App = () => (
             <Route path="/services/new" element={staff(<ServiceForm />, "services.manage")} />
             <Route path="/services/:id" element={staff(<ServiceDetail />, "services.manage")} />
             <Route path="/services/:id/edit" element={staff(<ServiceForm />, "services.manage")} />
-            <Route path="/reservations" element={staff(<ReservationsList />)} />
+            <Route path="/reservations" element={staff(<Reservations />)} />
             <Route path="/reservations/new" element={staff(<ReservationForm />, "reservations.create")} />
             <Route path="/reservations/:id" element={staff(<ReservationDetail />)} />
             <Route path="/reservations/:id/edit" element={staff(<ReservationEdit />, "reservations.edit")} />
-            <Route path="/standing-reservations" element={staff(<StandingReservations />)} />
+            <Route path="/standing-reservations" element={<Navigate to="/reservations?tab=standing" replace />} />
             <Route path="/group-classes" element={staff(<GroupClasses />)} />
-            <Route path="/invoices" element={staff(<InvoicesList />, "invoices.view")} />
+            <Route path="/invoices" element={staff(<Invoices />, "invoices.view")} />
+            <Route path="/invoices/list" element={staff(<InvoicesList />, "invoices.view")} />
             <Route path="/invoices/:id" element={staff(<InvoiceDetail />, "invoices.view")} />
             <Route path="/dashboard/check-in-out" element={staff(<CheckInOut />, "checkinout.perform")} />
             <Route path="/dashboard/analytics" element={staff(<Analytics />, "analytics.view")} />
@@ -175,18 +179,19 @@ const App = () => (
             <Route path="/incidents/new" element={staff(<IncidentForm />, "incidents.create")} />
             <Route path="/incidents/:id" element={staff(<IncidentDetail />)} />
             <Route path="/incidents/:id/edit" element={staff(<IncidentForm />, "incidents.edit")} />
-            <Route path="/playgroups" element={staff(<Playgroups />, "playgroups.manage")} />
-            <Route path="/kennel-runs" element={staff(<KennelRuns />, "kennels.manage")} />
+            <Route path="/playgroups" element={<Navigate to="/settings?tab=playgroups" replace />} />
+            <Route path="/kennel-runs" element={<Navigate to="/settings?tab=kennel-runs" replace />} />
             <Route path="/settings/locations" element={staff(<LocationsPage />, "settings.locations")} />
             <Route path="/settings/data-import" element={staff(<DataImport />, "data.import")} />
             <Route path="/settings/data-merge" element={staff(<DataMerge />, "data.merge")} />
             <Route path="/settings/audit-log" element={staff(<AuditLog />, "audit.view")} />
             <Route path="/pos/cart" element={staff(<PosCart />)} />
-            <Route path="/pos/products" element={staff(<PosProducts />)} />
-            <Route path="/pos/packages" element={staff(<PosPackages />)} />
-            <Route path="/pos/promotions" element={staff(<PosPromotions />)} />
-            <Route path="/pos/open-invoices" element={staff(<PosOpenInvoices />)} />
-            <Route path="/pos/closed-invoices" element={staff(<PosClosedInvoices />)} />
+            <Route path="/products" element={staff(<Products />)} />
+            <Route path="/pos/products" element={<Navigate to="/products" replace />} />
+            <Route path="/pos/packages" element={<Navigate to="/products?tab=packages" replace />} />
+            <Route path="/pos/promotions" element={<Navigate to="/products?tab=promotions" replace />} />
+            <Route path="/pos/open-invoices" element={<Navigate to="/invoices" replace />} />
+            <Route path="/pos/closed-invoices" element={<Navigate to="/invoices?tab=closed" replace />} />
             <Route path="/settings" element={staff(<Settings />, "settings.view")} />
             <Route path="/deposits" element={staff(<Deposits />)} />
             <Route path="/agreements" element={staff(<AgreementTracking />)} />
