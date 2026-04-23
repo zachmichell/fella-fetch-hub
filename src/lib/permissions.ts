@@ -83,6 +83,7 @@ const MANAGER: Permission[] = [
   "settings.view",
   "settings.locations",
   "analytics.view",
+  "revenue.view",
   "reservations.create",
   "reservations.edit",
   "reservations.cancel",
