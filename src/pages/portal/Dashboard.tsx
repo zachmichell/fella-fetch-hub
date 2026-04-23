@@ -473,6 +473,39 @@ export default function Dashboard() {
           </section>
         )}
 
+        {/* Service type filter pills */}
+        <div className="mb-5 flex flex-wrap gap-2">
+          {(
+            [
+              { key: "all", label: "All" },
+              { key: "daycare", label: "Daycare" },
+              { key: "boarding", label: "Boarding" },
+              { key: "grooming", label: "Grooming" },
+              { key: "training", label: "Training" },
+            ] as const
+          ).map((p) => {
+            const active = moduleFilter === p.key;
+            return (
+              <button
+                key={p.key}
+                type="button"
+                onClick={() => {
+                  setModuleFilter(p.key);
+                  setDrill(null);
+                }}
+                className={cn(
+                  "rounded-full border px-4 py-1.5 text-xs font-medium transition-colors",
+                  active
+                    ? "border-primary bg-primary text-primary-foreground shadow-sm"
+                    : "border-border bg-surface text-text-secondary hover:border-primary/40 hover:text-foreground",
+                )}
+              >
+                {p.label}
+              </button>
+            );
+          })}
+        </div>
+
         {/* Quick Actions */}
         <div className="mb-6 flex flex-wrap items-center gap-3">
           <Button size="lg" onClick={() => setQuickOpen(true)} className="gap-2">
@@ -483,6 +516,34 @@ export default function Dashboard() {
 
         {/* Today's Reservations */}
         <section className="rounded-lg border border-border bg-surface shadow-card">
+          {/* Search bar (persists across tabs) */}
+          <div className="flex flex-wrap items-center gap-3 border-b border-border-subtle px-5 py-3">
+            <div className="relative flex-1 min-w-[240px]">
+              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-tertiary" />
+              <Input
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder="Search by pet name or owner name..."
+                className="pl-9 pr-9"
+              />
+              {searchTerm && (
+                <button
+                  type="button"
+                  onClick={() => setSearchTerm("")}
+                  aria-label="Clear search"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 rounded-md p-1 text-text-tertiary hover:bg-background hover:text-foreground"
+                >
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              )}
+            </div>
+            {searchTerm && (
+              <span className="text-xs text-text-secondary">
+                Showing {expected.length + checkedIn.length + goingHome.length + requested.length} of{" "}
+                {expectedAll.length + checkedInAll.length + goingHomeAll.length + requestedAll.length} results
+              </span>
+            )}
+          </div>
           <Tabs defaultValue="expected" className="w-full">
             <div className="border-b border-border-subtle px-5 pt-4">
               <TabsList>
