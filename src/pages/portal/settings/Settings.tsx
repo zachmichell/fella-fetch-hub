@@ -16,6 +16,7 @@ import { KennelRunsSection } from "../kennel-runs/KennelRuns";
 import { SuiteManagementSection } from "../facility/SuiteManagement";
 import { GroomerManagementSection } from "../facility/GroomerManagement";
 import SettingsTraitsTab from "./TraitsTab";
+import StaffCodesTab from "./StaffCodesTab";
 import ImportWizard from "./import/ImportWizard";
 import { usePermissions } from "@/hooks/usePermissions";
 import type { Permission } from "@/lib/permissions";
@@ -24,6 +25,7 @@ const TAB_CONFIG: Array<{ key: string; label: string; permission: Permission }> 
   { key: "organization", label: "Organization", permission: "settings.organization" },
   { key: "locations", label: "Locations", permission: "settings.locations" },
   { key: "team", label: "Team", permission: "settings.team" },
+  { key: "staff-codes", label: "Staff Codes", permission: "settings.team" },
   { key: "payments", label: "Payments", permission: "settings.payments" },
   { key: "deposits", label: "Deposits", permission: "settings.payments" },
   { key: "billing", label: "Billing", permission: "settings.billing" },
@@ -94,6 +96,11 @@ export default function Settings() {
         {can("settings.team") && (
           <TabsContent value="team" className="mt-6">
             <TeamTab />
+          </TabsContent>
+        )}
+        {can("settings.team") && (
+          <TabsContent value="staff-codes" className="mt-6">
+            <StaffCodesTab />
           </TabsContent>
         )}
         {can("settings.payments") && (
