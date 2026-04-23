@@ -6,6 +6,7 @@ import PortalLayout from "@/components/portal/PortalLayout";
 import PageHeader from "@/components/portal/PageHeader";
 import StatusBadge, { commPrefTone, relationshipTone } from "@/components/portal/StatusBadge";
 import PetOwnerLinkDialog from "@/components/portal/PetOwnerLinkDialog";
+import PaymentMethodsSection from "@/components/portal/PaymentMethodsSection";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
