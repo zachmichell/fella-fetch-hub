@@ -238,9 +238,16 @@ export default function Grooming() {
     }
     if (a.status === "in_progress") {
       return (
-        <Button size="sm" onClick={() => transition.mutate({ id: a.id, status: "completed" })}>
+        <Button size="sm" onClick={() => setTipFor(a)}>
           <CheckCircle2 className="h-3 w-3" /> Complete
         </Button>
+      );
+    }
+    if (a.status === "completed" && (a as any).tip_cents) {
+      return (
+        <span className="inline-flex items-center gap-1 text-xs text-success">
+          Tip ${((a as any).tip_cents / 100).toFixed(2)}
+        </span>
       );
     }
     return <span className="text-xs text-text-tertiary">—</span>;
