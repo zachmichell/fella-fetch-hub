@@ -393,6 +393,28 @@ export async function validateRows(
           }
         }
       }
+
+      // Pet duplicate detection: same normalized name + same matched owner
+      if (mapped._owner_id && mapped.name) {
+        const k = `${normName(mapped.name)}::${mapped._owner_id}`;
+        const exId = existingPetByNameOwner.get(k);
+        if (exId) {
+          mapped._duplicate_of = exId;
+          issues.push({
+            severity: "warning",
+            field: "name",
+            message: "Duplicate — pet with this name already exists for this owner",
+          });
+        } else if (seenPetKeys.has(k)) {
+          mapped._duplicate_of = null;
+          issues.push({
+            severity: "warning",
+            field: "name",
+            message: "Duplicate — same name + owner appears earlier in this file",
+          });
+        }
+        seenPetKeys.set(k, index);
+      }
     }
 
     if (dataType === "vaccinations") {
