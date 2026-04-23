@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { Plus, Search, Users } from "lucide-react";
+import { Plus, Search, Users, Copy } from "lucide-react";
 import PortalLayout from "@/components/portal/PortalLayout";
 import PageHeader from "@/components/portal/PageHeader";
 import EmptyState from "@/components/portal/EmptyState";
@@ -13,8 +13,10 @@ import { formatDate } from "@/lib/format";
 import { usePermissions } from "@/hooks/usePermissions";
 import { downloadCsv, toCsv } from "@/lib/csv";
 import { Download } from "lucide-react";
+import PageSizeSelect, { usePageSize, setStoredPageSize } from "@/components/portal/PageSizeSelect";
+import DuplicateReviewDialog from "@/components/portal/DuplicateReviewDialog";
 
-const PAGE_SIZE = 10;
+const PAGE_SIZE_KEY = "owners.pageSize";
 
 export default function OwnersList() {
   const { can } = usePermissions();
@@ -22,9 +24,17 @@ export default function OwnersList() {
   const navigate = useNavigate();
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(0);
+  const [pageSize, setPageSizeState] = useState(() => usePageSize(PAGE_SIZE_KEY, 25));
+  const [dupeOpen, setDupeOpen] = useState(false);
+
+  const setPageSize = (n: number) => {
+    setStoredPageSize(PAGE_SIZE_KEY, n);
+    setPageSizeState(n);
+    setPage(0);
+  };
 
   const { data, isLoading } = useQuery({
-    queryKey: ["owners", search, page],
+    queryKey: ["owners", search, page, pageSize],
     queryFn: async () => {
       let q = supabase
         .from("owners")
@@ -33,7 +43,7 @@ export default function OwnersList() {
         })
         .is("deleted_at", null)
         .order("created_at", { ascending: false })
-        .range(page * PAGE_SIZE, page * PAGE_SIZE + PAGE_SIZE - 1);
+        .range(page * pageSize, page * pageSize + pageSize - 1);
 
       const term = search.trim();
       if (term) {
@@ -47,7 +57,9 @@ export default function OwnersList() {
     },
   });
 
-  const totalPages = useMemo(() => Math.max(1, Math.ceil((data?.count ?? 0) / PAGE_SIZE)), [data?.count]);
+  const totalPages = useMemo(() => Math.max(1, Math.ceil((data?.count ?? 0) / pageSize)), [data?.count, pageSize]);
+  const rangeStart = (data?.count ?? 0) === 0 ? 0 : page * pageSize + 1;
+  const rangeEnd = Math.min((page + 1) * pageSize, data?.count ?? 0);
 
   return (
     <PortalLayout>
@@ -66,6 +78,9 @@ export default function OwnersList() {
                   <Download className="h-4 w-4" /> Export CSV
                 </Button>
               )}
+              <Button variant="outline" onClick={() => setDupeOpen(true)}>
+                <Copy className="h-4 w-4" /> Find Duplicates
+              </Button>
               {canCreate && (
                 <Button onClick={() => navigate("/owners/new")}>
                   <Plus className="h-4 w-4" /> Add Owner
@@ -145,31 +160,36 @@ export default function OwnersList() {
                 </tbody>
               </table>
 
-              <div className="flex items-center justify-between border-t border-border-subtle px-4 py-3 text-xs text-text-secondary">
+              <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border-subtle px-4 py-3 text-xs text-text-secondary">
                 <span>
-                  {data!.count} owner{data!.count === 1 ? "" : "s"}
+                  Showing {rangeStart}-{rangeEnd} of {data!.count.toLocaleString()} owner{data!.count === 1 ? "" : "s"}
                 </span>
-                <div className="flex items-center gap-2">
-                  <Button variant="outline" size="sm" disabled={page === 0} onClick={() => setPage((p) => p - 1)}>
-                    Previous
-                  </Button>
-                  <span>
-                    Page {page + 1} of {totalPages}
-                  </span>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    disabled={page + 1 >= totalPages}
-                    onClick={() => setPage((p) => p + 1)}
-                  >
-                    Next
-                  </Button>
+                <div className="flex items-center gap-3">
+                  <PageSizeSelect value={pageSize} onChange={setPageSize} />
+                  <div className="flex items-center gap-2">
+                    <Button variant="outline" size="sm" disabled={page === 0} onClick={() => setPage((p) => p - 1)}>
+                      Previous
+                    </Button>
+                    <span>
+                      Page {page + 1} of {totalPages}
+                    </span>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      disabled={page + 1 >= totalPages}
+                      onClick={() => setPage((p) => p + 1)}
+                    >
+                      Next
+                    </Button>
+                  </div>
                 </div>
               </div>
             </>
           )}
         </div>
       </div>
+
+      <DuplicateReviewDialog open={dupeOpen} onOpenChange={setDupeOpen} mode="owner" />
     </PortalLayout>
   );
 }
