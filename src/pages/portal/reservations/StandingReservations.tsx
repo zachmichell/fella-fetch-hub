@@ -45,7 +45,7 @@ const STATUS_VARIANT: Record<string, string> = {
   cancelled: "bg-muted text-muted-foreground",
 };
 
-export default function StandingReservations() {
+export function StandingReservationsSection({ showHeader = true }: { showHeader?: boolean } = {}) {
   const { membership } = useAuth();
   const orgId = membership?.organization_id;
   const qc = useQueryClient();
@@ -189,12 +189,13 @@ export default function StandingReservations() {
   });
 
   return (
-    <PortalLayout>
-      <div className="px-8 py-6">
+    <>
+      {showHeader && (
         <PageHeader
           title="Standing Reservations"
           description="Recurring schedules that auto-generate reservations."
         />
+      )}
 
         <Card className="mt-6 overflow-hidden">
           <Table>
