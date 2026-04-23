@@ -32,7 +32,7 @@ import ReservationDetail from "./pages/portal/reservations/ReservationDetail";
 import ReservationEdit from "./pages/portal/reservations/ReservationEdit";
 import StandingReservations from "./pages/portal/reservations/StandingReservations";
 import Schedule from "./pages/portal/schedule/Schedule";
-import CheckInOut from "./pages/portal/check-in-out/CheckInOut";
+
 import Analytics from "./pages/portal/analytics/Analytics";
 import Reports from "./pages/portal/reports/Reports";
 import Invoices from "./pages/portal/invoices/Invoices";
