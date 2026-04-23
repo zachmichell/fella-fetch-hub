@@ -2422,6 +2422,8 @@ export type Database = {
           created_at: string
           deleted_at: string | null
           email: string | null
+          external_id: string | null
+          external_source: string | null
           first_name: string
           id: string
           last_name: string
@@ -2445,6 +2447,8 @@ export type Database = {
           created_at?: string
           deleted_at?: string | null
           email?: string | null
+          external_id?: string | null
+          external_source?: string | null
           first_name: string
           id?: string
           last_name: string
@@ -2468,6 +2472,8 @@ export type Database = {
           created_at?: string
           deleted_at?: string | null
           email?: string | null
+          external_id?: string | null
+          external_source?: string | null
           first_name?: string
           id?: string
           last_name?: string
@@ -2895,6 +2901,8 @@ export type Database = {
           deactivation_notes: string | null
           deactivation_reason: string | null
           deleted_at: string | null
+          external_id: string | null
+          external_source: string | null
           feeding_notes: string | null
           id: string
           intake_status: Database["public"]["Enums"]["intake_status_enum"]
@@ -2924,6 +2932,8 @@ export type Database = {
           deactivation_notes?: string | null
           deactivation_reason?: string | null
           deleted_at?: string | null
+          external_id?: string | null
+          external_source?: string | null
           feeding_notes?: string | null
           id?: string
           intake_status?: Database["public"]["Enums"]["intake_status_enum"]
@@ -2953,6 +2963,8 @@ export type Database = {
           deactivation_notes?: string | null
           deactivation_reason?: string | null
           deleted_at?: string | null
+          external_id?: string | null
+          external_source?: string | null
           feeding_notes?: string | null
           id?: string
           intake_status?: Database["public"]["Enums"]["intake_status_enum"]
