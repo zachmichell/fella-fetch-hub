@@ -10,6 +10,7 @@ import {
   MessageSquare,
   BedDouble,
   Scissors,
+  Settings as SettingsIcon,
   ChevronLeft,
   ChevronRight,
   ShoppingCart,
@@ -175,22 +176,28 @@ export default function Sidebar({ orgName }: { orgName?: string | null }) {
                 <div className="truncate text-[11px] text-sidebar-foreground/60">{profile?.email}</div>
               </div>
             )}
-            <NavLink
-              to="/settings"
-              className="rounded-md p-1.5 text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-primary-foreground transition-colors"
-              aria-label="Settings"
-            >
-              {collapsed ? (
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <span><LogOut className="hidden" />⚙</span>
-                  </TooltipTrigger>
-                  <TooltipContent side="right">Settings</TooltipContent>
-                </Tooltip>
-              ) : (
-                <span className="text-xs">Settings</span>
-              )}
-            </NavLink>
+            {collapsed ? (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <NavLink
+                    to="/settings"
+                    className="rounded-md p-1.5 text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-primary-foreground transition-colors"
+                    aria-label="Settings"
+                  >
+                    <SettingsIcon className="h-4 w-4" />
+                  </NavLink>
+                </TooltipTrigger>
+                <TooltipContent side="right">Settings</TooltipContent>
+              </Tooltip>
+            ) : (
+              <NavLink
+                to="/settings"
+                className="rounded-md p-1.5 text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-primary-foreground transition-colors"
+                aria-label="Settings"
+              >
+                <SettingsIcon className="h-4 w-4" />
+              </NavLink>
+            )}
             {collapsed ? (
               <Tooltip>
                 <TooltipTrigger asChild>
