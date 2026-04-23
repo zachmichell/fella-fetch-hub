@@ -306,16 +306,6 @@ export default function PetDetail() {
         </Tabs>
       </div>
 
-      <PetOwnerLinkDialog
-        open={linkOpen}
-        onOpenChange={setLinkOpen}
-        mode="pet-to-owner"
-        petId={id}
-        contextName={pet.name}
-        excludeIds={(owners ?? []).map((o: any) => o.owner.id)}
-        onLinked={() => qc.invalidateQueries({ queryKey: ["pet-owners", id] })}
-      />
-
       <VaccinationFormDialog
         open={vaxOpen}
         onOpenChange={setVaxOpen}
@@ -333,19 +323,6 @@ export default function PetDetail() {
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction onClick={archive}>Archive</AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-
-      <AlertDialog open={!!unlinkId} onOpenChange={(o) => !o && setUnlinkId(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Unlink owner?</AlertDialogTitle>
-            <AlertDialogDescription>This removes the relationship. Both records remain.</AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={() => unlinkId && unlinkOwner(unlinkId)}>Unlink</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
