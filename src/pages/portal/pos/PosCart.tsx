@@ -101,7 +101,20 @@ export default function PosCart() {
     },
   });
 
-  // Catalog lookups
+  // Saved payment methods for the selected owner
+  const { data: savedCards = [] } = usePaymentMethods(ownerId ?? undefined);
+  const defaultCard = useMemo(() => savedCards.find((c) => c.is_default) ?? savedCards[0] ?? null, [savedCards]);
+
+  // Auto-select card on file when an owner with a default card is chosen
+  useEffect(() => {
+    if (defaultCard && paymentMethod === "cash") {
+      setPaymentMethod("card_on_file");
+    }
+    if (!savedCards.length && paymentMethod === "card_on_file") {
+      setPaymentMethod("cash");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [defaultCard?.id, savedCards.length]);
   const { data: services = [] } = useQuery({
     queryKey: ["pos-services", orgId],
     enabled: !!orgId,
