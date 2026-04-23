@@ -466,12 +466,15 @@ export async function validateRows(
       }
     }
 
+    const isDup = mapped._duplicate_of !== undefined;
     return {
       index,
       raw,
       mapped,
       issues,
       include: !issues.some((i) => i.severity === "error"),
+      isDuplicate: isDup,
+      duplicateOfId: isDup ? (mapped._duplicate_of as string | null) : undefined,
       matchMethod,
       matchSuggestion,
     } as ValidatedRow;
