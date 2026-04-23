@@ -1236,6 +1236,7 @@ export type Database = {
           services_requested: string[]
           start_time: string
           status: string
+          tip_cents: number | null
           updated_at: string
         }
         Insert: {
@@ -1255,6 +1256,7 @@ export type Database = {
           services_requested?: string[]
           start_time: string
           status?: string
+          tip_cents?: number | null
           updated_at?: string
         }
         Update: {
@@ -1274,6 +1276,7 @@ export type Database = {
           services_requested?: string[]
           start_time?: string
           status?: string
+          tip_cents?: number | null
           updated_at?: string
         }
         Relationships: [
@@ -2554,6 +2557,63 @@ export type Database = {
           {
             foreignKeyName: "owners_referred_by_owner_id_fkey"
             columns: ["referred_by_owner_id"]
+            isOneToOne: false
+            referencedRelation: "owners"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      payment_methods: {
+        Row: {
+          card_brand: string
+          card_last_four: string
+          created_at: string
+          expiry_month: number
+          expiry_year: number
+          id: string
+          is_default: boolean
+          organization_id: string
+          owner_id: string
+          stripe_payment_method_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          card_brand: string
+          card_last_four: string
+          created_at?: string
+          expiry_month: number
+          expiry_year: number
+          id?: string
+          is_default?: boolean
+          organization_id: string
+          owner_id: string
+          stripe_payment_method_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          card_brand?: string
+          card_last_four?: string
+          created_at?: string
+          expiry_month?: number
+          expiry_year?: number
+          id?: string
+          is_default?: boolean
+          organization_id?: string
+          owner_id?: string
+          stripe_payment_method_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_methods_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payment_methods_owner_id_fkey"
+            columns: ["owner_id"]
             isOneToOne: false
             referencedRelation: "owners"
             referencedColumns: ["id"]
@@ -3928,6 +3988,7 @@ export type Database = {
           start_at: string
           status: Database["public"]["Enums"]["reservation_status"]
           suite_id: string | null
+          tip_cents: number | null
           updated_at: string
         }
         Insert: {
@@ -3958,6 +4019,7 @@ export type Database = {
           start_at: string
           status?: Database["public"]["Enums"]["reservation_status"]
           suite_id?: string | null
+          tip_cents?: number | null
           updated_at?: string
         }
         Update: {
@@ -3988,6 +4050,7 @@ export type Database = {
           start_at?: string
           status?: Database["public"]["Enums"]["reservation_status"]
           suite_id?: string | null
+          tip_cents?: number | null
           updated_at?: string
         }
         Relationships: [
