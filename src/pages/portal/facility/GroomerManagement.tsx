@@ -127,7 +127,6 @@ export function GroomerManagementSection() {
       </div>
 
       <GroomerFormDialog open={dialogOpen} onOpenChange={setDialogOpen} groomer={editing} />
-    </div>
   );
 }
 

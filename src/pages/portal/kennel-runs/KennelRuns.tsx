@@ -390,7 +390,6 @@ function KennelRunsInner() {
         run={editing}
         defaultLocationId={locationFilter !== "all" ? locationFilter : null}
       />
-    </div>
   );
 }
 

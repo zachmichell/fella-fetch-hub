@@ -284,7 +284,6 @@ export function SuiteManagementSection() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
   );
 }
 
