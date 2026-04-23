@@ -36,7 +36,7 @@ export default function ReportCardsList() {
         .is("deleted_at", null)
         .lte("start_at", dayEnd.toISOString())
         .gte("end_at", dayStart.toISOString())
-        .in("status", ["checked_in", "checked_out", "scheduled"]);
+        .in("status", ["checked_in", "checked_out", "confirmed"]);
       if (error) throw error;
       return data ?? [];
     },
