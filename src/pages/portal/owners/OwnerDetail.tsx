@@ -253,6 +253,10 @@ export default function OwnerDetail() {
               onChange={() => qc.invalidateQueries({ queryKey: ["owner-contacts", id] })}
             />
           </TabsContent>
+
+          <TabsContent value="payment" className="mt-6">
+            <PaymentMethodsSection ownerId={id!} />
+          </TabsContent>
         </Tabs>
       </div>
 
