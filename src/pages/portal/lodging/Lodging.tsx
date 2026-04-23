@@ -263,6 +263,7 @@ export default function Lodging() {
           actions={
             <Tabs value={view} onValueChange={(v) => setView(v as ViewMode)}>
               <TabsList>
+                <TabsTrigger value="board">Board</TabsTrigger>
                 <TabsTrigger value="weekly">Weekly</TabsTrigger>
                 <TabsTrigger value="monthly">Monthly</TabsTrigger>
               </TabsList>
