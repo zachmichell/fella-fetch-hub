@@ -16,6 +16,7 @@ import { downloadCsv, toCsv } from "@/lib/csv";
 import { Download } from "lucide-react";
 import PageSizeSelect, { usePageSize, setStoredPageSize } from "@/components/portal/PageSizeSelect";
 import DuplicateReviewDialog from "@/components/portal/DuplicateReviewDialog";
+import SortableHeader, { type SortState } from "@/components/portal/SortableHeader";
 
 const PAGE_SIZE_KEY = "pets.pageSize";
 
@@ -28,6 +29,7 @@ export default function PetsList() {
   const [page, setPage] = useState(0);
   const [pageSize, setPageSizeState] = useState(() => usePageSize(PAGE_SIZE_KEY, 25));
   const [dupeOpen, setDupeOpen] = useState(false);
+  const [sort, setSort] = useState<SortState>({ column: "name", dir: "asc" });
 
   const setPageSize = (n: number) => {
     setStoredPageSize(PAGE_SIZE_KEY, n);
@@ -36,17 +38,23 @@ export default function PetsList() {
   };
 
   const { data, isLoading } = useQuery({
-    queryKey: ["pets", search, species, page, pageSize],
+    queryKey: ["pets", search, species, page, pageSize, sort],
     queryFn: async () => {
       let q = supabase
         .from("pets")
         .select(
-          "id, name, species, breed, intake_status, created_at, microchip_id, pet_owners(relationship, owner:owners(id, first_name, last_name))",
+          "id, name, species, breed, weight_kg, intake_status, created_at, microchip_id, pet_owners(relationship, owner:owners(id, first_name, last_name))",
           { count: "exact" },
         )
-        .is("deleted_at", null)
-        .order("created_at", { ascending: false })
-        .range(page * pageSize, page * pageSize + pageSize - 1);
+        .is("deleted_at", null);
+
+      if (sort) {
+        q = q.order(sort.column, { ascending: sort.dir === "asc", nullsFirst: false });
+      } else {
+        q = q.order("created_at", { ascending: false });
+      }
+
+      q = q.range(page * pageSize, page * pageSize + pageSize - 1);
 
       if (species !== "all") q = q.eq("species", species as any);
       const term = search.trim();
