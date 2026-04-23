@@ -31,8 +31,6 @@ export async function executeImport(
     const row = toImport[i];
     try {
       if (dataType === "owners") {
-        const sourceTag =
-          (row.raw && (row.raw["__source__"] as string)) || undefined;
         const { error } = await supabase.from("owners").insert({
           organization_id: organizationId,
           first_name: row.mapped.first_name,
@@ -45,12 +43,10 @@ export async function executeImport(
           postal_code: row.mapped.postal_code,
           notes: row.mapped.notes,
           external_id: row.mapped.external_id ?? null,
-          external_source: row.mapped.external_id ? sourceTag ?? "import" : null,
+          external_source: row.mapped.external_id ? sourceSystem : null,
         });
         if (error) throw error;
       } else if (dataType === "pets") {
-        const sourceTag =
-          (row.raw && (row.raw["__source__"] as string)) || undefined;
         const { data: pet, error } = await supabase
           .from("pets")
           .insert({
@@ -66,7 +62,7 @@ export async function executeImport(
             spayed_neutered: row.mapped.spayed_neutered ?? null,
             behavioral_notes: row.mapped.behavioral_notes ?? null,
             external_id: row.mapped.external_id ?? null,
-            external_source: row.mapped.external_id ? sourceTag ?? "import" : null,
+            external_source: row.mapped.external_id ? sourceSystem : null,
           })
           .select("id")
           .single();
