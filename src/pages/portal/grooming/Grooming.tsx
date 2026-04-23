@@ -135,14 +135,26 @@ export default function Grooming() {
     const revenue = appts
       .filter((a) => a.status === "completed")
       .reduce((sum, a) => sum + (a.price_cents ?? 0), 0);
-    return { scheduled, inProgress, completed, revenue };
+    const tips = appts
+      .filter((a) => a.status === "completed")
+      .reduce((sum, a: any) => sum + (a.tip_cents ?? 0), 0);
+    return { scheduled, inProgress, completed, revenue, tips };
   }, [appts]);
 
   const transition = useMutation({
-    mutationFn: async ({ id, status }: { id: string; status: string }) => {
+    mutationFn: async ({
+      id,
+      status,
+      tip_cents,
+    }: {
+      id: string;
+      status: string;
+      tip_cents?: number | null;
+    }) => {
       const updates: any = { status };
       if (status === "in_progress") updates.check_in_time = new Date().toISOString();
       if (status === "completed") updates.completed_time = new Date().toISOString();
+      if (tip_cents !== undefined) updates.tip_cents = tip_cents;
       const { error } = await supabase.from("grooming_appointments").update(updates).eq("id", id);
       if (error) throw error;
     },
