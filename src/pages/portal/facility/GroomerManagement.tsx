@@ -26,6 +26,7 @@ export function GroomerManagementSection() {
   const openEdit = (g: Groomer) => { setEditing(g); setDialogOpen(true); };
 
   return (
+    <>
     <div className="px-8 py-6">
         <header className="mb-6 flex items-start justify-between">
           <div>
@@ -127,6 +128,7 @@ export function GroomerManagementSection() {
       </div>
 
       <GroomerFormDialog open={dialogOpen} onOpenChange={setDialogOpen} groomer={editing} />
+    </>
   );
 }
 

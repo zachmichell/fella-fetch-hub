@@ -215,6 +215,7 @@ function KennelRunsInner() {
   const vacantActiveRuns = runs.filter((r) => r.active && !occupiedRunIds.has(r.id));
 
   return (
+    <>
     <div className="px-8 py-6">
         <PageHeader
           title="Kennel Runs"
@@ -390,6 +391,7 @@ function KennelRunsInner() {
         run={editing}
         defaultLocationId={locationFilter !== "all" ? locationFilter : null}
       />
+    </>
   );
 }
 

@@ -132,6 +132,7 @@ export function SuiteManagementSection() {
   });
 
   return (
+    <>
     <div className="px-8 py-6">
         <PageHeader
           title="Suite Management"
