@@ -227,7 +227,7 @@ export async function validateRows(
     ownerMaps = buildOwnerMaps(allOwners);
   }
 
-  if (dataType === "vaccinations" || dataType === "reservations") {
+  if (dataType === "vaccinations" || dataType === "reservations" || dataType === "pets") {
     const { data: pets } = await supabase
       .from("pets")
       .select("id, name, pet_owners(owner_id, owners(email))")
@@ -235,9 +235,14 @@ export async function validateRows(
       .is("deleted_at", null);
     for (const p of pets ?? []) {
       const links = (p.pet_owners as any[]) ?? [];
+      const nameNorm = normName(p.name ?? "");
       for (const link of links) {
         const email = link.owners?.email?.toLowerCase();
-        if (email) petKeyToId.set(`${email}::${p.name.toLowerCase()}`, p.id);
+        if (email) petKeyToId.set(`${email}::${(p.name ?? "").toLowerCase()}`, p.id);
+        if (link.owner_id && nameNorm) {
+          const k = `${nameNorm}::${link.owner_id}`;
+          if (!existingPetByNameOwner.has(k)) existingPetByNameOwner.set(k, p.id);
+        }
       }
     }
   }
@@ -248,8 +253,9 @@ export async function validateRows(
   const stats: MatchStats = { exact: 0, external_id: 0, last_name: 0, email: 0, unlinked: 0 };
 
   // In-batch dedupe state (across rows of THIS file)
-  const seenEmails = new Set<string>();
-  const seenNames = new Set<string>();
+  const seenEmails = new Map<string, number>(); // email -> first row index
+  const seenNames = new Map<string, number>();
+  const seenPetKeys = new Map<string, number>();
 
   const rows = parsed.rows.map((raw, index) => {
     const m = applyMapping(raw, mapping);
