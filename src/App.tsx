@@ -138,8 +138,8 @@ const App = () => (
             <Route path="/schedule" element={<Navigate to="/calendar" replace />} />
             <Route path="/lodging" element={staff(<Lodging />)} />
             <Route path="/grooming" element={staff(<Grooming />)} />
-            <Route path="/suite-management" element={staff(<SuiteManagement />)} />
-            <Route path="/groomer-management" element={staff(<GroomerManagement />)} />
+            <Route path="/suite-management" element={<Navigate to="/settings?tab=suites" replace />} />
+            <Route path="/groomer-management" element={<Navigate to="/settings?tab=groomers" replace />} />
             <Route path="/report-cards" element={staff(<ReportCardsPlaceholder />)} />
             <Route path="/traits" element={staff(<Traits />)} />
             <Route path="/pet-care" element={staff(<PetCare />)} />
@@ -179,8 +179,8 @@ const App = () => (
             <Route path="/incidents/new" element={staff(<IncidentForm />, "incidents.create")} />
             <Route path="/incidents/:id" element={staff(<IncidentDetail />)} />
             <Route path="/incidents/:id/edit" element={staff(<IncidentForm />, "incidents.edit")} />
-            <Route path="/playgroups" element={staff(<Playgroups />, "playgroups.manage")} />
-            <Route path="/kennel-runs" element={staff(<KennelRuns />, "kennels.manage")} />
+            <Route path="/playgroups" element={<Navigate to="/settings?tab=playgroups" replace />} />
+            <Route path="/kennel-runs" element={<Navigate to="/settings?tab=kennel-runs" replace />} />
             <Route path="/settings/locations" element={staff(<LocationsPage />, "settings.locations")} />
             <Route path="/settings/data-import" element={staff(<DataImport />, "data.import")} />
             <Route path="/settings/data-merge" element={staff(<DataMerge />, "data.merge")} />
