@@ -380,7 +380,7 @@ export default function Grooming() {
         {view === "day" ? (
           <>
             {/* KPIs */}
-            <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <div className={cn("mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2", canViewRevenue ? "lg:grid-cols-4" : "lg:grid-cols-3")}>
               <Card className="p-4 border-l-4" style={{ borderLeftColor: "hsl(var(--brand-cotton))" }}>
                 <div className="label-eyebrow">Scheduled Today</div>
                 <div className="mt-1 font-display text-2xl text-foreground">{stats.scheduled}</div>
@@ -393,10 +393,19 @@ export default function Grooming() {
                 <div className="label-eyebrow">Completed</div>
                 <div className="mt-1 font-display text-2xl text-foreground">{stats.completed}</div>
               </Card>
-              <Card className="p-4 border-l-4" style={{ borderLeftColor: "hsl(var(--brand-frost))" }}>
-                <div className="label-eyebrow">Revenue Today</div>
-                <div className="mt-1 font-display text-2xl text-foreground">${(stats.revenue / 100).toFixed(2)}</div>
-              </Card>
+              {canViewRevenue && (
+                <Card className="p-4 border-l-4" style={{ borderLeftColor: "hsl(var(--brand-frost))" }}>
+                  <div className="label-eyebrow">Revenue Today</div>
+                  <div className="mt-1 font-display text-2xl text-foreground">
+                    ${(stats.revenue / 100).toFixed(2)}
+                  </div>
+                  {stats.tips > 0 && (
+                    <div className="mt-1 text-xs text-text-secondary">
+                      + ${(stats.tips / 100).toFixed(2)} tips
+                    </div>
+                  )}
+                </Card>
+              )}
             </div>
 
             <Tabs value={tab} onValueChange={setTab}>
