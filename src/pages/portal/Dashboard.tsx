@@ -77,6 +77,8 @@ export default function Dashboard() {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [drill, setDrill] = useState<DrillKey>(null);
   const [datePopoverOpen, setDatePopoverOpen] = useState(false);
+  const [moduleFilter, setModuleFilter] = useState<"all" | "daycare" | "boarding" | "grooming" | "training">("all");
+  const [searchTerm, setSearchTerm] = useState("");
 
   const dayStart = startOfDay(selectedDate);
   const dayEnd = endOfDay(selectedDate);
@@ -104,62 +106,85 @@ export default function Dashboard() {
     },
   });
 
-  const expected = useMemo(
+  // Apply module filter to all rows first
+  const filteredRows = useMemo(() => {
+    if (moduleFilter === "all") return rows;
+    return rows.filter((r) => r.services?.module === moduleFilter);
+  }, [rows, moduleFilter]);
+
+  // Apply search term across pet + owner names
+  const searchFilter = (list: Row[]) => {
+    const term = searchTerm.trim().toLowerCase();
+    if (!term) return list;
+    return list.filter((r) => {
+      const pets = petNames(r).toLowerCase();
+      const owner = ownerName(r).toLowerCase();
+      return pets.includes(term) || owner.includes(term);
+    });
+  };
+
+  const expectedAll = useMemo(
     () =>
-      rows.filter(
+      filteredRows.filter(
         (r) =>
           r.status === "confirmed" &&
           new Date(r.start_at) >= dayStart &&
           new Date(r.start_at) <= dayEnd,
       ),
-    [rows, dayStart, dayEnd],
+    [filteredRows, dayStart, dayEnd],
   );
 
-  const checkedIn = useMemo(
+  const checkedInAll = useMemo(
     () =>
-      rows.filter(
+      filteredRows.filter(
         (r) =>
           r.status === "checked_in" &&
           (!r.checked_in_at || new Date(r.checked_in_at) <= dayEnd) &&
           (!r.checked_out_at || new Date(r.checked_out_at) >= dayStart),
       ),
-    [rows, dayStart, dayEnd],
+    [filteredRows, dayStart, dayEnd],
   );
 
-  const goingHome = useMemo(
+  const goingHomeAll = useMemo(
     () =>
-      rows.filter(
+      filteredRows.filter(
         (r) =>
           r.status === "checked_in" &&
           new Date(r.end_at) >= dayStart &&
           new Date(r.end_at) <= dayEnd,
       ),
-    [rows, dayStart, dayEnd],
+    [filteredRows, dayStart, dayEnd],
   );
 
-  const requested = useMemo(
+  const requestedAll = useMemo(
     () =>
-      rows.filter(
+      filteredRows.filter(
         (r) =>
           r.status === "requested" &&
           new Date(r.start_at) >= dayStart &&
           new Date(r.start_at) <= dayEnd,
       ),
-    [rows, dayStart, dayEnd],
+    [filteredRows, dayStart, dayEnd],
   );
 
-  // Counters
-  const arrivingCount = expected.length;
-  const departingCount = goingHome.length;
+  // Search-filtered versions for the tabs (counts in tab labels reflect search)
+  const expected = useMemo(() => searchFilter(expectedAll), [expectedAll, searchTerm]);
+  const checkedIn = useMemo(() => searchFilter(checkedInAll), [checkedInAll, searchTerm]);
+  const goingHome = useMemo(() => searchFilter(goingHomeAll), [goingHomeAll, searchTerm]);
+  const requested = useMemo(() => searchFilter(requestedAll), [requestedAll, searchTerm]);
+
+  // Counters use the (unsearched) filtered totals so KPIs reflect day+module
+  const arrivingCount = expectedAll.length;
+  const departingCount = goingHomeAll.length;
   const overnight = useMemo(
     () =>
-      checkedIn.filter(
+      checkedInAll.filter(
         (r) => r.services?.module === "boarding" && new Date(r.end_at) > dayEnd,
       ),
-    [checkedIn, dayEnd],
+    [checkedInAll, dayEnd],
   );
   const overnightCount = overnight.length;
-  const onSiteCount = checkedIn.length;
+  const onSiteCount = checkedInAll.length;
 
   const invalidate = () => {
     qc.invalidateQueries({ queryKey: ["dashboard-day"] });
@@ -385,7 +410,7 @@ export default function Dashboard() {
             </div>
             {drill === "arriving" && (
               <GroupedTable
-                rows={expected}
+                rows={expectedAll}
                 emptyText="No arrivals for this day"
                 columns={["Pet", "Owner", "Service", "Scheduled Time", "Status"]}
                 renderRow={(r) => [
@@ -399,7 +424,7 @@ export default function Dashboard() {
             )}
             {drill === "departing" && (
               <GroupedTable
-                rows={goingHome}
+                rows={goingHomeAll}
                 emptyText="No departures for this day"
                 columns={["Pet", "Owner", "Service", "Scheduled Pickup", "Status"]}
                 renderRow={(r) => [
@@ -434,7 +459,7 @@ export default function Dashboard() {
             )}
             {drill === "onsite" && (
               <GroupedTable
-                rows={checkedIn}
+                rows={checkedInAll}
                 emptyText="No pets currently on site"
                 columns={["Pet", "Owner", "Service", "Checked In"]}
                 renderRow={(r) => [
@@ -448,6 +473,39 @@ export default function Dashboard() {
           </section>
         )}
 
+        {/* Service type filter pills */}
+        <div className="mb-5 flex flex-wrap gap-2">
+          {(
+            [
+              { key: "all", label: "All" },
+              { key: "daycare", label: "Daycare" },
+              { key: "boarding", label: "Boarding" },
+              { key: "grooming", label: "Grooming" },
+              { key: "training", label: "Training" },
+            ] as const
+          ).map((p) => {
+            const active = moduleFilter === p.key;
+            return (
+              <button
+                key={p.key}
+                type="button"
+                onClick={() => {
+                  setModuleFilter(p.key);
+                  setDrill(null);
+                }}
+                className={cn(
+                  "rounded-full border px-4 py-1.5 text-xs font-medium transition-colors",
+                  active
+                    ? "border-primary bg-primary text-primary-foreground shadow-sm"
+                    : "border-border bg-surface text-text-secondary hover:border-primary/40 hover:text-foreground",
+                )}
+              >
+                {p.label}
+              </button>
+            );
+          })}
+        </div>
+
         {/* Quick Actions */}
         <div className="mb-6 flex flex-wrap items-center gap-3">
           <Button size="lg" onClick={() => setQuickOpen(true)} className="gap-2">
@@ -458,6 +516,34 @@ export default function Dashboard() {
 
         {/* Today's Reservations */}
         <section className="rounded-lg border border-border bg-surface shadow-card">
+          {/* Search bar (persists across tabs) */}
+          <div className="flex flex-wrap items-center gap-3 border-b border-border-subtle px-5 py-3">
+            <div className="relative flex-1 min-w-[240px]">
+              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-tertiary" />
+              <Input
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder="Search by pet name or owner name..."
+                className="pl-9 pr-9"
+              />
+              {searchTerm && (
+                <button
+                  type="button"
+                  onClick={() => setSearchTerm("")}
+                  aria-label="Clear search"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 rounded-md p-1 text-text-tertiary hover:bg-background hover:text-foreground"
+                >
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              )}
+            </div>
+            {searchTerm && (
+              <span className="text-xs text-text-secondary">
+                Showing {expected.length + checkedIn.length + goingHome.length + requested.length} of{" "}
+                {expectedAll.length + checkedInAll.length + goingHomeAll.length + requestedAll.length} results
+              </span>
+            )}
+          </div>
           <Tabs defaultValue="expected" className="w-full">
             <div className="border-b border-border-subtle px-5 pt-4">
               <TabsList>

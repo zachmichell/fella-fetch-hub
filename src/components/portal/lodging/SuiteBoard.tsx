@@ -1,15 +1,4 @@
 import { useMemo, useState } from "react";
-import {
-  DndContext,
-  DragOverlay,
-  PointerSensor,
-  useSensor,
-  useSensors,
-  useDraggable,
-  useDroppable,
-  type DragEndEvent,
-  type DragStartEvent,
-} from "@dnd-kit/core";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { BedDouble, GripVertical } from "lucide-react";
@@ -22,6 +11,7 @@ import { useLocationFilter } from "@/contexts/LocationContext";
 import { cn } from "@/lib/utils";
 
 const UNASSIGNED = "__unassigned__";
+const MIME = "application/x-snout-resv";
 
 type BoardResv = {
   id: string;
@@ -94,16 +84,12 @@ export default function SuiteBoard() {
     return m;
   }, [reservations, suites]);
 
-  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 4 } }));
-  const [activeId, setActiveId] = useState<string | null>(null);
-  const activeResv = activeId ? reservations.find((r) => r.id === activeId) ?? null : null;
+  const [draggingId, setDraggingId] = useState<string | null>(null);
+  const [overId, setOverId] = useState<string | null>(null);
 
-  const onDragStart = (e: DragStartEvent) => setActiveId(String(e.active.id));
-  const onDragEnd = (e: DragEndEvent) => {
-    setActiveId(null);
-    if (!e.over) return;
-    const resvId = String(e.active.id);
-    const targetId = String(e.over.id);
+  const handleDrop = (targetId: string, resvId: string) => {
+    setDraggingId(null);
+    setOverId(null);
     const resv = reservations.find((r) => r.id === resvId);
     if (!resv) return;
     const targetSuiteId = targetId === UNASSIGNED ? null : targetId;
@@ -141,32 +127,45 @@ export default function SuiteBoard() {
   const unassignedList = grouped.get(UNASSIGNED) ?? [];
 
   return (
-    <DndContext sensors={sensors} onDragStart={onDragStart} onDragEnd={onDragEnd}>
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+      <SuiteColumn
+        id={UNASSIGNED}
+        title="Unassigned"
+        subtitle="Boarding pets without a suite"
+        items={unassignedList}
+        capacity={null}
+        isOver={overId === UNASSIGNED}
+        draggingId={draggingId}
+        onDragStart={setDraggingId}
+        onDragEnd={() => {
+          setDraggingId(null);
+          setOverId(null);
+        }}
+        onEnter={() => setOverId(UNASSIGNED)}
+        onLeave={() => setOverId((cur) => (cur === UNASSIGNED ? null : cur))}
+        onDrop={handleDrop}
+      />
+      {suites.map((s) => (
         <SuiteColumn
-          id={UNASSIGNED}
-          title="Unassigned"
-          subtitle="Boarding pets without a suite"
-          items={unassignedList}
-          capacity={null}
+          key={s.id}
+          id={s.id}
+          title={s.name}
+          subtitle={typeLabel(s.type)}
+          items={grouped.get(s.id) ?? []}
+          capacity={s.capacity}
+          isOver={overId === s.id}
+          draggingId={draggingId}
+          onDragStart={setDraggingId}
+          onDragEnd={() => {
+            setDraggingId(null);
+            setOverId(null);
+          }}
+          onEnter={() => setOverId(s.id)}
+          onLeave={() => setOverId((cur) => (cur === s.id ? null : cur))}
+          onDrop={handleDrop}
         />
-        {suites.map((s) => (
-          <SuiteColumn
-            key={s.id}
-            id={s.id}
-            title={s.name}
-            subtitle={typeLabel(s.type)}
-            items={grouped.get(s.id) ?? []}
-            capacity={s.capacity}
-          />
-        ))}
-      </div>
-      <DragOverlay>
-        {activeResv ? (
-          <PetCardDisplay resv={activeResv} dragging />
-        ) : null}
-      </DragOverlay>
-    </DndContext>
+      ))}
+    </div>
   );
 }
 
@@ -180,19 +179,53 @@ function SuiteColumn({
   subtitle,
   items,
   capacity,
+  isOver,
+  draggingId,
+  onDragStart,
+  onDragEnd,
+  onEnter,
+  onLeave,
+  onDrop,
 }: {
   id: string;
   title: string;
   subtitle: string;
   items: BoardResv[];
   capacity: number | null;
+  isOver: boolean;
+  draggingId: string | null;
+  onDragStart: (id: string) => void;
+  onDragEnd: () => void;
+  onEnter: () => void;
+  onLeave: () => void;
+  onDrop: (targetId: string, resvId: string) => void;
 }) {
-  const { setNodeRef, isOver } = useDroppable({ id });
   const isUnassigned = id === UNASSIGNED;
   const overCap = capacity !== null && items.length > capacity;
+
   return (
     <Card
-      ref={setNodeRef}
+      onDragOver={(e) => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = "move";
+        onEnter();
+      }}
+      onDragEnter={(e) => {
+        e.preventDefault();
+        onEnter();
+      }}
+      onDragLeave={(e) => {
+        // Only clear when leaving the column entirely
+        const related = e.relatedTarget as Node | null;
+        if (!related || !e.currentTarget.contains(related)) {
+          onLeave();
+        }
+      }}
+      onDrop={(e) => {
+        e.preventDefault();
+        const resvId = e.dataTransfer.getData(MIME) || e.dataTransfer.getData("text/plain");
+        if (resvId) onDrop(id, resvId);
+      }}
       className={cn(
         "flex min-h-[280px] flex-col gap-3 border-border bg-card p-4 transition-all",
         isOver && "border-primary ring-2 ring-primary/40 shadow-md",
@@ -224,36 +257,48 @@ function SuiteColumn({
             {isUnassigned ? "Drop pets here to unassign" : "Drop a pet here"}
           </div>
         ) : (
-          items.map((r) => <DraggablePetCard key={r.id} resv={r} />)
+          items.map((r) => (
+            <DraggablePetCard
+              key={r.id}
+              resv={r}
+              dragging={draggingId === r.id}
+              onDragStart={onDragStart}
+              onDragEnd={onDragEnd}
+            />
+          ))
         )}
       </div>
     </Card>
   );
 }
 
-function DraggablePetCard({ resv }: { resv: BoardResv }) {
-  const { attributes, listeners, setNodeRef, isDragging } = useDraggable({ id: resv.id });
-  return (
-    <div
-      ref={setNodeRef}
-      {...attributes}
-      {...listeners}
-      className={cn("cursor-grab active:cursor-grabbing", isDragging && "opacity-30")}
-    >
-      <PetCardDisplay resv={resv} />
-    </div>
-  );
-}
-
-function PetCardDisplay({ resv, dragging }: { resv: BoardResv; dragging?: boolean }) {
+function DraggablePetCard({
+  resv,
+  dragging,
+  onDragStart,
+  onDragEnd,
+}: {
+  resv: BoardResv;
+  dragging: boolean;
+  onDragStart: (id: string) => void;
+  onDragEnd: () => void;
+}) {
   const pet = resv.reservation_pets?.[0]?.pets;
   const ownerName =
     [resv.owners?.first_name, resv.owners?.last_name].filter(Boolean).join(" ") || "—";
   return (
     <div
+      draggable
+      onDragStart={(e) => {
+        e.dataTransfer.effectAllowed = "move";
+        e.dataTransfer.setData(MIME, resv.id);
+        e.dataTransfer.setData("text/plain", resv.id);
+        onDragStart(resv.id);
+      }}
+      onDragEnd={onDragEnd}
       className={cn(
-        "rounded-lg border border-border bg-surface p-3 shadow-sm transition-shadow",
-        dragging && "rotate-2 shadow-lg ring-2 ring-primary/50",
+        "cursor-grab rounded-lg border border-border bg-surface p-3 shadow-sm transition-all active:cursor-grabbing hover:shadow-md",
+        dragging && "opacity-40",
         resv.status === "checked_in"
           ? "border-l-4 border-l-success"
           : "border-l-4 border-l-primary",
