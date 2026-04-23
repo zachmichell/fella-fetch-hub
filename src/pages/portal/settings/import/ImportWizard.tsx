@@ -105,6 +105,7 @@ export default function ImportWizard() {
             dataType={dataType}
             rows={validated}
             organizationId={orgId}
+            sourceSystem={source ?? "other"}
             onReset={reset}
           />
         )}

@@ -1,5 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
-import type { DataType, ImportResult, ValidatedRow } from "./types";
+import type { DataType, ImportResult, SourceSystem, ValidatedRow } from "./types";
 
 type Progress = (done: number, total: number) => void;
 
@@ -8,6 +8,7 @@ export async function executeImport(
   rows: ValidatedRow[],
   organizationId: string,
   onProgress: Progress,
+  sourceSystem: SourceSystem = "other",
 ): Promise<ImportResult> {
   const result: ImportResult = { imported: 0, skipped: 0, errored: 0, errorRows: [] };
   const toImport = rows.filter((r) => r.include);
@@ -41,6 +42,8 @@ export async function executeImport(
           state_province: row.mapped.state_province,
           postal_code: row.mapped.postal_code,
           notes: row.mapped.notes,
+          external_id: row.mapped.external_id ?? null,
+          external_source: row.mapped.external_id ? sourceSystem : null,
         });
         if (error) throw error;
       } else if (dataType === "pets") {
@@ -56,6 +59,10 @@ export async function executeImport(
             weight_kg: row.mapped.weight_kg,
             color: row.mapped.color,
             microchip_id: row.mapped.microchip_id,
+            spayed_neutered: row.mapped.spayed_neutered ?? null,
+            behavioral_notes: row.mapped.behavioral_notes ?? null,
+            external_id: row.mapped.external_id ?? null,
+            external_source: row.mapped.external_id ? sourceSystem : null,
           })
           .select("id")
           .single();
