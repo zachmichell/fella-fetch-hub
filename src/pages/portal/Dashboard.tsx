@@ -410,7 +410,7 @@ export default function Dashboard() {
             </div>
             {drill === "arriving" && (
               <GroupedTable
-                rows={expected}
+                rows={expectedAll}
                 emptyText="No arrivals for this day"
                 columns={["Pet", "Owner", "Service", "Scheduled Time", "Status"]}
                 renderRow={(r) => [
