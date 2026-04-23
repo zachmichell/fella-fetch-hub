@@ -9,6 +9,8 @@ import {
   MessageSquare,
   BedDouble,
   Scissors,
+  HeartPulse,
+  FileText,
   Settings as SettingsIcon,
   ChevronLeft,
   ChevronRight,
@@ -41,6 +43,8 @@ const sections: Array<{
       { to: "/group-classes", icon: GraduationCap, label: "Group Classes" },
       { to: "/lodging", icon: BedDouble, label: "Lodging" },
       { to: "/grooming", icon: Scissors, label: "Grooming" },
+      { to: "/pet-care", icon: HeartPulse, label: "Pet Care" },
+      { to: "/report-cards", icon: FileText, label: "Report Cards" },
     ],
   },
   {
