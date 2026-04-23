@@ -15,6 +15,7 @@ import { PlaygroupsSection } from "../playgroups/Playgroups";
 import { KennelRunsSection } from "../kennel-runs/KennelRuns";
 import { SuiteManagementSection } from "../facility/SuiteManagement";
 import { GroomerManagementSection } from "../facility/GroomerManagement";
+import ImportWizard from "./import/ImportWizard";
 import { usePermissions } from "@/hooks/usePermissions";
 import type { Permission } from "@/lib/permissions";
 
@@ -31,6 +32,7 @@ const TAB_CONFIG: Array<{ key: string; label: string; permission: Permission }> 
   { key: "kennel-runs", label: "Kennel Runs", permission: "kennels.manage" },
   { key: "suites", label: "Suites", permission: "settings.organization" },
   { key: "groomers", label: "Groomers", permission: "settings.organization" },
+  { key: "import", label: "Import", permission: "settings.organization" },
 ];
 
 export default function Settings() {
@@ -135,6 +137,11 @@ export default function Settings() {
         {can("settings.organization") && (
           <TabsContent value="groomers" className="mt-6">
             <GroomerManagementSection />
+          </TabsContent>
+        )}
+        {can("settings.organization") && (
+          <TabsContent value="import" className="mt-6">
+            <ImportWizard />
           </TabsContent>
         )}
       </Tabs>
