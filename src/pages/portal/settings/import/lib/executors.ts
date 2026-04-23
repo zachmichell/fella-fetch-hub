@@ -113,14 +113,14 @@ export async function executeImport(
           // Update existing pet
           const { error } = await supabase
             .from("pets")
-            .update(petPayload(row, organizationId, sourceSystem, false))
+            .update(petPayload(row, organizationId, sourceSystem, false) as any)
             .eq("id", row.duplicateOfId);
           if (error) throw error;
           petId = row.duplicateOfId;
         } else {
           const { data: pet, error } = await supabase
             .from("pets")
-            .insert(petPayload(row, organizationId, sourceSystem, true))
+            .insert(petPayload(row, organizationId, sourceSystem, true) as any)
             .select("id")
             .single();
           if (error) throw error;
