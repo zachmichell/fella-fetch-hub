@@ -33,8 +33,9 @@ import { useAuth } from "@/hooks/useAuth";
 import { useSuites, type SuiteRow } from "@/hooks/useSuites";
 import { cn } from "@/lib/utils";
 import { useLocationFilter } from "@/contexts/LocationContext";
+import SuiteBoard from "@/components/portal/lodging/SuiteBoard";
 
-type ViewMode = "weekly" | "monthly";
+type ViewMode = "weekly" | "monthly" | "board";
 type VacancyFilter = "all" | "vacant" | "occupied";
 
 type ResvRow = {
