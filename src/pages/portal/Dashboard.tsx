@@ -77,6 +77,8 @@ export default function Dashboard() {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [drill, setDrill] = useState<DrillKey>(null);
   const [datePopoverOpen, setDatePopoverOpen] = useState(false);
+  const [moduleFilter, setModuleFilter] = useState<"all" | "daycare" | "boarding" | "grooming" | "training">("all");
+  const [searchTerm, setSearchTerm] = useState("");
 
   const dayStart = startOfDay(selectedDate);
   const dayEnd = endOfDay(selectedDate);
