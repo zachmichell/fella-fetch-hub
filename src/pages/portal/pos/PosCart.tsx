@@ -308,9 +308,6 @@ export default function PosCart() {
           amount_cents: totals.total, currency,
           method: dbMethod,
           status: "succeeded", processed_at: now,
-          notes: paymentMethod === "card_on_file" && defaultCard
-            ? `Charged card on file: ${defaultCard.card_brand} •••• ${defaultCard.card_last_four}`
-            : null,
         });
       }
 
