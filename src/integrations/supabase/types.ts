@@ -1269,6 +1269,75 @@ export type Database = {
           },
         ]
       }
+      import_jobs: {
+        Row: {
+          column_mapping: Json
+          created_at: string
+          created_by: string | null
+          data_type: string
+          error_count: number
+          error_log: Json
+          file_name: string | null
+          id: string
+          imported_count: number
+          organization_id: string
+          skipped_count: number
+          source_system: string
+          status: string
+          total_rows: number
+          updated_at: string
+        }
+        Insert: {
+          column_mapping?: Json
+          created_at?: string
+          created_by?: string | null
+          data_type: string
+          error_count?: number
+          error_log?: Json
+          file_name?: string | null
+          id?: string
+          imported_count?: number
+          organization_id: string
+          skipped_count?: number
+          source_system: string
+          status?: string
+          total_rows?: number
+          updated_at?: string
+        }
+        Update: {
+          column_mapping?: Json
+          created_at?: string
+          created_by?: string | null
+          data_type?: string
+          error_count?: number
+          error_log?: Json
+          file_name?: string | null
+          id?: string
+          imported_count?: number
+          organization_id?: string
+          skipped_count?: number
+          source_system?: string
+          status?: string
+          total_rows?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "import_jobs_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "import_jobs_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       incident_pets: {
         Row: {
           created_at: string
