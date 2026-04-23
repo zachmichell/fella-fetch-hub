@@ -1,13 +1,14 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { Loader2, AlertCircle, AlertTriangle, CheckCircle2, Link2, Link2Off } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Loader2, AlertCircle, AlertTriangle, CheckCircle2, Link2, Link2Off, Copy } from "lucide-react";
 import { validateRows } from "./lib/validators";
-import type { ColumnMapping, DataType, MatchStats, ParsedFile, ValidatedRow } from "./lib/types";
+import type { ColumnMapping, DataType, DuplicateMode, MatchStats, ParsedFile, ValidatedRow } from "./lib/types";
 
 export default function StepValidate({
   dataType,
@@ -16,6 +17,8 @@ export default function StepValidate({
   organizationId,
   rows,
   onRowsChange,
+  duplicateMode,
+  onDuplicateModeChange,
   onBack,
   onNext,
 }: {
@@ -25,6 +28,8 @@ export default function StepValidate({
   organizationId: string;
   rows: ValidatedRow[];
   onRowsChange: (r: ValidatedRow[]) => void;
+  duplicateMode: DuplicateMode;
+  onDuplicateModeChange: (m: DuplicateMode) => void;
   onBack: () => void;
   onNext: () => void;
 }) {
@@ -51,9 +56,18 @@ export default function StepValidate({
     (r) => r.issues.some((i) => i.severity === "warning") && !r.issues.some((i) => i.severity === "error"),
   );
   const cleanRows = rows.filter((r) => r.issues.length === 0);
+  const duplicateRows = useMemo(() => rows.filter((r) => r.isDuplicate), [rows]);
   const flaggedRows = rows.filter((r) => r.issues.length > 0);
-  const includedCount = rows.filter((r) => r.include).length;
   const unlinkedRows = rows.filter((r) => r.matchMethod === "none" && (r.raw && Object.keys(r.raw).length));
+
+  // Compute "would import" count given duplicate mode
+  const includedCount = useMemo(() => {
+    return rows.filter((r) => {
+      if (!r.include) return false;
+      if (duplicateMode === "skip" && r.isDuplicate) return false;
+      return true;
+    }).length;
+  }, [rows, duplicateMode]);
 
   function toggleRow(index: number) {
     onRowsChange(rows.map((r) => (r.index === index ? { ...r, include: !r.include } : r)));
@@ -78,6 +92,18 @@ export default function StepValidate({
       </div>
     );
   }
+
+  const dupCount = duplicateRows.length;
+  const dupActionLabel: Record<DuplicateMode, string> = {
+    skip: "Will be skipped",
+    overwrite: "Will update existing record",
+    new: "Will be imported as new record",
+  };
+  const dupActionTone: Record<DuplicateMode, string> = {
+    skip: "border-l-warning bg-warning/5",
+    overwrite: "border-l-status-teal bg-status-teal-bg",
+    new: "border-l-success bg-success/5",
+  };
 
   return (
     <div className="space-y-6">
@@ -105,6 +131,33 @@ export default function StepValidate({
           <div className="text-2xl font-display mt-1">{errorRows.length}</div>
         </Card>
       </div>
+
+      {dupCount > 0 && (
+        <Card className={`p-4 border-l-4 ${dupActionTone[duplicateMode]}`}>
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="flex items-center gap-2">
+              <Copy className="h-4 w-4" />
+              <div>
+                <div className="text-sm font-medium">{dupCount} duplicate{dupCount === 1 ? "" : "s"} detected</div>
+                <div className="text-xs text-text-secondary">{dupActionLabel[duplicateMode]}</div>
+              </div>
+            </div>
+            <div className="ml-auto flex items-center gap-2">
+              <Label className="text-xs text-text-secondary">When duplicates are found</Label>
+              <Select value={duplicateMode} onValueChange={(v) => onDuplicateModeChange(v as DuplicateMode)}>
+                <SelectTrigger className="w-56">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="skip">Skip duplicates</SelectItem>
+                  <SelectItem value="overwrite">Overwrite duplicates</SelectItem>
+                  <SelectItem value="new">Import as new</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        </Card>
+      )}
 
       {matchStats && (
         <Card className="p-4">
@@ -199,32 +252,52 @@ export default function StepValidate({
                 </tr>
               </thead>
               <tbody>
-                {flaggedRows.slice(0, 200).map((r) => (
-                  <tr key={r.index} className="border-t border-border">
-                    <td className="px-3 py-2">
-                      <Checkbox checked={r.include} onCheckedChange={() => toggleRow(r.index)} />
-                    </td>
-                    <td className="px-3 py-2 font-mono">{r.index + 2}</td>
-                    <td className="px-3 py-2">
-                      <div className="space-y-1">
-                        {r.issues.map((i, idx) => (
-                          <div key={idx} className="flex items-center gap-1.5">
-                            <Badge
-                              variant={i.severity === "error" ? "destructive" : "secondary"}
-                              className="text-[10px]"
-                            >
-                              {i.field}
-                            </Badge>
-                            <span className="text-text-secondary">{i.message}</span>
-                          </div>
-                        ))}
-                      </div>
-                    </td>
-                    <td className="px-3 py-2 text-text-secondary truncate max-w-xs">
-                      {Object.values(r.raw).slice(0, 4).join(" · ")}
-                    </td>
-                  </tr>
-                ))}
+                {flaggedRows.slice(0, 200).map((r) => {
+                  // Recolor duplicate rows based on selected duplicate mode
+                  const isDup = r.isDuplicate;
+                  const rowTone =
+                    isDup && duplicateMode === "overwrite"
+                      ? "bg-status-teal-bg/40"
+                      : isDup && duplicateMode === "new"
+                        ? "bg-success/5"
+                        : "";
+                  return (
+                    <tr key={r.index} className={`border-t border-border ${rowTone}`}>
+                      <td className="px-3 py-2">
+                        <Checkbox checked={r.include} onCheckedChange={() => toggleRow(r.index)} />
+                      </td>
+                      <td className="px-3 py-2 font-mono">{r.index + 2}</td>
+                      <td className="px-3 py-2">
+                        <div className="space-y-1">
+                          {r.issues.map((i, idx) => {
+                            const dupIssue = isDup && i.severity === "warning";
+                            const variant: "destructive" | "secondary" | "default" =
+                              dupIssue && duplicateMode !== "skip"
+                                ? "default"
+                                : i.severity === "error"
+                                  ? "destructive"
+                                  : "secondary";
+                            return (
+                              <div key={idx} className="flex items-center gap-1.5">
+                                <Badge variant={variant} className="text-[10px]">
+                                  {i.field}
+                                </Badge>
+                                <span className="text-text-secondary">
+                                  {dupIssue && duplicateMode !== "skip"
+                                    ? dupActionLabel[duplicateMode]
+                                    : i.message}
+                                </span>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </td>
+                      <td className="px-3 py-2 text-text-secondary truncate max-w-xs">
+                        {Object.values(r.raw).slice(0, 4).join(" · ")}
+                      </td>
+                    </tr>
+                  );
+                })}
                 {flaggedRows.length > 200 && (
                   <tr>
                     <td colSpan={4} className="px-3 py-2 text-center text-text-secondary italic">
