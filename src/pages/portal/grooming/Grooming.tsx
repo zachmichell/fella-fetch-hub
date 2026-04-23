@@ -72,10 +72,13 @@ export default function Grooming() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [tab, setTab] = useState("schedule");
   const [requestsOpen, setRequestsOpen] = useState(true);
+  const [tipFor, setTipFor] = useState<GroomingAppointment | null>(null);
 
   const { membership } = useAuth();
   const orgId = membership?.organization_id;
   const qc = useQueryClient();
+  const { can } = usePermissions();
+  const canViewRevenue = can("revenue.view");
 
   const { data: appts = [], isLoading } = useGroomingAppointments(dateStr);
   const { data: groomers = [] } = useGroomers({ activeOnly: true });
