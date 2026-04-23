@@ -46,7 +46,24 @@ export default function CheckInFlow({
   const [override, setOverride] = useState(false);
   const [playgroupId, setPlaygroupId] = useState<string>("");
   const [kennelRunId, setKennelRunId] = useState<string>("");
+  const [dropoffOwnerId, setDropoffOwnerId] = useState<string>(ownerId ?? "");
   const checkIn = useCheckIn();
+
+  // All owners linked to the first pet (so staff can pick who is dropping off)
+  const firstPetId = pets[0]?.id ?? null;
+  const { data: petLinkedOwners } = useQuery({
+    queryKey: ["checkin-pet-owners", firstPetId],
+    enabled: !!firstPetId,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("pet_owners")
+        .select("role, owner:owners(id, first_name, last_name, phone)")
+        .eq("pet_id", firstPetId!)
+        .order("role", { ascending: true });
+      if (error) throw error;
+      return ((data ?? []) as any[]).filter((r) => r.owner);
+    },
+  });
 
   // Waivers + signatures (single owner)
   const { data: waiverStatus } = useQuery({
