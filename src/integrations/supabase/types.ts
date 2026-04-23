@@ -1110,6 +1110,165 @@ export type Database = {
           },
         ]
       }
+      groomers: {
+        Row: {
+          bio: string | null
+          certifications: string[]
+          commission_rate_percent: number | null
+          created_at: string
+          display_name: string
+          id: string
+          max_appointments_per_day: number
+          organization_id: string
+          specialties: string[]
+          staff_member_id: string | null
+          status: string
+          updated_at: string
+          working_days: string[]
+        }
+        Insert: {
+          bio?: string | null
+          certifications?: string[]
+          commission_rate_percent?: number | null
+          created_at?: string
+          display_name: string
+          id?: string
+          max_appointments_per_day?: number
+          organization_id: string
+          specialties?: string[]
+          staff_member_id?: string | null
+          status?: string
+          updated_at?: string
+          working_days?: string[]
+        }
+        Update: {
+          bio?: string | null
+          certifications?: string[]
+          commission_rate_percent?: number | null
+          created_at?: string
+          display_name?: string
+          id?: string
+          max_appointments_per_day?: number
+          organization_id?: string
+          specialties?: string[]
+          staff_member_id?: string | null
+          status?: string
+          updated_at?: string
+          working_days?: string[]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "groomers_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "groomers_staff_member_id_fkey"
+            columns: ["staff_member_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      grooming_appointments: {
+        Row: {
+          appointment_date: string
+          check_in_time: string | null
+          completed_time: string | null
+          created_at: string
+          estimated_duration_minutes: number
+          groomer_id: string
+          id: string
+          notes: string | null
+          organization_id: string
+          owner_id: string
+          pet_id: string
+          price_cents: number
+          reservation_id: string | null
+          services_requested: string[]
+          start_time: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          appointment_date: string
+          check_in_time?: string | null
+          completed_time?: string | null
+          created_at?: string
+          estimated_duration_minutes?: number
+          groomer_id: string
+          id?: string
+          notes?: string | null
+          organization_id: string
+          owner_id: string
+          pet_id: string
+          price_cents?: number
+          reservation_id?: string | null
+          services_requested?: string[]
+          start_time: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          appointment_date?: string
+          check_in_time?: string | null
+          completed_time?: string | null
+          created_at?: string
+          estimated_duration_minutes?: number
+          groomer_id?: string
+          id?: string
+          notes?: string | null
+          organization_id?: string
+          owner_id?: string
+          pet_id?: string
+          price_cents?: number
+          reservation_id?: string | null
+          services_requested?: string[]
+          start_time?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "grooming_appointments_groomer_id_fkey"
+            columns: ["groomer_id"]
+            isOneToOne: false
+            referencedRelation: "groomers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "grooming_appointments_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "grooming_appointments_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "owners"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "grooming_appointments_pet_id_fkey"
+            columns: ["pet_id"]
+            isOneToOne: false
+            referencedRelation: "pets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "grooming_appointments_reservation_id_fkey"
+            columns: ["reservation_id"]
+            isOneToOne: false
+            referencedRelation: "reservations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       incident_pets: {
         Row: {
           created_at: string
